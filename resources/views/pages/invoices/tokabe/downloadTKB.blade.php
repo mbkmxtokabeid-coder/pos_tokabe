@@ -6,10 +6,14 @@
     <meta charset="utf-8" />
     <title>{{$penjualan->nomor_invoice}} - {{$penjualan->customer}}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Ikhtiar Berkah" name="author" />
+    <meta content="Total Karya Berkah" name="author" />
     
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{asset('images/ikhtiarberkah.png')}}">
+    <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{asset('images/favicon-32x32.png')}}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{asset('images/favicon-16x16.png')}}">
+    <link rel="icon" type="image/png" href="{{asset('images/LogoTKB.png')}}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{asset('images/apple-touch-icon.png')}}">
     <title>Total Karya Berkah</title>
 
     <!-- Layout config Js -->
@@ -70,7 +74,7 @@
                                         </div>
                                         <p class="text-dark text-uppercase fs-16 mb-1">Penerima</p>
                                         <p class="fw-bold fs-16 mb-2" id="billing-name">{{$penjualan->customer}}</p>
-                                        <p class="text-dark fs-16 mb-1"><span>Perusahaan: </span><span id="billing-address-line-1">{{$penjualan->perusahaan}}</span></p>
+                                        
                                         <p class="text-dark fs-16 mb-1"><span>Telepon: </span><span id="billing-phone-no">{{$penjualan->no_telepon}}</span></p>
                                     </div>
                                     <div class="col-lg-5 col-5" style="margin-left: 100px"></div>
@@ -187,12 +191,14 @@
                                                          <td>Diskon<small class="text-muted"> ({{$penjualan->diskon}}%)</small></td>
                                                          <td class="text-end">- Rp.{{ number_format(($penjualan->diskon / 100) * $penjualan->total_harga, 0, ',', '.') }}</td>
                                                      </tr>
-                                                     @elseif ($hasPotongan)
+                                                     @endif
+                                                     @if ($hasPotongan)
                                                      <tr>
                                                          <td>Spesial Diskon</td>
                                                          <td class="text-end">- Rp.{{ number_format($penjualan->potongan, 0, ',', '.') }}</td>
                                                      </tr>
-                                                     @elseif ($hasPpn)
+                                                     @endif
+                                                     @if ($hasPpn)
                                                      @php
                                                          $ppnVal = !empty($penjualan->ppn) ? $penjualan->ppn : $autoPpnPersen;
                                                          $ppnAmount = !empty($penjualan->ppn) ? (($penjualan->ppn / 100) * $penjualan->total_harga) : $autoPpnNominal;
@@ -201,10 +207,11 @@
                                                          <td>PPN<small class="text-muted"> ({{$ppnVal}}%)</small></td>
                                                          <td class="text-end">+ Rp.{{ number_format($ppnAmount, 0, ',', '.') }}</td>
                                                      </tr>
-                                                     @elseif ($hasPph)
+                                                     @endif
+                                                     @if ($hasPph)
                                                      <tr>
                                                          <td>PPH<small class="text-muted"> ({{$penjualan->pph}}%)</small></td>
-                                                         <td class="text-end">+ Rp.{{ number_format(($penjualan->pph / 100) * $penjualan->total_harga, 0, ',', '.') }}</td>
+                                                         <td class="text-end">- Rp.{{ number_format(($penjualan->pph / 100) * $penjualan->total_harga, 0, ',', '.') }}</td>
                                                      </tr>
                                                      @endif
 

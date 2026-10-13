@@ -5,219 +5,25 @@
 
 <!-- Sweet Alert css-->
 <link href="{{asset('libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css" />
+<link href="{{asset('css/invoice-tokabe-form.css')}}" rel="stylesheet" type="text/css" />
 
 <script>
 $(document).ready(function () {
     $('#loading-overlay').hide();
     $("#loading-spinner").hide();
 
-    // Gunakan ID yang sesuai dengan elemen <select> Anda
-    // Jika menggunakan library Choices.js, pastikan ID-nya benar
-    $(document).on('change', '#choices-potongan', function() {
-        var pilihan = $(this).val();
-        var inputPotongan = $('#input-potongan');
-
-        if (pilihan === 'Diskon' || pilihan === 'Potongan' || pilihan === 'PPN' || pilihan === 'PPH') {
-            $('#harga-potongan').show();
-            
-            // --- PERBAIKAN KRUSIAL: Pastikan atribut 'name' ada ---
-            inputPotongan.attr('name', 'ptg'); 
-            
-            // Ganti placeholder sesuai pilihan
-            if(pilihan === 'Diskon' || pilihan === 'PPN' || pilihan === 'PPH') {
-                inputPotongan.attr('placeholder', 'Masukkan Persentase (%)');
-            } else {
-                inputPotongan.attr('placeholder', 'Nominal (Rp)');
-            }
-        } else {
-            $('#harga-potongan').hide();
-            inputPotongan.val(''); 
-            inputPotongan.removeAttr('name'); // Opsional: hapus name jika tidak dipakai
-        }
-    });
-
-
-    // --- LOGIKA MULTI-MATERIAL ---
-    // Script Tambah Form Row Material Secara Dinamis dalam 1 Barang
-    $(document).on('click', '.btn-tambah-material', function() {
-        var index = $(this).data('index');
-        var container = $(this).closest('td').find('.material-container-' + index);
-        
-        var materialOptionsDOM = document.getElementById('template-options-material');
-        var materialOptions = materialOptionsDOM ? materialOptionsDOM.innerHTML : '<option value="">-- Pilih Material --</option>';
-
-        var newRow = `
-            <div class="row mt-2 material-row border-top pt-2 position-relative">
-                 <div class="col-xl-4 col-lg-12 mb-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Pilih Material</label>
-                    <select class="form-select form-select-sm material-select" name="material_id[${index}][]">
-                        ${materialOptions}
-                    </select>
-                 </div>
-                 <div class="col-xl-4 col-lg-6 col-12 mb-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Ukuran (P × L)</label>
-                    <div class="d-flex align-items-center gap-1">
-                        <input type="number" step="any" class="form-control form-control-sm material-panjang" name="material_panjang[${index}][]" placeholder="P" min="0">
-                        <span>×</span>
-                        <input type="number" step="any" class="form-control form-control-sm material-lebar" name="material_lebar[${index}][]" placeholder="L" min="0">
-                    </div>
-                 </div>
-                 <div class="col-xl-2 col-lg-3 col-6 mb-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Hasil</label>
-                    <input type="number" step="any" class="form-control form-control-sm material-qty bg-light" name="material_qty[${index}][]" placeholder="0" readonly>
-                    <span class="text-danger fw-medium sisa-stok-info" style="font-size: 0.75rem; display: none;">Sisa: <span class="sisa-stok-angka">0</span></span>
-                 </div>
-                 <div class="col-xl-2 col-lg-3 col-6 mb-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Satuan</label>
-                    <input type="text" class="form-control form-control-sm material-satuan bg-light" name="material_satuan[${index}][]" readonly>
-                 </div>
-                 <div class="col-xl-12 col-12 text-end mb-2">
-                    <button type="button" class="btn btn-sm btn-soft-danger btn-hapus-material"><i class="las la-times"></i> Hapus Baris Material</button>
-                 </div>
-            </div>
-        `;
-        container.append(newRow);
-    });
-
-    // Menghapus baris form material
-    $(document).on('click', '.btn-hapus-material', function() {
-        $(this).closest('.material-row').remove();
-    });
-
-    // Logic untuk Material Dropdown (Auto-fill Satuan & Validasi Stok)
-    $(document).on('change', '.material-select', function() {
-        var selectedOption = $(this).find(':selected');
-        var satuan = selectedOption.data('satuan');
-        var stok = selectedOption.data('stok'); 
-        
-        // Cari input terkait dalam row yang sama
-        var row = $(this).closest('.material-row'); 
-        row.find('.material-satuan').val(satuan);
-        row.find('.material-qty').attr('max', stok);
-        row.find('.material-panjang').val(''); // Reset panjang saat ganti material
-        row.find('.material-lebar').val(''); // Reset lebar saat ganti material
-        row.find('.material-qty').val(''); // Reset qty saat ganti material
-        
-        // Tampilkan label sisa stok tanpa nol tidak penting
-        if(stok !== undefined && stok !== "") {
-            row.find('.sisa-stok-info').show();
-            row.find('.sisa-stok-angka').text(parseFloat(stok));
-        } else {
-            row.find('.sisa-stok-info').hide();
-        }
-    });
-
-    function calcTokabeAddMaterialQty(row) {
-        var p = parseFloat(row.find('.material-panjang').val()) || 0;
-        var l = parseFloat(row.find('.material-lebar').val()) || 0;
-        var productRow = row.closest('tr.product');
-        if (!productRow.length) {
-            productRow = row.closest('tr');
-        }
-        var itemQty = parseFloat(productRow.find('input[name="qty[]"], [id^="product-qty-"]').val()) || 1;
-
-        var hasil = 0;
-        if (p > 0 && l > 0) {
-            hasil = (p * l) * itemQty;
-        } else if (p > 0 && l === 0) {
-            hasil = p * itemQty;
-        } else if (l > 0 && p === 0) {
-            hasil = l * itemQty;
-        }
-
-        var qtyInput = row.find('.material-qty');
-        qtyInput.val(hasil > 0 ? hasil : '');
-        qtyInput.trigger('input'); 
-    }
-
-    // Kalkulasi Ukuran (P x L) x Quantity Tokabe
-    $(document).on('input', '.material-panjang, .material-lebar', function() {
-        calcTokabeAddMaterialQty($(this).closest('.material-row'));
-    });
-
-    $(document).on('input change', 'input[name="qty[]"], [id^="product-qty-"]', function() {
-        var productRow = $(this).closest('tr.product');
-        if (!productRow.length) {
-            productRow = $(this).closest('tr');
-        }
-        productRow.find('.material-row').each(function() {
-            calcTokabeAddMaterialQty($(this));
-        });
-    });
-
-    // Validasi Qty Input tidak boleh melebihi stok & hitung sisa
-    $(document).on('input', '.material-qty', function() {
-        var max = parseFloat($(this).attr('max'));
-        var val = parseFloat($(this).val()) || 0;
-        var row = $(this).closest('.material-row');
-        
-        if (!isNaN(max)) {
-            if (val > max) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Stok Kurang',
-                    text: 'Jumlah material melebihi stok tersedia (Maksimal: ' + max + ')',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                $(this).val(max);
-                val = max;
-            }
-            var sisa = max - val;
-            row.find('.sisa-stok-angka').text(parseFloat(sisa.toFixed(4))); 
-        }
-    });
-
-    // 1. BUAT MAPPING KATEGORI & MATERIAL REQUIRED DI JAVASCRIPT
-    const kategoriMap = {};
-    const isMaterialRequiredMap = {};
-    @if(isset($jenisBarang))
-        @foreach ($jenisBarang as $jns)
-            kategoriMap["{{$jns->id}}"] = "{{$jns->kategori_id}}";
-            isMaterialRequiredMap["{{$jns->id}}"] = "{{$jns->is_material_required ?? 0}}";
-        @endforeach
-    @endif
-
-    // Show/Hide material: ON (1) = Non-Material / Sembunyikan Pilihan & Tombol Material, OFF (0) = Pakai Material / Tampilkan
-    function updateMaterialVisibility($select) {
-        var selectedBarangId = $select.val();
-        var td = $select.closest('td');
-        var materialContainers = td.find('.materials-container, [class*="material-container-"], .material-row');
-        var tambahBtn = td.find('.add-material, .btn-tambah-material');
-        var isNonMaterial = (isMaterialRequiredMap[selectedBarangId] == "1"); // ON = Non-Material
-
-        if (isNonMaterial) {
-            materialContainers.hide();
-            tambahBtn.hide();
-            materialContainers.find('select.material-select').val('');
-            materialContainers.find('input.material-panjang, input.material-lebar, input.material-qty').val('');
-        } else {
-            materialContainers.show();
-            tambahBtn.show();
-        }
-    }
-
-    $(document).on('change addItem choice', 'select[name^="barang_id"]', function() {
-        updateMaterialVisibility($(this));
-    });
-
-    // Run on page load
-    setTimeout(function() {
-        $('select[name^="barang_id"]').each(function() {
-            updateMaterialVisibility($(this));
-        });
-    }, 200);
-
     $("#invoice_form").submit(function (e) {
     e.preventDefault();
 
+    // Temporarily enable inputs so serialize captures values
+    $('#input-ppn, #input-pph').prop('disabled', false);
+    var formData = $(this).serialize();
+    if (typeof syncTaxInputs === 'function') syncTaxInputs();
 
     $.ajax({
       type: $(this).attr("method"),
       url: $(this).attr("action"),
-      data: $(this).serialize(),
+      data: formData,
       dataType: "json",
       beforeSend: function () {
         $("#loading-spinner").show();
@@ -234,6 +40,7 @@ $(document).ready(function () {
             icon: "success",
             title: "Berhasil",
             text: response.message,
+            confirmButtonColor: "#6366F1",
           }).then(function () {
             // Redirect ke /list-invoice/tokabe
             window.location.href = "{{ route('list_invoice_tokabe') }}";
@@ -254,6 +61,7 @@ $(document).ready(function () {
           icon: "error",
           title: "Oops...",
           text: msg,
+          confirmButtonColor: "#6366F1",
         });
       },
     });
@@ -295,16 +103,7 @@ $(document).ready(function () {
                                         <div class="col-lg-8 col-sm-6">
                                          <label for="choices-invoice">Invoice</label>
                                             <div class="input-light">
-                                               <select
-                                               class="form-select   @error('inv') is-invalid @enderror"id="choices-invoice" name="inv" required>
-                                                {{-- Start Pilihan Jenis Invoice --}}
-                                                <option value="">Pilih Jenis Invoice</option>
-                                                @foreach ($invoice as $inv)
-                                                <option value="{{$inv->nama_invoice}}" {{old('inv') == $inv->nama_invoice ? 'selected' : ''}}>{{$inv->nama_invoice}}</option>
-
-                                                @endforeach
-                                                {{-- End Pilihan Jenis Invoice --}}
-                                                </select>
+                                               <input type="text" class="form-control bg-light border-0 fw-medium @error('inv') is-invalid @enderror" id="choices-invoice" name="inv" value="Tokabe" readonly>
 
                                                 @error('inv')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -367,15 +166,7 @@ $(document).ready(function () {
                                           @enderror
                                       </div>
                                   </div>
-                                  <div class="row mb-4">
-                                      <label for="usaha" class="col-lg-5 col-form-label col-form-label-md">Nama Perusahaan / Instansi</label>
-                                      <div class="col-lg-7">
-                                          <input type="text" class="form-control form-control-md  @error('perusahaan') is-invalid @enderror " id="usaha" name="perusahaan" placeholder="Nama Perusahaan / instansi" value="{{ old('perusahaan') }}">
-                                          @error('perusahaan')
-                                              <div class="invalid-feedback">{{ $message }}</div>
-                                          @enderror
-                                      </div>
-                                  </div>
+
                                   <div class="row mb-3" style="margin-top: -10px;">
                                       <div class="col-lg-5">
                                           <label for="contactNumber" class="form-label col-form-label col-form-label-md">Nomor Telepon</label>
@@ -449,7 +240,7 @@ $(document).ready(function () {
                                         <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian  </label>
                                        </div>
                                        <div class="col-lg-7">
-                                        <input type="date" class="form-control @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr"  name="tgl_selesai" id="dateInput" placeholder=" YYYY/MM/DD" value="{{ old('tgl_selesai') }}">
+                                        <input type="text" class="form-control @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}">
                                         @error('tgl_selesai')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -463,22 +254,11 @@ $(document).ready(function () {
                                    <!--end row-->
                              <div class="card-body p-4">
 
-                                 <!-- TEMPLATE TERSEMBUNYI UNTUK OPTION MATERIAL DAN BARANG -->
-                                 <!-- Solusi mempercepat Load Web: Data diletakkan di elemen HTML, BUKAN di string JS -->
-                                 <div id="template-options-material" style="display: none;">
-                                    <option value="">-- Pilih Material --</option>
-                                    @if(isset($materials))
-                                      @foreach ($materials as $mat)
-                                          <option value="{{ $mat->id }}" data-stok="{{ $mat->stok }}" data-satuan="{{ $mat->satuan }}">
-                                              {{ $mat->kode_material }} - {{ $mat->jenis_material }} (Stok: {{ $mat->stok }})
-                                          </option>
-                                      @endforeach
-                                    @endif
-                                 </div>
+                                 
                                  <div id="template-options-barang" style="display: none;">
                                     <option selected disabled>Pilih Item</option>
                                      @foreach ($jenisBarang as $jns)
-                                         <option value="{{$jns->id}}" data-kategori-id="{{$jns->kategori_id}}">{{$jns->jenis_barang}}</option>
+                                         <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}">{{$jns->nama_item}}</option>
                                      @endforeach
                                  </div>
                                  <!-- END TEMPLATE -->
@@ -510,13 +290,14 @@ $(document).ready(function () {
                                         <label class="visually-hidden" for="productName">Item</label>
 
                                         <!-- INDEX [0] DITAMBAHKAN SECARA EKSPLISIT -->
-                                        <select class="form-select @error('barang_id.0') is-invalid @enderror" data-choices data-choices-sorting="true" id="productName-1" name="barang_id[0]">
+                                        <select class="form-select @error('item_id.0') is-invalid @enderror" id="productName-1" name="item_id[0]" required>
                                             <option selected disabled>Pilih Item</option>
                                              @foreach ($jenisBarang as $jns)
-                                             <option value="{{$jns->id}}" data-kategori-id="{{$jns->kategori_id}}" {{old('barang_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->jenis_barang}}</option>
+                                             <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" {{old('item_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->nama_item}}</option>
                                              @endforeach
                                         </select>
-                                        @error('barang_id.0')
+                                        <small class="form-text text-muted item-tax-type" id="item-tax-type-1"></small>
+                                        @error('item_id.0')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                       </div>
@@ -525,48 +306,7 @@ $(document).ready(function () {
                                        <div class="invalid-feedback">{{ $message }}</div>
                                        @enderror
 
-                                       <!-- START KOLOM MULTI-MATERIAL (BARU) -->
-                                       <div class="material-container-0 mt-2">
-                                           <div class="row mt-2 material-row border-top pt-2 position-relative">
-                                             <div class="col-xl-4 col-lg-12 mb-2">
-                                                <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Pilih Material</label>
-                                                <!-- INDEX [0] DITAMBAHKAN SECARA EKSPLISIT -->
-                                                <select class="form-select form-select-sm material-select" name="material_id[0][]">
-                                                    <option value="">-- Pilih Material --</option>
-                                                    @if(isset($materials))
-                                                      @foreach ($materials as $mat)
-                                                          <option value="{{ $mat->id }}" data-stok="{{ $mat->stok }}" data-satuan="{{ $mat->satuan }}">
-                                                              {{ $mat->kode_material }} - {{ $mat->jenis_material }} (Stok: {{ $mat->stok }})
-                                                          </option>
-                                                      @endforeach
-                                                    @else
-                                                      <option disabled>Data material tidak tersedia</option>
-                                                    @endif
-                                                </select>
-                                             </div>
-                                             <div class="col-xl-4 col-lg-6 col-12 mb-2">
-                                                <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Ukuran (P × L)</label>
-                                                <div class="d-flex align-items-center gap-1">
-                                                    <input type="number" step="any" class="form-control form-control-sm material-panjang" name="material_panjang[0][]" placeholder="P" min="0">
-                                                    <span>×</span>
-                                                    <input type="number" step="any" class="form-control form-control-sm material-lebar" name="material_lebar[0][]" placeholder="L" min="0">
-                                                </div>
-                                             </div>
-                                             <div class="col-xl-2 col-lg-3 col-6 mb-2">
-                                                <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Hasil</label>
-                                                <input type="number" step="any" class="form-control form-control-sm material-qty bg-light" name="material_qty[0][]" placeholder="0" readonly>
-                                                <span class="text-danger fw-medium sisa-stok-info" style="font-size: 0.75rem; display: none;">Sisa: <span class="sisa-stok-angka">0</span></span>
-                                             </div>
-                                             <div class="col-xl-2 col-lg-3 col-6 mb-2">
-                                                <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Satuan</label>
-                                                <input type="text" class="form-control form-control-sm material-satuan bg-light" name="material_satuan[0][]" readonly>
-                                             </div>
-                                           </div>
-                                       </div>
-                                       <div class="mt-2 text-end">
-                                           <button type="button" class="btn btn-sm btn-soft-info btn-tambah-material" data-index="0"><i class="las la-plus"></i> Tambah Material</button>
-                                       </div>
-                                       <!-- END KOLOM MULTI-MATERIAL -->
+                                       
 
                                      </td>
                                      <td>
@@ -649,12 +389,23 @@ $(document).ready(function () {
                                    </div>
                                    <div class="row mb-1 col-lg-12">
                                      <div class="col lg-12">
-                                         <div class="form-check mb-1 col-lg-12" id="alamatPembayaran2">
-                                         <input class="form-check-input" type="radio" name="norek" id="flexRadioDefault2" value="TKB" checked>
-                                         <label class="form-check-label" for="flexRadioDefault2">
-                                           BSI | A/N : PT. Total Karya Berkah | No. Rek :  3557999999
-                                         </label>
-                                         </div>
+                                         @if(isset($rekenings) && $rekenings->count() > 0)
+                                          @foreach($rekenings as $rek)
+                                          <div class="form-check mb-1 col-lg-12">
+                                            <input class="form-check-input" type="radio" name="norek" id="flexRadioRek{{ $rek->id }}" value="{{ $rek->id }}" {{ $loop->first ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="flexRadioRek{{ $rek->id }}">
+                                              {{ $rek->formatted }}
+                                            </label>
+                                          </div>
+                                          @endforeach
+                                        @else
+                                          <div class="form-check mb-1 col-lg-12" id="alamatPembayaran2">
+                                          <input class="form-check-input" type="radio" name="norek" id="flexRadioDefault2" value="TKB" checked>
+                                          <label class="form-check-label" for="flexRadioDefault2">
+                                            BSI | A/N : PT. Total Karya Berkah | No. Rek :  3557999999
+                                          </label>
+                                          </div>
+                                        @endif
                                      </div>
                                    </div>
                                  <div class="row">
@@ -675,29 +426,53 @@ $(document).ready(function () {
                                        </div>
                                      </div>
                                      {{-- End Input --}}
-                                 <div class="row mb-1">
-                                   <div class="col-lg-4">
-                                   <label for="potongan" class="form-label col-form-label col-form-label-md">Diskon/Potongan/PPN</label>
-                                   </div>
-                                     <div class="col-lg-6">
-                                       <select class="form-control bg-light border-0" name="select-potongan" value="{{ old('select-potongan') }}" data-choices data-choices-search-false data-choices-removeItem id="choices-potongan">
-                                         <option value="-">-</option>
-                                         <option value="Diskon">Diskon</option>
-                                         <option value="Potongan">Potongan Harga</option>
-                                         <option value="PPN">PPN</option>
-                                         <option value="PPH">PPH</option>
-                                       </select>
-                                     </div>
-                                   </div>
-                                 <div class="row mb-1"  >
-                                   <div class="col-lg-4" >
-                                   </div>
-                                     <div class="col-lg-6" id="harga-potongan" style="display: none;">
-                                       <!-- ATTRIBUTE NAME="PTG" DITAMBAHKAN DI BAWAH INI -->
-                                       <input id="input-potongan" name="ptg" type="text" class="form-control bg-light border-0" rows="1" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }' placeholder="Rp. 0,000">
-                                     </div>
-                                   </div>
-                                   <div class="row mb-1">
+                                                                   {{-- Start Input PPN --}}
+                                  <div class="row mb-2">
+                                    <div class="col-lg-4">
+                                      <label for="input-ppn" class="form-label col-form-label col-form-label-md">PPN (%)</label>
+                                    </div>
+                                    <div class="col-lg-6">
+                                      <div class="input-group">
+                                        <input type="number" step="any" min="0" max="100" class="form-control bg-light border-0" id="input-ppn" name="ppn" placeholder="0" value="{{ old('ppn') }}">
+                                        <span class="input-group-text bg-light border-0 text-muted">%</span>
+                                      </div>
+                                      <small class="text-success fw-medium mt-1" id="preview-nominal-ppn" style="display: none;"></small>
+                                       <small class="text-danger fw-medium mt-1" id="hint-locked-ppn" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPN</small>
+                                    </div>
+                                  </div>
+
+                                  {{-- Kode Transaksi PPN (Tampil otomatis jika PPN diisi) --}}
+                                  <div class="row mb-2" id="row-kode-ppn" style="display: none;">
+                                    <div class="col-lg-4">
+                                      <label for="select-kode-ppn" class="form-label col-form-label col-form-label-md">Kode Transaksi PPN</label>
+                                    </div>
+                                    <div class="col-lg-6">
+                                      <select class="form-select bg-light border-0" name="kode_ppn" id="select-kode-ppn">
+                                        <option value="01" selected>01 - Non Pemungut PPN (Swasta)</option>
+                                        <option value="02">02 - Pemungut Instansi Pemerintah</option>
+                                        <option value="03">03 - Pemungut BUMN / Pemungut Lainnya</option>
+                                        <option value="04">04 - DPP Nilai Lain</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  {{-- End Input PPN --}}
+
+                                  {{-- Start Input PPh --}}
+                                  <div class="row mb-2">
+                                    <div class="col-lg-4">
+                                      <label for="input-pph" class="form-label col-form-label col-form-label-md">PPh (%)</label>
+                                    </div>
+                                    <div class="col-lg-6">
+                                      <div class="input-group">
+                                        <input type="number" step="any" min="0" max="100" class="form-control bg-light border-0" id="input-pph" name="pph" placeholder="0" value="{{ old('pph') }}">
+                                        <span class="input-group-text bg-light border-0 text-muted">%</span>
+                                      </div>
+                                      <small class="text-danger fw-medium mt-1" id="preview-nominal-pph" style="display: none;"></small>
+                                       <small class="text-danger fw-medium mt-1" id="hint-locked-pph" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPh</small>
+                                    </div>
+                                  </div>
+                                  {{-- End Input PPh --}}
+                                  <div class="row mb-1">
                                    <div class="col-lg-4">
                                    <label for="totalPembayaran" class="form-label col-form-label col-form-label-md">Total Pembayaran</label>
                                    </div>
@@ -717,7 +492,7 @@ $(document).ready(function () {
                               </div>
                                <!--end row-->
                                <div class="hstack gap-2 justify-content-start d-print-none mt-4">
-                                <button type="submit" id="simpan" class="btn btn-info btn-load">
+                                <button type="submit" id="simpan" class="btn btn-primary btn-load btn-simpan-tokabe">
                                   <span class="d-flex align-items-center">
                                       <span id="loading-spinner" class="spinner-border flex-shrink-0" role="status">
                                           <span class="visually-hidden">Loading...</span>
@@ -807,6 +582,148 @@ $(document).ready(function () {
     // Solusi: Kita timpa fungsi tersebut di sini agar baris baru menyertakan kolom Material.
     
     // Pastikan count sesuai dengan jumlah baris yang ada saat ini
+    const invoiceTaxLabels = {
+      ppn: 'PPN',
+      pph: 'PPh',
+      ppn_pph: 'PPN dan PPh',
+      tanpa_pajak: 'Tanpa Pajak'
+    };
+
+    function setInputLockState(input, isLocked, hintElem, message) {
+      if (!input) return;
+      if (isLocked) {
+        input.value = '0';
+        input.readOnly = true;
+        input.disabled = true;
+        input.style.backgroundColor = '#f1f3f5';
+        input.style.cursor = 'not-allowed';
+        input.style.pointerEvents = 'none';
+        input.tabIndex = -1;
+        if (hintElem) {
+          hintElem.innerHTML = '<i class="ri-lock-line me-1"></i>' + message;
+          hintElem.style.display = 'block';
+        }
+      } else {
+        input.readOnly = false;
+        input.disabled = false;
+        input.style.backgroundColor = '';
+        input.style.cursor = 'auto';
+        input.style.pointerEvents = 'auto';
+        input.removeAttribute('tabindex');
+        if (hintElem) {
+          hintElem.style.display = 'none';
+        }
+      }
+    }
+
+    function syncTaxInputs() {
+      const itemSelects = document.querySelectorAll('select[name^="item_id"]');
+      const ppnInput = document.getElementById('input-ppn');
+      const pphInput = document.getElementById('input-pph');
+      const hintPpn = document.getElementById('hint-locked-ppn');
+      const hintPph = document.getElementById('hint-locked-pph');
+
+      if (!ppnInput || !pphInput) return;
+
+      let canHavePpn = false;
+      let canHavePph = false;
+      let hasItemChosen = false;
+      let allTanpaPajak = true;
+
+      itemSelects.forEach(function (select) {
+        const opt = select.selectedOptions && select.selectedOptions[0];
+        if (opt && opt.value && !opt.disabled) {
+          hasItemChosen = true;
+          const taxType = opt.dataset.jenisPajak;
+          if (taxType === 'ppn') {
+            canHavePpn = true;
+            allTanpaPajak = false;
+          } else if (taxType === 'pph') {
+            canHavePph = true;
+            allTanpaPajak = false;
+          } else if (taxType === 'ppn_pph') {
+            canHavePpn = true;
+            canHavePph = true;
+            allTanpaPajak = false;
+          } else if (taxType !== 'tanpa_pajak') {
+            allTanpaPajak = false;
+          }
+        }
+      });
+
+      if (!hasItemChosen) {
+        setInputLockState(ppnInput, false, hintPpn);
+        setInputLockState(pphInput, false, hintPph);
+      } else if (allTanpaPajak) {
+        setInputLockState(ppnInput, true, hintPpn, 'Terkunci: Item Tanpa Pajak');
+        setInputLockState(pphInput, true, hintPph, 'Terkunci: Item Tanpa Pajak');
+      } else {
+        if (!canHavePpn) {
+          setInputLockState(ppnInput, true, hintPpn, 'Terkunci: Item tidak dikenakan PPN');
+        } else {
+          setInputLockState(ppnInput, false, hintPpn);
+        }
+
+        if (!canHavePph) {
+          setInputLockState(pphInput, true, hintPph, 'Terkunci: Item tidak dikenakan PPh');
+        } else {
+          setInputLockState(pphInput, false, hintPph);
+        }
+      }
+
+      if (typeof totalPembayaran === 'function') {
+        totalPembayaran();
+      }
+    }
+
+    function applyItemTaxDefaults(taxType) {
+      const ppnInput = document.getElementById('input-ppn');
+      const pphInput = document.getElementById('input-pph');
+      if (!ppnInput || !pphInput) return;
+
+      if (taxType === 'ppn') {
+        if (!ppnInput.value || ppnInput.value === '0') ppnInput.value = '11';
+        pphInput.value = '0';
+      } else if (taxType === 'pph') {
+        ppnInput.value = '0';
+        if (!pphInput.value || pphInput.value === '0') pphInput.value = '2';
+      } else if (taxType === 'ppn_pph') {
+        if (!ppnInput.value || ppnInput.value === '0') ppnInput.value = '11';
+        if (!pphInput.value || pphInput.value === '0') pphInput.value = '2';
+      } else if (taxType === 'tanpa_pajak') {
+        ppnInput.value = '0';
+        pphInput.value = '0';
+      }
+    }
+
+    function updateItemTaxType(select, isUserChange = false) {
+      const container = select.closest('.mb-2') || select.closest('td') || select.parentElement;
+      const label = container ? container.querySelector('.item-tax-type') : null;
+      const opt = select.selectedOptions && select.selectedOptions[0];
+      const taxType = opt ? opt.dataset.jenisPajak : '';
+      if (label) {
+        label.textContent = taxType && invoiceTaxLabels[taxType] ? `Jenis pajak item: ${invoiceTaxLabels[taxType]}` : '';
+      }
+      if (isUserChange && taxType) {
+        applyItemTaxDefaults(taxType);
+      }
+      syncTaxInputs();
+    }
+
+    document.addEventListener('change', function (event) {
+      if (event.target.matches('select[name^="item_id"]')) {
+        updateItemTaxType(event.target, true);
+      }
+    });
+
+    $(document).on('click', '.product-removal a, .product-removal button', function () {
+      setTimeout(syncTaxInputs, 150);
+    });
+
+    document.querySelectorAll('select[name^="item_id"]').forEach(function(el) {
+      updateItemTaxType(el, false);
+    });
+
     var count = document.querySelectorAll('#newlink tr.product').length;
     
     window.new_link = function() {
@@ -816,8 +733,7 @@ $(document).ready(function () {
         
         // MENGAMBIL DATA DARI ELEMEN HIDDEN HTML (BUKAN MELOOPING PHP DI DALAM SCRIPT)
         // Ini adalah kunci yang mengembalikan kecepatan web Anda menjadi normal
-        var materialOptionsDOM = document.getElementById('template-options-material');
-        var materialOptions = materialOptionsDOM ? materialOptionsDOM.innerHTML : '<option value="">-- Pilih Material --</option>';
+        
 
         var itemOptionsDOM = document.getElementById('template-options-barang');
         var itemOptions = itemOptionsDOM ? itemOptionsDOM.innerHTML : '<option selected disabled>Pilih Item</option>';
@@ -827,46 +743,14 @@ $(document).ready(function () {
             <th scope="row" class="product-id">${count + 1}</th>
             <td class="text-start">
                 <div class="mb-2">
-                    <select class="form-select" name="barang_id[${count}]" id="productName-${count + 1}">
+                    <select class="form-select" name="item_id[${count}]" id="productName-${count + 1}">
                         ${itemOptions}
                     </select>
+                    <small class="form-text text-muted item-tax-type" id="item-tax-type-${count + 1}"></small>
                 </div>
                 <textarea class="form-control bg-light border-0" id="productDetails-${count + 1}" name="deskripsi_item[${count}]" rows="2" placeholder="Deskripsi Item"></textarea>
                 
-                <!-- KOLOM MULTI-MATERIAL DI ITEM BARU (SUDAH DI PERBARUI AGAR RESPONSIF) -->
-                <div class="material-container-${count} mt-2">
-                    <div class="row mt-2 material-row border-top pt-2 position-relative">
-                         <div class="col-xl-4 col-lg-12 mb-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Pilih Material</label>
-                            <select class="form-select form-select-sm material-select" name="material_id[${count}][]">
-                                ${materialOptions}
-                            </select>
-                         </div>
-                         <div class="col-xl-4 col-lg-6 col-12 mb-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Ukuran (P × L)</label>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="number" step="any" class="form-control form-control-sm material-panjang" name="material_panjang[${count}][]" placeholder="P" min="0">
-                                <span>×</span>
-                                <input type="number" step="any" class="form-control form-control-sm material-lebar" name="material_lebar[${count}][]" placeholder="L" min="0">
-                            </div>
-                         </div>
-                         <div class="col-xl-2 col-lg-3 col-6 mb-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Hasil</label>
-                            <input type="number" step="any" class="form-control form-control-sm material-qty bg-light" name="material_qty[${count}][]" placeholder="0" readonly>
-                            <span class="text-danger fw-medium sisa-stok-info" style="font-size: 0.75rem; display: none;">Sisa: <span class="sisa-stok-angka">0</span></span>
-                         </div>
-                         <div class="col-xl-2 col-lg-3 col-6 mb-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Satuan</label>
-                            <input type="text" class="form-control form-control-sm material-satuan bg-light" name="material_satuan[${count}][]" readonly>
-                         </div>
-                         <div class="col-xl-12 col-12 text-end mb-2">
-                            <button type="button" class="btn btn-sm btn-soft-danger btn-hapus-material"><i class="las la-times"></i> Hapus Baris Material</button>
-                         </div>
-                    </div>
-                </div>
-                <div class="mt-2 text-end">
-                    <button type="button" class="btn btn-sm btn-soft-info btn-tambah-material" data-index="${count}"><i class="las la-plus"></i> Tambah Material</button>
-                </div>
+                
             </td>
             <td>
                 <select class="form-select bg-light border-0" style="min-width: 95px;" name="satuan[${count}]" id="satuan-${count + 1}" required>

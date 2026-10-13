@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var selectPerusahaan = document.getElementById('perusahaanChoice');
   var changePerusahaan = document.getElementById('changePerusahaan');
 
+  if (!selectPerusahaan || !changePerusahaan) {
+    return;
+  }
+
   selectPerusahaan.addEventListener('change', function () {
     var selectedOption = selectPerusahaan.options[selectPerusahaan.selectedIndex].text;
     changePerusahaan.textContent = 'Laporan Penjualan  ' + selectedOption
@@ -62,6 +66,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // var invoiceTerpilihCstm = document.getElementById('invoiceTerpilihCstm');
   var invoiceSlct = document.getElementsByClassName('invoice');
   var perusahaanSlct = document.getElementsByClassName('perusahaanHidden');
+
+  if (!perusahaanTerpilih) {
+    return;
+  }
    
   perusahaanTerpilih.addEventListener('change', function () {
     var selectedPerusahaan = perusahaanTerpilih.value;

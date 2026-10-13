@@ -24,8 +24,8 @@ class Barang extends Model
     {
         return $this->belongsTo(KategoriBarang::class, 'kategori_id');
     }
-    public function penjualan_barang()
+    public function penjualan_jasa_tokabe()
     {
-        return $this->hasMany(PenjualanBarang::class, 'barang_id');
+        return $this->hasMany(PenjualanJasaTokabe::class, 'barang_id');
     }
 }

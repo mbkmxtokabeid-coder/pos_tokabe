@@ -50,8 +50,9 @@
                 tgl_selesai: $('[name="tgl_selesai"]').val() || '',
                 jns_pem: $('[name="jns_pem"]').val() || '',
                 norek: $('[name="norek"]:checked').val() || '',
-                select_potongan: $('[name="select-potongan"], [name="select_potongan"]').val() || '-',
-                ptg: $('#input-potongan').val() || '',
+                ppn: $('#input-ppn').val() || '',
+                kode_ppn: $('#select-kode-ppn').val() || '01',
+                pph: $('#input-pph').val() || '',
                 dp: $('#input-dp').val() || ''
             },
             items: []
@@ -60,6 +61,7 @@
         $('#newlink tr.product').each(function (idx) {
             var $row = $(this);
             var itemData = {
+                item_id: $row.find('select[name^="item_id"]').val() || '',
                 barang_id: $row.find('select[name^="barang_id"]').val() || '',
                 deskripsi_item: $row.find('textarea[name^="deskripsi_item"]').val() || '',
                 satuan: $row.find('select[name^="satuan"]').val() || '',
@@ -130,12 +132,14 @@
         if (header.jns_pem) $('[name="jns_pem"]').val(header.jns_pem).trigger('change');
         if (header.norek) $('[name="norek"][value="' + header.norek + '"]').prop('checked', true);
 
-        if (header.select_potongan) {
-            var $potSelect = $('[name="select-potongan"], [name="select_potongan"]');
-            $potSelect.val(header.select_potongan).trigger('change');
-            if (header.ptg) {
-                $('#input-potongan').val(header.ptg).trigger('input');
-            }
+        if (header.ppn !== undefined && header.ppn !== null && header.ppn !== '') {
+            $('#input-ppn').val(header.ppn).trigger('input');
+        }
+        if (header.kode_ppn) {
+            $('#select-kode-ppn').val(header.kode_ppn).trigger('change');
+        }
+        if (header.pph !== undefined && header.pph !== null && header.pph !== '') {
+            $('#input-pph').val(header.pph).trigger('input');
         }
         if (header.dp) {
             $('#input-dp').val(header.dp).trigger('input');
@@ -160,6 +164,7 @@
                 var $row = $rows.eq(itemIdx);
                 if (!$row.length) return;
 
+                if (item.item_id) $row.find('select[name^="item_id"]').val(item.item_id).trigger('change');
                 if (item.barang_id) $row.find('select[name^="barang_id"]').val(item.barang_id).trigger('change');
                 if (item.deskripsi_item) $row.find('textarea[name^="deskripsi_item"]').val(item.deskripsi_item);
                 if (item.satuan) $row.find('select[name^="satuan"]').val(item.satuan).trigger('change');
@@ -247,8 +252,8 @@
                     text: 'Apakah Anda yakin ingin mengosongkan draf inputan ini?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#1E293B',
                     confirmButtonText: 'Ya, Hapus',
                     cancelButtonText: 'Batal'
                 }).then(function (result) {
@@ -270,8 +275,8 @@
                     text: 'Apakah Anda yakin ingin membatalkan? Draf inputan ini akan dibersihkan.',
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
+                    confirmButtonColor: '#EF4444',
+                    cancelButtonColor: '#1E293B',
                     confirmButtonText: 'Ya, Batalkan',
                     cancelButtonText: 'Kembali'
                 }).then(function (result) {

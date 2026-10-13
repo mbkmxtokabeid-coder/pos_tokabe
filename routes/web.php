@@ -2,30 +2,23 @@
 
 use App\Exports\LaporanExport;
 use App\Http\Controllers\BarangController;
-use App\Http\Controllers\MaterialController;
-use App\Http\Controllers\InventarisController;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ItemController;
 use App\Http\Controllers\HomeTKBController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LaporanController;
-use App\Http\Controllers\LaporanPembelianController;
-use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\PenjualanTokabeController;
-use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\SpbController;
-use App\Http\Controllers\SpkController;
 use App\Http\Controllers\SpjController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BudgetController;
-use App\Http\Controllers\VendorController;
-use App\Http\Controllers\kategoryController;
-use App\Http\Controllers\PerusahaanController;
+use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\LaporanPembelianController;
+
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TokenController;
 use App\Models\Barang;
 use App\Models\KategoriBarang;
-use App\Models\PenjualanBarang;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,6 +34,8 @@ use Illuminate\Support\Facades\Auth;
 */
 
 Auth::routes();
+
+Route::redirect('/', '/welcomeTKB');
 
 Route::group(['middleware' => ['auth']], function () {
     Route::group(['middleware' => ['status']], function () {
@@ -64,59 +59,29 @@ Route::group(['middleware' => ['auth']], function () {
             Route::put('/update-budget/{id}', [BudgetController::class, 'update'])->name('budget.update');
             Route::delete('/delete-budget/{id}', [BudgetController::class, 'delete'])->name('budget.delete');
             
-            // ROUTE KATEGORI
-            Route::get('/daftar-kategori', [kategoryController::class, 'daftarKategori'])->name('daftar.kategori');
-            Route::get('/tambah-kategori', [kategoryController::class, 'tambahKategori'])->name('tambah.kategori');
-            Route::post('/tambah-kategori', [kategoryController::class, 'storeKategori'])->name('store.kategori');
-            Route::delete('/delete-kategori/{id}', [kategoryController::class, 'deleteKategori'])->name('destroy.kategori');
-            Route::get('/edit-kategori/{id}', [kategoryController::class, 'editKategori']);
-            Route::put('/edit-kategori/{id}', [kategoryController::class, 'updateKategori'])->name('put.kategori');
-            
-            // ROUTE PERUSAHAAN
-            Route::get('/daftar-perusahaan', [PerusahaanController::class, 'index'])->name('perusahaan.list');
-            Route::get('/tambah-perusahaan', [PerusahaanController::class, 'tambah'])->name('perusahaan.add');
-            Route::post('/store-perusahaan', [PerusahaanController::class, 'store'])->name('perusahaan.store');
-            Route::delete('/delete-perusahaan/{id}', [PerusahaanController::class, 'delete'])->name('perusahaan.delete');
-            Route::get('/edit-perusahaan/{id}', [PerusahaanController::class, 'edit'])->name('perusahaan.edit');
-            Route::put('/update-perusahaan/{id}', [PerusahaanController::class, 'update'])->name('perusahaan.update');
+            // ROUTE REKENING BANK (KHUSUS PEMILIK)
+            Route::get('/daftar-rekening', [RekeningController::class, 'index'])->name('rekening.index');
+            Route::get('/tambah-rekening', [RekeningController::class, 'create'])->name('rekening.create');
+            Route::post('/store-rekening', [RekeningController::class, 'store'])->name('rekening.store');
+            Route::get('/edit-rekening/{id}', [RekeningController::class, 'edit'])->name('rekening.edit');
+            Route::put('/update-rekening/{id}', [RekeningController::class, 'update'])->name('rekening.update');
+            Route::delete('/delete-rekening/{id}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
+            Route::get('/status-rekening/{id}', [RekeningController::class, 'toggleStatus'])->name('rekening.status');
+
         });
         
         // ====================================================================
         // ROUTE ADMIN
         // ====================================================================
         Route::group(['middleware' => ['admin']], function () {
-            
-            Route::get('/', [HomeController::class, 'index']);
-            
-            // ROUTE INVOICE
-            Route::get('/addInvoice', [PenjualanController::class, 'loadInvoice']);
-            Route::post('/storeInvoice', [PenjualanController::class, 'tambahPenjualan'])->name('store.invoice');
-            Route::get('/cetak/{id}', [InvoiceController::class, 'cetakInvoice']);
-            Route::get('invoices/{selectedOption}', [InvoiceController::class, 'getInvoiceByOption']);
-            Route::get('editInvoice/{id}/edit', [InvoiceController::class, 'editInvoice']);
-            Route::put('updateInvoice/{id}', [InvoiceController::class, 'updateInvoice'])->name('update-invoice');
-            Route::delete('invoice/deleteInvoice/{id}', [PenjualanController::class, 'destroy'])->name('delete.invoice');
-            
-            Route::get('/ubah-status-batal/{id}', [InvoiceController::class, 'statusBatal']);
-            Route::post('/ubah-status-batal/{id}', [InvoiceController::class, 'storeStatusBatal']);
-            Route::post('/ubah-status-lunas/{id}', [InvoiceController::class, 'statusLunas']);
-            
-            Route::post('/ubah-status-unlock/{id}', [InvoiceController::class, 'unlock'])->name('invoice.unlock');
-            Route::get('/ubah-status-lock/{id}', [InvoiceController::class, 'lock'])->name('invoice.lock');
-            
-            Route::get('/invoice-approval/{id}', [InvoiceController::class, 'approvalPage'])
-            ->middleware('auth', 'role:Pemilik') 
-            ->name('invoice.approval.page');
-            
-             Route::get('/invoice-pelunasan/{id}', [InvoiceController::class, 'pelunasanPage'])
-            ->middleware('auth', 'role:Pemilik') 
-            ->name('invoice.pelunasan.page');
-            
-            Route::get('/invoice/update-log/{id}', [InvoiceController::class, 'getUpdateLog']);
-            Route::get('/list-invoice', [InvoiceController::class, 'loadListInvoice'])->name('daftar_invoice');
+            Route::get('/items', [ItemController::class, 'index'])->name('item.index');
+            Route::post('/items', [ItemController::class, 'store'])->name('item.store');
+            Route::put('/items/{item}', [ItemController::class, 'update'])->name('item.update');
+            Route::delete('/items/{item}', [ItemController::class, 'destroy'])->name('item.destroy');
 
             // TOKABE
             Route::get('/list-invoice/tokabe', [PenjualanTokabeController::class, 'listInvoiceTokabe'])->name('list_invoice_tokabe');
+            Route::get('/list-invoice/tokabe/cards-data', [PenjualanTokabeController::class, 'getCardsData'])->name('invoice.tokabe.cards_data');
             Route::get('/addInvoiceTokabe', [PenjualanTokabeController::class, 'addInvoice'])->name('add.inv.tkb');
             Route::post('/addInvoiceTokabe', [PenjualanTokabeController::class, 'storeInvoiceTokabe'])->name('storeInvoice.Tokabe');
             Route::delete('/deleteInvoiceTokabe/{id}', [PenjualanTokabeController::class, 'delete'])->name('delete.invoiceTokabe');
@@ -146,19 +111,24 @@ Route::group(['middleware' => ['auth']], function () {
             Route::delete('/delete-spb/{id}', [SpbController::class, 'destroySPB']);
             Route::get('/ubah-status/{id}', [SpbController::class, 'ubahStatus'])->name('spb.ubah-status');
 
-            // ROUTE SPK
-            Route::get('/daftar-spk', [SpkController::class, 'indexSPK'])->name('daftar-spk');
-            Route::get('/tambah-spk', [SpkController::class, 'addSPK']);
-            Route::post('/store-spk', [SpkController::class, 'storeSPK']);
-            Route::post('/store-spk-dari-invoice', [SpkController::class, 'storeDariInvoice'])->name('spk.store_dari_invoice');
-            Route::post('/store-spk-tokabe', [PenjualanTokabeController::class, 'storeDariInvoiceTokabe'])->name('storeSpk.Tokabe');            
-            Route::get('/edit-spk/{id}', [SpkController::class, 'editSPK']);
-            Route::put('/update-spk/{id}', [SpkController::class, 'updateSPK']);
-            Route::delete('/delete-spk/{id}', [SpkController::class, 'destroySPK']);
-            Route::get('/cetak-spk/{id}', [SpkController::class, 'cetakSPK']);
-            Route::get('/ubah-status-spk/{id}', [SpkController::class, 'statusSPK']);
-            Route::get('/lihat-spk/{id}', [SpkController::class, 'lihatSPK']);
-            Route::get('/ubah-proses-spk/{id}', [SpkController::class, 'prosesSPK']);
+            // ROUTE PEMBELIAN (terpisah dari SPB)
+            Route::get('/pembelian', [PembelianController::class, 'index'])->name('pembelian.index');
+            Route::get('/pembelian/vendor/{id}/tambah', [PembelianController::class, 'create'])->name('pembelian.create');
+            Route::post('/pembelian', [PembelianController::class, 'store'])->name('pembelian.store');
+            Route::get('/pembelian/{id}/edit', [PembelianController::class, 'edit'])->name('pembelian.edit');
+            Route::put('/pembelian/{id}', [PembelianController::class, 'update'])->name('pembelian.update');
+            Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy'])->name('pembelian.destroy');
+            Route::get('/pembelian/{id}/lunas', [PembelianController::class, 'lunas'])->name('pembelian.lunas');
+            // APPROVAL PEMBELIAN (LOCK / UNLOCK)
+            Route::post('/ubah-status-unlock-pembelian/{id}', [PembelianController::class, 'unlock'])->name('pembelian.unlock');
+            Route::get('/ubah-status-lock-pembelian/{id}', [PembelianController::class, 'lock'])->name('pembelian.lock');
+            Route::get('/pembelian-approval/{id}', [PembelianController::class, 'approvalPage'])->middleware('role:Pemilik')->name('pembelian.approval.page');
+            Route::post('/pembelian/vendor', [PembelianController::class, 'storeVendor'])->name('pembelian.vendor.store');
+            Route::put('/pembelian/vendor/{id}', [PembelianController::class, 'updateVendor'])->name('pembelian.vendor.update');
+            Route::get('/pembelian/vendor/{id}', [PembelianController::class, 'showVendor'])->name('pembelian.vendor.show');
+            Route::delete('/pembelian/vendor/{id}', [PembelianController::class, 'destroyVendor'])->name('pembelian.vendor.destroy');
+            Route::get('/laporan-pembelian', [LaporanPembelianController::class, 'index'])->name('laporan.pembelian');
+            Route::get('/laporan-pembelian/filter', [LaporanPembelianController::class, 'index'])->name('laporan.pembelian.filter');
 
             // ROUTE SPJ
             Route::get('/daftar-spj', [SpjController::class, 'index'])->name('spj.index');
@@ -178,40 +148,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::delete('deleteBarang/{id}', [BarangController::class, 'destroy']);
             Route::get('/edit-stok/{id}', [BarangController::class, 'edit']);
             Route::put('/update-stok/{id}', [BarangController::class, 'update']);
-            Route::post('/barang/toggle-material/{id}', [BarangController::class, 'toggleMaterial'])->name('barang.toggle_material');
-            Route::post('/invoice/barang/toggle-material/{id}', [BarangController::class, 'toggleMaterial'])->name('barang.toggle_material_invoice');
+                                    
             
-            // ROUTE MATERIAL
-            Route::get('listMaterial', [MaterialController::class, 'index'])->name('listMaterial');
-            Route::get('addMaterial', [MaterialController::class, 'create']);
-            Route::post('material', [MaterialController::class, 'store'])->name('material.store');
-            Route::delete('deleteMaterial/{id}', [MaterialController::class, 'destroy']);
-            Route::get('/edit-stokMaterial/{id}', [MaterialController::class, 'edit']);
-            Route::put('/update-stokMaterial/{id}', [MaterialController::class, 'update']);
-
-             // ROUTE INVENTARIS
-            Route::get('listInventaris', [InventarisController::class, 'index'])->name('listInventaris');
-            Route::get('addInventaris', [InventarisController::class, 'create']);
-            Route::post('inventaris', [InventarisController::class, 'store'])->name('inventaris.store');
-            Route::delete('deleteInventaris/{id}', [InventarisController::class, 'destroy']);
-            Route::get('/edit-stokInventaris/{id}', [InventarisController::class, 'edit']);
-            Route::put('/update-stokInventaris/{id}', [InventarisController::class, 'update']);
-
-            // ROUTE VENDOR & PEMBELIAN
-            Route::get('/daftar-vendor', [VendorController::class, 'index'])->name('vendor.list');
-            Route::get('/tambah-vendor', [VendorController::class, 'add'])->name('vendor.add');
-            Route::post('/store-vendor', [VendorController::class, 'store'])->name('vendor.store');
-            Route::get('/edit-vendor/{id}', [VendorController::class, 'edit'])->name('vendor.edit');
-            Route::put('/update-vendor/{id}', [VendorController::class, 'update'])->name('vendor.update');
-            Route::delete('/delete-vendor/{id}', [VendorController::class, 'destroy'])->name('vendor.delete');
-            
-            Route::get('/daftar-pembelian/{uid}', [PembelianController::class, 'index'])->name('pembelian.list');
-            Route::get('/tambah-pembelian/{uid}', [PembelianController::class, 'addPembelian'])->name('pembelian.add');
-            Route::post('/store-pembelian', [PembelianController::class, 'store'])->name('pembelian.store');
-            Route::get('/edit-pembelian/{uid}', [PembelianController::class, 'edit'])->name('pembelian.edit');
-            Route::put('/update-pembelian/{uid}', [PembelianController::class, 'update'])->name('pembelian.update');
-            Route::delete('/delete-pembelian/{uid}', [PembelianController::class, 'destroy'])->name('pembelian.delete');
-            Route::get('/lunas-pembelian/{uid}', [PembelianController::class, 'lunas'])->name('pembelian.lunas');
 
             // ROUTE DAFTAR CUSTOMER
             Route::get('/daftar-pelanggan', [CustomerController::class, 'index'])->name('daftar.pelanggan');
@@ -237,54 +175,22 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/invoice/laporan-export-year', [LaporanController::class, 'exportByYear']);
             Route::get('/invoice/getInvoices/{id}', [CustomerController::class, 'getInvoices']);
 
-            // ROUTE LAPORAN PEMBELIAN
-            Route::get('/daftar-laporanPembelian', [LaporanPembelianController::class, 'index']);
-            Route::post('/laporan-exportPembelian', [LaporanPembelianController::class, 'exportByVendor']);
-            Route::post('/laporanPembelian-export-date', [LaporanPembelianController::class, 'exportByDate']);
-            Route::post('/laporanPembelian-export-month', [LaporanPembelianController::class, 'exportByMonth']);
-            Route::post('/laporanPembelian-export-year', [LaporanPembelianController::class, 'exportByYear']);
 
-            // ALIAS ROUTE LAPORAN PEMBELIAN DENGAN PREFIX /invoice
-            Route::post('/invoice/laporan-exportPembelian', [LaporanPembelianController::class, 'exportByVendor']);
-            Route::post('/invoice/laporanPembelian-export-date', [LaporanPembelianController::class, 'exportByDate']);
-            Route::post('/invoice/laporanPembelian-export-month', [LaporanPembelianController::class, 'exportByMonth']);
-            Route::post('/invoice/laporanPembelian-export-year', [LaporanPembelianController::class, 'exportByYear']);
+            // ROUTE TOKABE DASHBOARD
+            Route::get('/welcomeTKB', [HomeTKBController::class, 'index']);
+            Route::get('/dashboard-tkb/barang-chart-data', [HomeTKBController::class, 'getBarangDataAjax'])->name('dashboard.barang.chart.data');
+            Route::get('/dashboard-tkb/payment-chart-data', [HomeTKBController::class, 'getPaymentChartDataAjax'])->name('dashboard.payment.chart.data');
+
         });
 
-        // ====================================================================
-        // ROUTE PRODUKSI (route eksklusif tinta untuk role Produksi)
-        // ====================================================================
-        Route::group(['middleware' => ['produksi']], function () {
-            Route::get('/stok-tinta', [BarangController::class, 'daftarTinta'])->name('stokTinta');
-            Route::get('/tambah-tinta', [BarangController::class, 'addTinta'])->name('tambahTinta');
-            Route::post('/stok-tinta/store', [BarangController::class, 'storeTinta'])->name('store.tinta');
-            Route::get('/stok-tinta/edit/{id}', [BarangController::class, 'editStokTinta'])->name('edit.tinta');
-            Route::delete('/tinta/delete/{id}', [BarangController::class, 'destroyTinta'])->name('delete.tinta');
-            Route::put('/tinta/update/{id}', [BarangController::class, 'updateTinta'])->name('update.tinta');
-        });
-        
-        // ====================================================================
-        // ROUTE KARYAWAN
-        // ====================================================================
-        Route::group(['middleware' => ['karyawan']], function () {
-            Route::get('/daftar-spk', [SpkController::class, 'indexSPK'])->name('daftar-spk');
-            Route::get('/lihat-spk/{id}', [SpkController::class, 'lihatSPK']);
-            Route::get('/ubah-proses-spk/{id}', [SpkController::class, 'prosesSPK']);
-        });
-        
         // ====================================================================
         // ROUTE UMUM (PROFILE & JSON)
         // ====================================================================
         Route::get('/profile', [UserController::class, 'profiles'])->name('auth.profile');
-        Route::put('/profile/update/{id}', [UserController::class, 'updateProfile']);
+        Route::put('/profile/update/{id}', [UserController::class, 'updateProfile'])->name('user.profile.update');
         
         Route::get('invoice/get-barang-data/{kategoriId}', [BarangController::class, 'dataBarang']);
         Route::get('invoice/get-potensi-profit/{kategoriId}', [BarangController::class, 'potensiProfit']);
-
-        // ROUTE TOKABE DASHBOARD
-        Route::group(['middleware' => ['adminTKB']], function () {
-            Route::get('/welcomeTKB', [HomeTKBController::class, 'index']);
-        });
     
     });
     
@@ -292,8 +198,6 @@ Route::group(['middleware' => ['auth']], function () {
 });
 
 // ROUTE JSON
-Route::get('/mark-as-read', [SpkController::class, 'markAsRead'])->name('baca-semua');
-
 Route::get('/jenis-barang', function () {
     $jenis = Barang::all();
     return response()->json($jenis);
@@ -308,13 +212,8 @@ Route::get('/login', function () {
 })->name('login');
 
 // ROUTE PUBLIC DOWNLOAD (tanpa login)
-Route::get('/view/download/{id}', [InvoiceController::class, 'viewDownloadInvoice'])->name('download.inv');
 Route::get('/view/download/invoiceTKB/{id}', [PenjualanTokabeController::class, 'viewDownloadInvoiceTKB'])->name('download.inv.tkb');
 
-Route::get('/invoice/public-download/{id}', [InvoiceController::class, 'publicDownload'])
-    ->name('invoice.public_download')
-    ->middleware('signed');
-    
 // ROUTE PUBLIC DOWNLOAD TOKABE (BERLAKU 7 HARI)
 Route::get('/invoice-tkb/public-download/{id}', [PenjualanTokabeController::class, 'publicDownloadTokabe'])
     ->name('invoice_tkb.public_download')

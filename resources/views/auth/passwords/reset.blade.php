@@ -3,13 +3,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Ikhtiar Berkah Kasir</title>
+    <title>Tokabe Kasir</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Kasir Ikhtiar Berkah" name="description">
-    <meta content="Ikhtiar Berkah" name="author">
+    <meta content="Kasir Tokabe" name="description">
+    <meta content="Tokabe" name="author">
 
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{asset('images/ikhtiarberkah.png')}}">
+    <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{asset('images/favicon-32x32.png')}}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{asset('images/favicon-16x16.png')}}">
+    <link rel="icon" type="image/png" href="{{asset('images/LogoTKB.png')}}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{asset('images/apple-touch-icon.png')}}">
     <link href="{{asset('css/bootstrap.min.css')}}" rel="stylesheet" type="text/css">
     <link href="{{asset('css/icons.min.css')}}" rel="stylesheet" type="text/css">
     <link href="{{asset('css/app.min.css')}}" rel="stylesheet" type="text/css">
@@ -25,7 +29,7 @@
                                 <div class="text-center mb-3">
                                     <a href="index.html">
                                         <span class="logo-lg">
-                                            <img src="{{asset('images/ikhtiarberkah.png')}}" alt="" height="100">
+                                            <img src="{{asset('images/LogoTKB.png')}}" alt="Tokabe" height="100">
                                         </span>
                                     </a>
                                 </div>

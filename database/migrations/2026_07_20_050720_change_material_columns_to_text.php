@@ -18,12 +18,6 @@ return new class extends Migration
             $table->text('material_lebar')->nullable()->change();
         });
 
-        Schema::table('penjualan_barang', function (Blueprint $table) {
-            $table->text('material_id')->nullable()->change();
-            $table->text('material_qty')->nullable()->change();
-            $table->text('material_panjang')->nullable()->change();
-            $table->text('material_lebar')->nullable()->change();
-        });
     }
 
     /**
@@ -38,11 +32,5 @@ return new class extends Migration
             $table->float('material_lebar')->nullable()->change();
         });
 
-        Schema::table('penjualan_barang', function (Blueprint $table) {
-            $table->unsignedBigInteger('material_id')->nullable()->change();
-            $table->integer('material_qty')->nullable()->change();
-            $table->float('material_panjang')->nullable()->change();
-            $table->float('material_lebar')->nullable()->change();
-        });
     }
 };

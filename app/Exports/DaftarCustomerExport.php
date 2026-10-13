@@ -13,7 +13,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use App\Models\PenjualanBarang;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 

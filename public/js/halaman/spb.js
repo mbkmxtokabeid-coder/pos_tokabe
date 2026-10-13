@@ -1,16 +1,15 @@
 var cleaveBlocks;
 document.querySelector("#phone-number") && (cleaveNumeral = new Cleave("#phone-number", { delimiters: [" "], blocks: [4, 4, 4, 1] }));
 
-
 var count = 1;
 function new_link() {
   var count = Date.now(); // Gunakan timestamp agar ID selalu unik
   var e = document.createElement("tr");
   e.id = count;
-  e.className = "product";
+  e.className = "product align-middle";
 
   var t =
-    '<th scope="row" class="product-id"></th><td class="text-start"><div class="mb-2"><label class="visually-hidden" for="productName" >Item</label><select class="form-select " data-choices data-choices-sorting="true" id="productName-' +
+    '<th scope="row" class="product-id text-center text-muted fw-semibold"></th><td class="text-start"><div class="mb-2"><label class="visually-hidden" for="productName">Item</label><select class="form-select" data-choices data-choices-sorting="true" id="productName-' +
     count +
     '" name="barang_id[]"><option selected disabled>Pilih Item</option>';
 
@@ -38,13 +37,13 @@ function new_link() {
       });
 
       t +=
-        '</select></div><textarea class="form-control bg-light border-0" id="productDetails-' +
+        '</select></div><textarea class="form-control" id="productDetails-' +
         count +
-        '" name="deskripsi_item[]" rows="2" placeholder="Deskripsi Item"></textarea></td><td><select class="form-select bg-light border-0" id="satuan-' + count + '" name="satuan[]" required><option value="">Pilih</option><option value="Set">Set</option><option value="Pcs">Pcs</option><option value="Kotak">Kotak</option><option value="Blok">Blok</option><option value="Lbr">Lbr</option></select></td><td><div class="input-step"><input type="number" class="text-center" id="product-qty-' +
+        '" name="deskripsi_item[]" rows="2" placeholder="Deskripsi Item"></textarea></td><td><select class="form-select" id="satuan-' + count + '" name="satuan[]" required><option value="">Pilih</option><option value="Set">Set</option><option value="Pcs">Pcs</option><option value="Kotak">Kotak</option><option value="Blok">Blok</option><option value="Lbr">Lbr</option></select></td><td><div class="input-step"><input type="number" class="form-control text-center" id="product-qty-' +
         count +
         '" name="qty[]" value="0"></div></td><td class="text-end"><div><textarea id="productKeterangan-'
         + count +
-        '"class="form-control bg-light border-0" name="keterangan[]" cols="2" placeholder="Keterangan"></textarea></div></td><td class="product-removal"><a href="javascript:void(0)" class="btn btn-success">Delete</a></td>';
+        '" class="form-control" name="keterangan[]" cols="2" placeholder="Keterangan"></textarea></div></td><td class="product-removal text-center"><a href="javascript:void(0)" class="btn btn-hapus-item"><i class="ri-delete-bin-line fs-15 me-1"></i>Hapus</a></td>';
 
       e.innerHTML = t;
       document.getElementById("newlink").appendChild(e);
@@ -53,8 +52,8 @@ function new_link() {
       var newSelect = document.getElementById('productName-' + count);
       if (newSelect) {
         new Choices(newSelect, {
-          placeholderValue: "This is a placeholder set in the config",
-          searchPlaceholderValue: "This is a search placeholder",
+          placeholderValue: "Pilih Item",
+          searchPlaceholderValue: "Cari item...",
         });
       }
 
@@ -86,7 +85,6 @@ function removeItem(e) {
   resetRow();
 }
 
-
 $(document).ready(function () {
   $('.hapus-btn').on('click', function(e) {
     e.preventDefault();
@@ -97,16 +95,9 @@ $(document).ready(function () {
     if (delete_url) {
       $('#deleteForm').attr('action', delete_url);
     } else {
-      $('#deleteForm').attr('action', '/delete-spb/' + spb_id); // Update the form action URL dynamically
+      $('#deleteForm').attr('action', '/delete-spb/' + spb_id);
     }
 
     $('#deleteModal').modal('show');
   });
 });
-
-
-
-// // Mengambil tombol hapus dan menambahkan event listener
-// var hapusBtn = document.getElementById('hapus-btn');
-// hapusBtn.addEventListener('click', hapus);
-

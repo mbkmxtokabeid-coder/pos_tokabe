@@ -401,9 +401,6 @@ function timeRange(period) {
   persenBatalElement.innerText = formatPersentaseBatal(percentCanceled) + "%";
 }
 
-  
-}
-
 function formatPersentaseTerbayar(persen) {
   const persenTerbayarElement = document.getElementById('persenTerbayar');
   if (persen < 0) {

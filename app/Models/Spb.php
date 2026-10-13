@@ -22,9 +22,5 @@ class Spb extends Model
     {
         return $this->hasMany(BarangSpb::class, 'barang_id');
     }
-    public function perusahaan_spb()
-    {
-        return $this->belongsTo(Perusahaan::class, 'nama_spb');
-        // return $this->belongsTo(Perusahaan::class, 'nama_spb', 'id');
-    }
+
 }

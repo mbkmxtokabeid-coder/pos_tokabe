@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\Penjualan;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -15,7 +14,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use App\Models\PenjualanBarang;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // Tambahkan DB facade untuk query relasi
@@ -73,16 +71,16 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
 
             // --- AMBIL DATA BARANG SAMA SEPERTI PDF ---
             if (isset($penjualan->id)) {
-                $isTokabe = $penjualan instanceof \App\Models\PenjualanTokabe;
-                $tableRelasi = $isTokabe ? 'penjualan_tokabe_barang' : 'penjualan_barang';
-                $fkColumn = $isTokabe ? 'penjualan_tokabe_id' : 'penjualan_id';
+                $tableRelasi = 'penjualan_jasa_tokabe';
+                $fkColumn = 'penjualan_id';
 
                 try {
                     $items = DB::table($tableRelasi)
-                        ->join('barang', $tableRelasi . '.barang_id', '=', 'barang.id')
+                        ->leftJoin('barang', $tableRelasi . '.barang_id', '=', 'barang.id')
+                        ->leftJoin('items', $tableRelasi . '.item_id', '=', 'items.id')
                         ->where($tableRelasi . '.' . $fkColumn, $penjualan->id)
                         ->whereNull($tableRelasi . '.deleted_at')
-                        ->select('barang.jenis_barang', $tableRelasi . '.deskripsi_item', $tableRelasi . '.qty', $tableRelasi . '.satuan')
+                        ->select(DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'), $tableRelasi . '.deskripsi_item', $tableRelasi . '.qty', $tableRelasi . '.satuan')
                         ->get();
                 } catch (\Exception $e) {
                     $items = collect([]);

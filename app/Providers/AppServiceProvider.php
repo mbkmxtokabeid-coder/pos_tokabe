@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\Spk;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
-use App\Observers\SPKObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,7 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Spk::observe(SPKObserver::class);
         Schema::defaultStringLength(191);
     }
 }

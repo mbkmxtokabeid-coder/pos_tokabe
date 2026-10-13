@@ -25,14 +25,14 @@
             <div class="mt-4">
               <h4 class="mb-3">Apakah ingin menghapus data?</h4>
               <div class="hstack gap-2 justify-content-center">
-                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
                   <form id="deleteForm" action="{{ url('/deleteMaterial') }}" method="POST">
                     @csrf
                     @method('delete')
 
                     <button type="submit" class="btn btn-danger">
                       <i class="las la-trash-alt fs-18 align-middle me-2"></i>
-                      Delete
+                      Hapus
                     </button>
                     </form>
 
@@ -94,7 +94,7 @@
                                 <th>Stok</th>
                                 <th>Harga Modal</th>
                                 <th>Harga Jual</th>
-                                <th>Action</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,13 +117,13 @@
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
                                             <a class="dropdown-item" href="{{ url('/edit-stokMaterial/'.$mtr->id) }}"><i class="las la-pen fs-18 align-middle me-2 text-muted"></i>
-                                                Update Stock</a>
+                                                Perbarui Stok</a>
                                         </li>
                                         <li class="dropdown-divider"></li>
                                         <li>
                                             <button class="dropdown-item hapus-btn remove-item-btn" data-bs-toggle="modal" data-bs-target="#deleteModal" id="material_id" data-id="{{$mtr->id}}">
                                                 <i class="las la-trash-alt fs-18 align-middle me-2 text-muted"></i>
-                                                Delete
+                                                Hapus
                                             </button>
 
                                         </li>

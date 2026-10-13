@@ -21,21 +21,6 @@ return new class extends Migration
             $table->bigInteger('sisa_pembayaran')->change();
         });
 
-        Schema::table('penjualan', function (Blueprint $table) {
-            $table->bigInteger('dp')->nullable()->change();
-            $table->bigInteger('total_harga')->change();
-            $table->bigInteger('potongan')->nullable()->change();
-            $table->bigInteger('diskon')->nullable()->change();
-            $table->bigInteger('ppn')->nullable()->change();
-            $table->bigInteger('total_pembayaran')->change();
-            $table->bigInteger('sisa_pembayaran')->change();
-        });
-
-        Schema::table('penjualan_barang', function (Blueprint $table) {
-            $table->bigInteger('hargaBarang')->change();
-            $table->bigInteger('jumlah_harga')->change();
-        });
-
         Schema::table('penjualan_jasa_tokabe', function (Blueprint $table) {
             $table->bigInteger('harga')->change();
             $table->bigInteger('jumlah_harga')->change();
@@ -72,21 +57,6 @@ return new class extends Migration
             $table->integer('ppn')->nullable()->change();
             $table->integer('total_pembayaran')->change();
             $table->integer('sisa_pembayaran')->change();
-        });
-
-        Schema::table('penjualan', function (Blueprint $table) {
-            $table->integer('dp')->nullable()->change();
-            $table->integer('total_harga')->change();
-            $table->integer('potongan')->nullable()->change();
-            $table->integer('diskon')->nullable()->change();
-            $table->integer('ppn')->nullable()->change();
-            $table->integer('total_pembayaran')->change();
-            $table->integer('sisa_pembayaran')->change();
-        });
-
-        Schema::table('penjualan_barang', function (Blueprint $table) {
-            $table->integer('hargaBarang')->change();
-            $table->integer('jumlah_harga')->change();
         });
 
         Schema::table('penjualan_jasa_tokabe', function (Blueprint $table) {

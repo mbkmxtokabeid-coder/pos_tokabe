@@ -62,14 +62,12 @@ class LoginController extends Controller
 
     protected function defaultRedirect()
     {
-    $role = auth()->user()->role;
+        $role = auth()->user()->role;
 
-    return match($role) {
-        'Admin', 'Pemilik' => '/',
-        'Stockist','Magang' => '/listBarang',
-        'AdminTKB' => '/welcomeTKB',
-        default => '/',
-    };
+        return match($role) {
+            'Admin', 'Pemilik' => '/welcomeTKB',
+            default => '/welcomeTKB',
+        };
     }
 
     protected function sendFailedLoginResponse(Request $request)

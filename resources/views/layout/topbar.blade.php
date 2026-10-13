@@ -349,12 +349,12 @@
                   </button>
                   <div class="dropdown-menu dropdown-menu-end">
                       <!-- item-->
-                      <a class="dropdown-item" href="#"><i class="bx bx-user fs-15 align-middle me-1"></i> <span key="t-profile">Profile</span></a>
-                      <a class="dropdown-item" href="#"><i class="bx bx-wallet fs-15 align-middle me-1"></i> <span key="t-my-wallet">My Wallet</span></a>
-                      <a class="dropdown-item d-block" href="#"><span class="badge bg-success float-end">11</span><i class="bx bx-wrench fs-15 align-middle me-1"></i> <span key="t-settings">Settings</span></a>
-                      <a class="dropdown-item" href="auth-lockscreen.html"><i class="bx bx-lock-open fs-15 align-middle me-1"></i> <span key="t-lock-screen">Lock screen</span></a>
+                      <a class="dropdown-item" href="#"><i class="bx bx-user fs-15 align-middle me-1"></i> <span key="t-profile">Profil</span></a>
+                      <a class="dropdown-item" href="#"><i class="bx bx-wallet fs-15 align-middle me-1"></i> <span key="t-my-wallet">Dompet Saya</span></a>
+                      <a class="dropdown-item d-block" href="#"><span class="badge bg-success float-end">11</span><i class="bx bx-wrench fs-15 align-middle me-1"></i> <span key="t-settings">Pengaturan</span></a>
+                      <a class="dropdown-item" href="auth-lockscreen.html"><i class="bx bx-lock-open fs-15 align-middle me-1"></i> <span key="t-lock-screen">Kunci Layar</span></a>
                       <div class="dropdown-divider"></div>
-                      <a class="dropdown-item text-danger" href="#"><i class="bx bx-power-off fs-15 align-middle me-1 text-danger"></i> <span key="t-logout">Logout</span></a>
+                      <a class="dropdown-item text-danger" href="#"><i class="bx bx-power-off fs-15 align-middle me-1 text-danger"></i> <span key="t-logout">Keluar</span></a>
                   </div>
               </div>
           </div>
@@ -373,13 +373,13 @@
               <div class="mt-2 text-center">
                   <lord-icon src="https://cdn.lordicon.com/gsqxdxog.json" trigger="loop" colors="primary:#f7b84b,secondary:#f06548" style="width:100px;height:100px"></lord-icon>
                   <div class="mt-4 pt-2 fs-15 mx-4 mx-sm-5">
-                      <h4>Are you sure ?</h4>
-                      <p class="text-muted mx-4 mb-0">Are you sure you want to remove this Notification ?</p>
+                      <h4>Apakah Anda yakin?</h4>
+                      <p class="text-muted mx-4 mb-0">Apakah Anda yakin ingin menghapus notifikasi ini?</p>
                   </div>
               </div>
               <div class="d-flex gap-2 justify-content-center mt-4 mb-2">
-                  <button type="button" class="btn w-sm btn-light" data-bs-dismiss="modal">Close</button>
-                  <button type="button" class="btn w-sm btn-danger" id="delete-notification">Yes, Delete It!</button>
+                  <button type="button" class="btn w-sm btn-light" data-bs-dismiss="modal">Tutup</button>
+                  <button type="button" class="btn w-sm btn-danger" id="delete-notification">Ya, Hapus!</button>
               </div>
           </div>
 

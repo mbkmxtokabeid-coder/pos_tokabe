@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Traits\UUIDAsPrimaryKey;
+use Illuminate\Database\Eloquent\Model;
 
 class PembelianBarang extends Model
 {
-    use HasFactory, UUIDAsPrimaryKey;
+    use UUIDAsPrimaryKey;
+
     protected $table = 'pembelian_barang';
+
     protected $fillable = [
         'pembelian_id',
         'deskripsi',
@@ -17,8 +18,8 @@ class PembelianBarang extends Model
         'satuan',
         'harga_barang',
         'total',
-
     ];
+
     public function pembelian()
     {
         return $this->belongsTo(Pembelian::class, 'pembelian_id');

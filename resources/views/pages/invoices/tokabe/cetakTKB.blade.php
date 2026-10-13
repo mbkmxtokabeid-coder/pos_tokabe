@@ -1,10 +1,14 @@
 <html>
 
 <head>
-  <title>Print Document</title>
+  <title>{{$penjualan->nomor_invoice ?? 'Invoice Tokabe'}} - {{$penjualan->customer ?? 'Tokabe'}}</title>
+  <!-- App favicon -->
+  <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{asset('images/favicon-32x32.png')}}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{asset('images/favicon-16x16.png')}}">
+  <link rel="icon" type="image/png" href="{{asset('images/LogoTKB.png')}}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{asset('images/apple-touch-icon.png')}}">
   <link href="style.css" type="text/css" rel="stylesheet" />
-
-
 </head>
 <style>
   body {
@@ -78,13 +82,13 @@
     <div class="column" style="text-align:right; font-size: 12px;">
       <div style="position: absolute; left: 400px;top: 10px;">
         Kepada :<br>
-        Perusahaan/Instansi :<br>
+        
         No. Telp :</div>
     </div>
     <div class="column" style="text-align:left;">
       <div style="position: absolute; left:560px;top: 10px;">
         <b style="font-size: 12px">{{$penjualan->customer}}</b><br>
-        <b>{{$penjualan->perusahaan}}</b><br>
+        
         <b>{{$penjualan->no_telepon}}</b>
       </div>
     </div>
@@ -143,12 +147,14 @@
                 <td style="text-align: left; padding: 1px 5px;"><b>Diskon ({{$penjualan->diskon}}%)</b></td>
                 <td style="text-align: right; padding: 1px 5px;"><b>- Rp. {{ number_format(($penjualan->diskon / 100) * $penjualan->total_harga, 0, ',', '.') }}</b></td>
             </tr>
-            @elseif ($hasPotongan)
+            @endif
+            @if ($hasPotongan)
             <tr>
                 <td style="text-align: left; padding: 1px 5px;"><b>Spesial Diskon</b></td>
                 <td style="text-align: right; padding: 1px 5px;"><b>- Rp. {{ number_format($penjualan->potongan, 0, ',', '.') }}</b></td>
             </tr>
-            @elseif ($hasPpn)
+            @endif
+            @if ($hasPpn)
             @php
                 $ppnVal = !empty($penjualan->ppn) ? $penjualan->ppn : $autoPpnPersen;
                 $ppnAmount = !empty($penjualan->ppn) ? (($penjualan->ppn / 100) * $penjualan->total_harga) : $autoPpnNominal;
@@ -157,10 +163,11 @@
                 <td style="text-align: left; padding: 1px 5px;"><b>PPN ({{$ppnVal}}%)</b></td>
                 <td style="text-align: right; padding: 1px 5px;"><b>+ Rp. {{ number_format($ppnAmount, 0, ',', '.') }}</b></td>
             </tr>
-            @elseif ($hasPph)
+            @endif
+            @if ($hasPph)
             <tr>
                 <td style="text-align: left; padding: 1px 5px;"><b>PPH ({{$penjualan->pph}}%)</b></td>
-                <td style="text-align: right; padding: 1px 5px;"><b>+ Rp. {{ number_format(($penjualan->pph / 100) * $penjualan->total_harga, 0, ',', '.') }}</b></td>
+                <td style="text-align: right; padding: 1px 5px;"><b>- Rp. {{ number_format(($penjualan->pph / 100) * $penjualan->total_harga, 0, ',', '.') }}</b></td>
             </tr>
             @endif
             <tr>

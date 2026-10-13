@@ -1,10 +1,14 @@
 
 <html>
 <head>
-    <title>Print Document</title>
+    <title>Cetak SPB Tokabe - {{$spb->customer ?? 'Tokabe'}}</title>
+    <!-- App favicon -->
+    <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{asset('images/favicon-32x32.png')}}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{asset('images/favicon-16x16.png')}}">
+    <link rel="icon" type="image/png" href="{{asset('images/LogoTKB.png')}}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{asset('images/apple-touch-icon.png')}}">
     <link href="style.css" type="text/css" rel="stylesheet" />
-
-
 </head>
 <style>
 body{
@@ -62,11 +66,7 @@ body{
   font-style: normal;
   font-weight: 900;
   color: #000000;">
-    @if($spb->nama_spb == 1)
-    IBEKAMI
-    @else
     Total Karya Berkah (Tokabe.id)
-    @endif
     </b><br>
   <!--color: #000000;">Total Karya Berkah</b><br>-->
    <div style="text-align:left; font-size: 12px;">

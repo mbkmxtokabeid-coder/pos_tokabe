@@ -18,8 +18,7 @@ class Magang
     public function handle(Request $request, Closure $next)
     {
         // Tambahkan role lain agar saat route web.php tertimpa (override), 
-        // Admin, Pemilik, dan Stockist tetap bisa mengakses menu ini.
-        $allowedRoles = ['magang', 'admin', 'pemilik', 'stockist'];
+        $allowedRoles = ['admin', 'pemilik'];
 
         if (Auth::check() && in_array(strtolower(Auth::user()->role), $allowedRoles)) {
             return $next($request);

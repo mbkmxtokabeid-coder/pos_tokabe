@@ -15,8 +15,9 @@ class RoleMiddleware
         return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
     }
 
-    if (Auth::user()->role !== $role) {
-        return redirect()->route('login')->with('error', 'Anda tidak punya akses ke halaman tersebut.');
+    if (strcasecmp(Auth::user()->role, $role) !== 0) {
+        \RealRashid\SweetAlert\Facades\Alert::error('Akses Ditolak', 'Anda tidak memiliki akses ke halaman tersebut.');
+        return redirect('/welcomeTKB')->with('error', 'Anda tidak punya akses ke halaman tersebut.');
     }
 
     return $next($request);

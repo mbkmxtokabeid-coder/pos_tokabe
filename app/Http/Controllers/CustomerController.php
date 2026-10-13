@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\DaftarCustomerExport;
 use App\Models\Customer;
-use App\Models\Penjualan;
+use App\Models\PenjualanTokabe;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,7 +25,7 @@ class CustomerController extends Controller
 
         if ($selectedInvoice) {
             // Ambil data pelanggan yang terkait dengan invoice yang dipilih
-            $customers = Penjualan::select('customer', 'perusahaan', 'no_telepon', 'invoice')
+            $customers = PenjualanTokabe::select('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->where('invoice', $selectedInvoice)
                 ->groupBy('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->orderBy('customer')
@@ -33,7 +33,7 @@ class CustomerController extends Controller
             // dd($customers);
         } else {
             // Jika tidak ada invoice yang dipilih, ambil semua data pelanggan
-            $customers = Penjualan::select('customer', 'perusahaan', 'no_telepon', 'invoice')
+            $customers = PenjualanTokabe::select('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->groupBy('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->orderBy('customer')
                 ->get();
@@ -42,29 +42,10 @@ class CustomerController extends Controller
         return view('pages.customer.daftar-pelanggan', compact('customers', 'invoices', 'selectedInvoice'));
     }
 
-   function getInvoices($nama)  {
-        // $invoice = Invoice::where('perusahaan_id', $nama)->get();
-        // $perusahaan = Perusahaan::find($nama);
-
-        // // Mengonversi data ke dalam bentuk array
-        // $invoiceArray = $invoice->toArray();
-        // $perusahaanArray = $perusahaan->toArray();
-
-        // // Menggabungkan data invoice dan data perusahaan ke dalam satu array
-        // $result = [
-        // 'invoice' => $invoiceArray,
-        // 'perusahaan' => $perusahaanArray,
-        // ];
-
-        // // Mengembalikan respons JSON
-        // return response()->json($result);
-
-         // Retrieve the invoice based on the selected option
+    public function getInvoices($nama)
+    {
         $invoice = Invoice::where('perusahaan_id', $nama)->get();
-        // $perusahaan=Perusahaan::find($nama);
         return response()->json($invoice);
-        // Return the invoice or appropriate response
-        
     }
 
     /**
@@ -85,14 +66,14 @@ class CustomerController extends Controller
        
         if ($selectedInvoice != null) {
             // Ambil data pelanggan yang terkait dengan invoice yang dipilih
-            $customers = Penjualan::select('customer', 'perusahaan', 'no_telepon', 'invoice')
+            $customers = PenjualanTokabe::select('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->where('invoice', $selectedInvoice)
                 ->groupBy('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->orderBy('customer')
                 ->get();
         } else {
             // Jika tidak ada invoice yang dipilih, ambil semua data pelanggan
-            $customers = Penjualan::select('customer', 'perusahaan', 'no_telepon', 'invoice')
+            $customers = PenjualanTokabe::select('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->groupBy('customer', 'perusahaan', 'no_telepon', 'invoice')
                 ->orderBy('customer')
                 ->get();

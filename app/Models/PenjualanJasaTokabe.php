@@ -20,6 +20,11 @@ class PenjualanJasaTokabe extends Model
         return $this->belongsTo(Barang::class, 'barang_id');
     }
 
+    public function item()
+    {
+        return $this->belongsTo(Item::class, 'item_id');
+    }
+
     public function penjualan()
     {
         return $this->belongsTo(PenjualanTokabe::class, 'penjualan_id');

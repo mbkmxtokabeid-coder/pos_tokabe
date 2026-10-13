@@ -25,6 +25,10 @@ class UserController extends Controller
 
   function storeUser(Request $request)
   {
+    $request->validate([
+      'role' => 'required|in:Pemilik,Admin',
+    ]);
+
     if ($request->re_password != $request->password) {
       Alert::error('Password tidak sama');
       return redirect()->back()->withInput();
@@ -66,12 +70,16 @@ class UserController extends Controller
   function edit($id)
   {
     $user = User::find($id);
-    $roles = ['Admin', 'Produksi', 'Pemilik', 'Stockist','AdminTKB','Magang'];
+    $roles = ['Pemilik', 'Admin'];
     return view('pages.user.edit-user', compact('user', 'roles'));
   }
 
   function update(Request $request, $id)
   {
+    $request->validate([
+      'role' => 'required|in:Pemilik,Admin',
+    ]);
+
     $user = User::find($id);
     if ($request->re_password != $request->password) {
       Alert::error('Password tidak sama');
@@ -106,12 +114,6 @@ class UserController extends Controller
       'status' => 'Aktif',
     ]);
     Alert::success('Profile berhasil di update');
-    if ($user->role === 'Pemilik' || $user->role === 'Admin') {
-      return redirect('/');
-    } elseif ($user->role === 'Produksi') {
-      return redirect('/daftar-spk');
-    } else {
-      return redirect('/stok-tinta');
-    }
+    return redirect('/profile');
   }
 }

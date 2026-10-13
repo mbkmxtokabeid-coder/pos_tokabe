@@ -15,6 +15,6 @@ class Order extends Model
     ];
     public function penjualan()
     {
-        return $this->hasMany(Penjualan::class, 'penjualan_id');
+        return $this->hasMany(PenjualanTokabe::class, 'order_by');
     }
 }

@@ -5,6 +5,7 @@
 
 <!-- Sweet Alert css-->
 <link href="{{asset('libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css" />
+<link href="{{asset('css/invoice-tokabe-form.css')}}" rel="stylesheet" type="text/css" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
   .error-help-block{
@@ -60,13 +61,7 @@
                                       <div class="col-lg-8 col-sm-6">
                                          <label for="choices-invoice">Invoice</label>
                                             <div class="input-light">
-                                               <select  data-choices data-choices-search-false
-                                               class="form-control bg-light border-0 @error('inv') is-invalid @enderror"id="choices-invoice" name="inv" required>
-                                                {{-- Start Pilihan Jenis Invoice --}}
-                                                <option value="{{$invoice->id}}">{{$invoice->nama_invoice}}</option>
-
-                                                {{-- End Pilihan Jenis Invoice --}}
-                                                </select>
+                                               <input type="text" class="form-control bg-light border-0 fw-medium" value="Tokabe" readonly><input type="hidden" id="choices-invoice" name="inv" value="5">
 
                                             </div>
                                       </div>
@@ -126,15 +121,7 @@
                                         @enderror
                                        </div>
                                       </div>
-                                      <div class="row mb-4">
-                                       <label for="usaha" class="col-lg-5 col-form-label col-form-label-md">Nama Perusahaan / Instansi</label>
-                                       <div class="col-lg-7">
-                                        <input type="text" class="form-control form-control-md  @error('perusahaan') is-invalid @enderror " id="usaha" name="perusahaan" placeholder="Nama Perusahaan / instansi" value="{{ $perusahaan }}">
-                                        @error('perusahaan')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                       </div>
-                                      </div>
+
                                          {{-- Start No.Telepon --}}
                                       <div class="row mb-3" style="margin-top: -10px;">
                                        <div class="col-lg-5">
@@ -177,7 +164,7 @@
                                           <label for="choices-orderBy" class="form-label col-form-label col-form-label-md">Order Dari</label>
                                        </div>
                                        <div class="col-lg-7">
-                                        <select class="form-control bg-light border-0 @error('order') is-invalid @enderror" data-choices data-choices-search-false  id="choices-orderBy" name="order" required>
+                                        <select class="form-select bg-light border-0 @error('order') is-invalid @enderror" id="choices-orderBy" name="order" required>
                                         <option value="{{ $inv->order_by }}" selected>{{ $inv->order_by }}</option>
                                         @foreach ($order as $ord)
 
@@ -213,7 +200,7 @@
                                         <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian  </label>
                                        </div>
                                        <div class="col-lg-7">
-                                        <input type="date" class="form-control @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr"  name="tgl_selesai" id="dateInput" placeholder=" YYYY/MM/DD" value="{{ $inv->tgl_selesai }}">
+                                        <input type="text" class="form-control @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ $inv->tgl_selesai }}">
                                         @error('tgl_selesai')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -228,20 +215,17 @@
                              <div class="card-body p-4">
 
                                  <!-- TEMPLATE TERSEMBUNYI UNTUK OPTION MATERIAL DAN BARANG -->
-                                 <div id="template-options-material" style="display: none;">
-                                    <option value="">-- Pilih Material --</option>
-                                    @if(isset($materials))
-                                      @foreach ($materials as $mat)
-                                          <option value="{{ $mat->id }}" data-stok="{{ $mat->stok }}" data-satuan="{{ $mat->satuan }}">
-                                              {{ $mat->kode_material }} - {{ $mat->jenis_material }} (Stok Max: {{ floor($mat->stok) == $mat->stok ? number_format($mat->stok, 0, '', '') : $mat->stok }})
-                                          </option>
-                                      @endforeach
-                                    @endif
-                                 </div>
+                                 
                                  <div id="template-options-barang" style="display: none;">
                                     <option selected disabled>Pilih Item</option>
                                     @foreach ($jenisBarang as $jns)
                                         <option value="{{$jns->id}}" data-kategori-id="{{$jns->kategori_id}}">{{$jns->jenis_barang}}</option>
+                                    @endforeach
+                                 </div>
+                                 <div id="template-options-item" style="display: none;">
+                                    <option selected disabled>Pilih Item</option>
+                                    @foreach ($items as $catalogItem)
+                                        <option value="{{$catalogItem->id}}" data-jenis-pajak="{{$catalogItem->jenis_pajak}}">{{$catalogItem->nama_item}}</option>
                                     @endforeach
                                  </div>
                                  <!-- END TEMPLATE -->
@@ -274,6 +258,13 @@
                                       <label class="visually-hidden" for="productName">Item</label>
 
                                       {{-- PENTING: NAME MENGGUNAKAN EXPLICIT INDEX AGAR ARRAY TIDAK TERTUKAR SAAT DISUBMIT --}}
+                                      @if ($jual->item_id)
+                                      <select class="form-select @error('item_id.'.$index) is-invalid @enderror" data-choices data-choices-sorting="true" id="productName-{{$index+1}}" name="item_id[{{$index}}]" >
+                                          @foreach ($items as $catalogItem)
+                                            <option value="{{$catalogItem->id}}" data-jenis-pajak="{{$catalogItem->jenis_pajak}}" {{ $catalogItem->id == $jual->item_id ? 'selected' : '' }}>{{$catalogItem->nama_item}}</option>
+                                          @endforeach
+                                      </select>
+                                      @else
                                       <select class="form-select @error('barang_id.'.$index) is-invalid @enderror" data-choices data-choices-sorting="true" id="productName-{{$index+1}}" name="barang_id[{{$index}}]" >
                                           <option value="{{ $item->id }}" data-kategori-id="{{$item->kategori_id}}">{{ $item->jenis_barang }}</option>
                                           @foreach ($jenisBarang as $jns)
@@ -282,6 +273,7 @@
                                             @endif
                                           @endforeach
                                       </select>
+                                      @endif
                                       @error('barang_id.'.$index)
                                       <div class="invalid-feedback">{{ $message }}</div>
                                       @enderror
@@ -291,114 +283,7 @@
                                      <div class="invalid-feedback">{{ $message }}</div>
                                      @enderror
 
-                                     <!-- START KOLOM MULTI-MATERIAL -->
-                                     <div class="material-container-{{$index}} mt-2">
-                                         @php
-                                             // CEK APAKAH DATA SUDAH ARRAY ATAU MASIH STRING JSON
-                                             $rawMatId = $jual->material_id;
-                                             $matIds = is_string($rawMatId) ? json_decode($rawMatId, true) : $rawMatId;
-                                             
-                                             $rawMatQty = $jual->material_qty;
-                                             $matQtys = is_string($rawMatQty) ? json_decode($rawMatQty, true) : $rawMatQty;
-                                             
-                                             $rawMatPanjang = $jual->material_panjang;
-                                             $matPanjangs = is_string($rawMatPanjang) ? json_decode($rawMatPanjang, true) : $rawMatPanjang;
-                                             
-                                             $rawMatLebar = $jual->material_lebar;
-                                             $matLebars = is_string($rawMatLebar) ? json_decode($rawMatLebar, true) : $rawMatLebar;
-
-                                             // Fallback Jika Data Lama (bukan JSON/Array, melainkan ID string tunggal)
-                                             if (!is_array($matIds) && !empty($rawMatId)) {
-                                                 $matIds = [$rawMatId];
-                                                 $matQtys = [$rawMatQty];
-                                                 $matPanjangs = [$rawMatPanjang];
-                                                 $matLebars = [$rawMatLebar];
-                                             } elseif (!is_array($matIds)) {
-                                                 $matIds = []; 
-                                             }
-
-                                             // Siapkan setidaknya 1 form kosong jika tidak ada material
-                                             if (empty($matIds)) {
-                                                 $matIds = [null];
-                                             }
-                                         @endphp
-
-                                         @foreach($matIds as $matIndex => $matId)
-                                             @php
-                                                 $matQty = is_array($matQtys) ? ($matQtys[$matIndex] ?? '') : '';
-                                                 $matPanjang = is_array($matPanjangs) ? ($matPanjangs[$matIndex] ?? '') : '';
-                                                 $matLebar = is_array($matLebars) ? ($matLebars[$matIndex] ?? '') : '';
-                                                 $currentMax = '';
-                                                 $currentSatuan = '';
-                                                 $sisaStok = '';
-
-                                                 if ($matId && isset($materials)) {
-                                                     foreach($materials as $m) {
-                                                         if($m->id == $matId) {
-                                                             $currentMax = $m->stok + (float)$matQty;
-                                                             $currentSatuan = $m->satuan;
-                                                             $sisaStok = $currentMax - (float)$matQty;
-                                                             
-                                                             if (floor($sisaStok) == $sisaStok) {
-                                                                 $sisaStok = number_format($sisaStok, 0, '', '');
-                                                             }
-                                                             break;
-                                                         }
-                                                     }
-                                                 }
-                                             @endphp
-                                             <div class="row mt-2 material-row border-top pt-2 position-relative">
-                                                 <div class="col-md-4">
-                                                     <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Pilih Material</label>
-                                                     <select class="form-select form-select-sm material-select" name="material_id[{{$index}}][]">
-                                                         <option value="">-- Pilih Material --</option>
-                                                         @if(isset($materials))
-                                                             @foreach ($materials as $mat)
-                                                                 @php
-                                                                     $maxStok = $mat->stok;
-                                                                     $isSelected = '';
-                                                                     if($matId == $mat->id) {
-                                                                         $maxStok = $mat->stok + (float)$matQty;
-                                                                         $isSelected = 'selected';
-                                                                     }
-                                                                 @endphp
-                                                                 <option value="{{ $mat->id }}"
-                                                                         data-stok="{{ $maxStok }}"
-                                                                         data-satuan="{{ $mat->satuan }}"
-                                                                         {{ $isSelected }}>
-                                                                     {{ $mat->kode_material }} - {{ $mat->jenis_material }} (Stok Max: {{ floor($maxStok) == $maxStok ? number_format($maxStok, 0, '', '') : $maxStok }})
-                                                                 </option>
-                                                             @endforeach
-                                                         @endif
-                                                     </select>
-                                                 </div>
-                                                 <div class="col-md-2">
-                                                     <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Panjang</label>
-                                                     <input type="number" step="any" class="form-control form-control-sm material-panjang" name="material_panjang[{{$index}}][]" placeholder="0" value="{{ $matPanjang }}">
-                                                 </div>
-                                                 <div class="col-md-2">
-                                                     <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Lebar</label>
-                                                     <input type="number" step="any" class="form-control form-control-sm material-lebar" name="material_lebar[{{$index}}][]" placeholder="0" value="{{ $matLebar }}">
-                                                 </div>
-                                                 <div class="col-md-2">
-                                                     <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Hasil</label>
-                                                     <input type="number" step="any" class="form-control form-control-sm material-qty bg-light" name="material_qty[{{$index}}][]" placeholder="0" min="0" max="{{ $currentMax }}" value="{{ $matQty }}" readonly>
-                                                     <span class="text-danger fw-medium sisa-stok-info" style="font-size: 0.75rem; {{ $matId ? '' : 'display: none;' }}">Sisa: <span class="sisa-stok-angka">{{ $sisaStok }}</span></span>
-                                                 </div>
-                                                 <div class="col-md-2">
-                                                     <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Satuan</label>
-                                                     <input type="text" class="form-control form-control-sm material-satuan bg-light" name="material_satuan[{{$index}}][]" value="{{ $currentSatuan }}" readonly>
-                                                 </div>
-                                                 <div class="col-md-12 text-end mt-2 mb-2">
-                                                    <button type="button" class="btn btn-sm btn-soft-danger btn-hapus-material"><i class="las la-times"></i> Hapus Baris</button>
-                                                 </div>
-                                             </div>
-                                         @endforeach
-                                     </div>
-                                     <div class="mt-2 text-end">
-                                         <button type="button" class="btn btn-sm btn-soft-info btn-tambah-material" data-index="{{$index}}"><i class="las la-plus"></i> Tambah Material</button>
-                                     </div>
-                                     <!-- END KOLOM MULTI-MATERIAL -->
+                                     
 
                                    </td>
                                    <td>
@@ -464,7 +349,7 @@
                                     <label for="jenisPembayaran" class="form-label col-form-label col-form-label-md">Jenis Pembayaran</label>
                                     </div>
                                       <div class="col-lg-6">
-                                        <select class="form-control bg-light border-0 @error('jns_pem') is-invalid @enderror" data-choices data-choices-search-false data-choices-removeItem id="choices-payment-type" name="jns_pem">
+                                        <select class="form-select bg-light border-0 @error('jns_pem') is-invalid @enderror" id="choices-payment-type" name="jns_pem">
                                           <option selected value="{{ $inv->jenis_pembayaran }}">{{ $inv->jenis_pembayaran }}</option>
                                           @foreach (['Cash Lunas', 'Cash Belum Lunas', 'Transfer DP', 'Transfer Lunas', 'PO'] as $option)
                                             @if ($option !== $inv->jenis_pembayaran)
@@ -486,12 +371,23 @@
                                         <!--    BNI | A/N : Yusni Kurniasih | No. Rek : 8331119999-->
                                         <!--  </label>-->
                                         <!--  </div>-->
-                                          <div class="form-check mb-2 col-lg-12" id="alamatPembayaran2" >
-                                          <input class="form-check-input " type="radio" name="norek" id="flexRadioDefault2" value="TKB" {{ ($inv->no_rek ==='TKB') ? 'checked' : '' }}>
-                                          <label class="form-check-label" for="flexRadioDefault2">
-                                            BSI | A/N : PT. Total Karya Berkah | No. Rek :  3557999999
-                                          </label>
-                                          </div>
+                                          @if(isset($rekenings) && $rekenings->count() > 0)
+                                           @foreach($rekenings as $rek)
+                                           <div class="form-check mb-2 col-lg-12">
+                                             <input class="form-check-input" type="radio" name="norek" id="flexRadioRek{{ $rek->id }}" value="{{ $rek->id }}" {{ ($inv->no_rek == $rek->id || ($inv->no_rek === 'TKB' && $loop->first)) ? 'checked' : '' }}>
+                                             <label class="form-check-label" for="flexRadioRek{{ $rek->id }}">
+                                               {{ $rek->formatted }}
+                                             </label>
+                                           </div>
+                                           @endforeach
+                                         @else
+                                           <div class="form-check mb-2 col-lg-12" id="alamatPembayaran2" >
+                                           <input class="form-check-input " type="radio" name="norek" id="flexRadioDefault2" value="TKB" {{ ($inv->no_rek ==='TKB') ? 'checked' : '' }}>
+                                           <label class="form-check-label" for="flexRadioDefault2">
+                                             BSI | A/N : PT. Total Karya Berkah | No. Rek :  3557999999
+                                           </label>
+                                           </div>
+                                         @endif
                                           
                                       </div>
                                     </div>
@@ -518,27 +414,61 @@
 
                                       </div>
                                       {{-- End Input --}}
-                                  <div class="row mb-1">
+                                                                    {{-- Start Input PPN --}}
+                                  <div class="row mb-2">
                                     <div class="col-lg-4">
-                                    <label for="potongan" class="form-label col-form-label col-form-label-md">Diskon/Potongan/PPN</label>
+                                      <label for="input-ppn" class="form-label col-form-label col-form-label-md">PPN (%)</label>
                                     </div>
-                                      <div class="col-lg-6">
-                                        <select class="form-control bg-light border-0" name="select_potongan" data-choices data-choices-search-false data-choices-removeItem id="choices-potongan">
-                                          <option value="-" {{ $inv->diskon || $inv->potongan != 0|| $inv->ppn ? '' : 'selected' }}>-</option>
-                                          <option value="Diskon" {{ $inv->diskon ? 'selected' : '' }}>Diskon</option>
-                                          <option value="Potongan" {{ $inv->potongan ? 'selected' : '' }}>Potongan Harga</option>
-                                          <option value="PPN" {{ $inv->ppn ? 'selected' : '' }}>PPN</option>
-                                        </select>
+                                    <div class="col-lg-6">
+                                      <div class="input-group">
+                                        <input type="number" step="any" min="0" max="100" class="form-control bg-light border-0" id="input-ppn" name="ppn" placeholder="0" value="{{ old('ppn', $inv->ppn) }}">
+                                        <span class="input-group-text bg-light border-0 text-muted">%</span>
                                       </div>
+                                      <small class="text-success fw-medium mt-1" id="preview-nominal-ppn" style="display: {{ ($inv->ppn && $inv->ppn > 0) ? 'block' : 'none' }};">
+                                        @if ($inv->ppn && $inv->ppn > 0)
+                                          + Rp. {{ number_format(($inv->ppn / 100) * $inv->total_harga, 0, ',', '.') }}
+                                        @endif
+                                      </small>
+                                      <small class="text-danger fw-medium mt-1" id="hint-locked-ppn" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPN</small>
                                     </div>
-                                  <div class="row mb-1"  >
-                                    <div class="col-lg-4" >
+                                  </div>
+
+                                  {{-- Kode Transaksi PPN --}}
+                                  <div class="row mb-2" id="row-kode-ppn" style="display: {{ ($inv->ppn && $inv->ppn > 0) ? 'flex' : 'none' }};">
+                                    <div class="col-lg-4">
+                                      <label for="select-kode-ppn" class="form-label col-form-label col-form-label-md">Kode Transaksi PPN</label>
                                     </div>
-                                    <div class="col-lg-6" id="harga-potongan" style="display: block;">
-                                      <input id="input-potongan" type="text" class="form-control bg-light border-0" rows="1" name="biaya_lain" value="{{ $inv->diskon ? $inv->diskon : ($inv->potongan != 0 ? $inv->potongan : $inv->ppn) }}" placeholder="Rp. 0,000" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }' >
+                                    <div class="col-lg-6">
+                                      <select class="form-select bg-light border-0" name="kode_ppn" id="select-kode-ppn">
+                                        <option value="01" {{ ($inv->kode_ppn ?? '01') == '01' ? 'selected' : '' }}>01 - Non Pemungut PPN (Swasta)</option>
+                                        <option value="02" {{ ($inv->kode_ppn ?? '') == '02' ? 'selected' : '' }}>02 - Pemungut Instansi Pemerintah</option>
+                                        <option value="03" {{ ($inv->kode_ppn ?? '') == '03' ? 'selected' : '' }}>03 - Pemungut BUMN / Pemungut Lainnya</option>
+                                        <option value="04" {{ ($inv->kode_ppn ?? '') == '04' ? 'selected' : '' }}>04 - DPP Nilai Lain</option>
+                                      </select>
                                     </div>
+                                  </div>
+                                  {{-- End Input PPN --}}
+
+                                  {{-- Start Input PPh --}}
+                                  <div class="row mb-2">
+                                    <div class="col-lg-4">
+                                      <label for="input-pph" class="form-label col-form-label col-form-label-md">PPh (%)</label>
                                     </div>
-                                    <div class="row mb-1">
+                                    <div class="col-lg-6">
+                                      <div class="input-group">
+                                        <input type="number" step="any" min="0" max="100" class="form-control bg-light border-0" id="input-pph" name="pph" placeholder="0" value="{{ old('pph', $inv->pph) }}">
+                                        <span class="input-group-text bg-light border-0 text-muted">%</span>
+                                      </div>
+                                      <small class="text-danger fw-medium mt-1" id="preview-nominal-pph" style="display: {{ ($inv->pph && $inv->pph > 0) ? 'block' : 'none' }};">
+                                        @if ($inv->pph && $inv->pph > 0)
+                                          - Rp. {{ number_format(($inv->pph / 100) * $inv->total_harga, 0, ',', '.') }}
+                                        @endif
+                                      </small>
+                                      <small class="text-danger fw-medium mt-1" id="hint-locked-pph" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPh</small>
+                                    </div>
+                                  </div>
+                                  {{-- End Input PPh --}}
+                                  <div class="row mb-1">
                                     <div class="col-lg-4">
                                     <label for="totalPembayaran" class="form-label col-form-label col-form-label-md">Total Pembayaran</label>
                                     </div>
@@ -601,35 +531,7 @@
 <script src="{{asset('js/halaman/draft-invoice-tokabe.js')}}"></script>
 
 <script>
-    // Logic untuk Material Dropdown (Auto-fill Satuan, Validasi Stok & Tampilkan Sisa Awal)
-    $(document).on('change', '.material-select', function(e, isInitialLoad) {
-        var selectedOption = $(this).find(':selected');
-        var satuan = selectedOption.data('satuan');
-        var stok = selectedOption.data('stok'); // Stok riil maksimum yg bisa diambil
-        
-        // Cari input terkait dalam row yang sama
-        var row = $(this).closest('.material-row'); 
-        row.find('.material-satuan').val(satuan);
-        row.find('.material-qty').attr('max', stok);
-        
-        if (!isInitialLoad) {
-            row.find('.material-qty').val(''); // Reset qty saat ganti material
-            row.find('.material-panjang').val('');
-            row.find('.material-lebar').val('');
-        }
-        
-        // Tampilkan label sisa stok tanpa nol tidak penting
-        if(stok !== undefined && stok !== "") {
-            row.find('.sisa-stok-info').show();
-            row.find('.sisa-stok-angka').text(parseFloat(stok));
-            
-            if (row.find('.material-qty').val()) {
-                row.find('.material-qty').trigger('input');
-            }
-        } else {
-            row.find('.sisa-stok-info').hide();
-        }
-    });
+
 
     $(document).ready(function() {
         $('.material-select').each(function() {
@@ -639,13 +541,7 @@
         });
     });
 
-    function calcTokabeEditMaterialQty(row) {
-        var panjang = parseFloat(row.find('.material-panjang').val());
-        var lebar = parseFloat(row.find('.material-lebar').val());
-        var productRow = row.closest('tr.product');
-        if (!productRow.length) {
-            productRow = row.closest('tr');
-        }
+    
         var itemQty = parseFloat(productRow.find('input[name="qty[]"], [id^="product-qty-"]').val()) || 1;
 
         if (!isNaN(panjang) && !isNaN(lebar)) {
@@ -735,51 +631,7 @@
         });
     }, 200);
 
-    // Script Tambah Form Row Material Secara Dinamis dalam 1 Barang
-    $(document).on('click', '.btn-tambah-material', function() {
-        var index = $(this).data('index');
-        var container = $(this).closest('td').find('.material-container-' + index);
-        
-        var materialOptionsDOM = document.getElementById('template-options-material');
-        var materialOptions = materialOptionsDOM ? materialOptionsDOM.innerHTML : '<option value="">-- Pilih Material --</option>';
-
-        var newRow = `
-            <div class="row mt-2 material-row border-top pt-2 position-relative">
-                 <div class="col-md-4">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Pilih Material</label>
-                    <select class="form-select form-select-sm material-select" name="material_id[${index}][]">
-                        ${materialOptions}
-                    </select>
-                 </div>
-                 <div class="col-md-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Panjang</label>
-                    <input type="number" step="any" class="form-control form-control-sm material-panjang" name="material_panjang[${index}][]" placeholder="0">
-                 </div>
-                 <div class="col-md-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Lebar</label>
-                    <input type="number" step="any" class="form-control form-control-sm material-lebar" name="material_lebar[${index}][]" placeholder="0">
-                 </div>
-                 <div class="col-md-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Hasil</label>
-                    <input type="number" step="any" class="form-control form-control-sm material-qty bg-light" name="material_qty[${index}][]" placeholder="0" min="0" readonly>
-                    <span class="text-danger fw-medium sisa-stok-info" style="font-size: 0.75rem; display: none;">Sisa: <span class="sisa-stok-angka">0</span></span>
-                 </div>
-                 <div class="col-md-2">
-                    <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Satuan</label>
-                    <input type="text" class="form-control form-control-sm material-satuan bg-light" name="material_satuan[${index}][]" readonly>
-                 </div>
-                 <div class="col-md-12 text-end mt-2 mb-2">
-                    <button type="button" class="btn btn-sm btn-soft-danger btn-hapus-material"><i class="las la-times"></i> Hapus Baris</button>
-                 </div>
-            </div>
-        `;
-        container.append(newRow);
-    });
-
-    // Menghapus baris form material
-    $(document).on('click', '.btn-hapus-material', function() {
-        $(this).closest('.material-row').remove();
-    });
+    
 
 
     // OVERRIDE FUNGSI new_link DARI update-invoice.js / tabel-item.js
@@ -791,11 +643,10 @@
         tr.className = "product";
         
         // 1. Siapkan Opsi Material (dari PHP ke JS)
-        var materialOptionsDOM = document.getElementById('template-options-material');
-        var materialOptions = materialOptionsDOM ? materialOptionsDOM.innerHTML : '<option value="">-- Pilih Material --</option>';
+        
 
         // 2. Siapkan Opsi Item Barang (dari PHP ke JS)
-        var itemOptionsDOM = document.getElementById('template-options-barang');
+        var itemOptionsDOM = document.getElementById('template-options-item');
         var itemOptions = itemOptionsDOM ? itemOptionsDOM.innerHTML : '<option selected disabled>Pilih Item</option>';
 
         // 3. Template HTML Baris Baru
@@ -803,46 +654,13 @@
             <th scope="row" class="product-id">${count + 1}</th>
             <td class="text-start">
                 <div class="mb-2">
-                    <select class="form-select" name="barang_id[${count}]" id="productName-${count + 1}">
+                    <select class="form-select" name="item_id[${count}]" id="productName-${count + 1}">
                         ${itemOptions}
                     </select>
                 </div>
                 <textarea class="form-control bg-light border-0" id="productDetails-${count + 1}" name="deskripsi_item[${count}]" rows="2" placeholder="Deskripsi Item"></textarea>
                 
-                <!-- KOLOM MULTI-MATERIAL DI ITEM BARU -->
-                <div class="material-container-${count} mt-2">
-                    <div class="row mt-2 material-row border-top pt-2 position-relative">
-                         <div class="col-md-4">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Pilih Material</label>
-                            <select class="form-select form-select-sm material-select" name="material_id[${count}][]">
-                                ${materialOptions}
-                            </select>
-                         </div>
-                         <div class="col-md-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Panjang</label>
-                            <input type="number" step="any" class="form-control form-control-sm material-panjang" name="material_panjang[${count}][]" placeholder="0">
-                         </div>
-                         <div class="col-md-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Lebar</label>
-                            <input type="number" step="any" class="form-control form-control-sm material-lebar" name="material_lebar[${count}][]" placeholder="0">
-                         </div>
-                         <div class="col-md-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Hasil</label>
-                            <input type="number" step="any" class="form-control form-control-sm material-qty bg-light" name="material_qty[${count}][]" placeholder="0" min="0" readonly>
-                            <span class="text-danger fw-medium sisa-stok-info" style="font-size: 0.75rem; display: none;">Sisa: <span class="sisa-stok-angka">0</span></span>
-                         </div>
-                         <div class="col-md-2">
-                            <label class="form-label text-muted mb-1" style="font-size: 0.8rem;">Satuan</label>
-                            <input type="text" class="form-control form-control-sm material-satuan bg-light" name="material_satuan[${count}][]" readonly>
-                         </div>
-                         <div class="col-md-12 text-end mt-2 mb-2">
-                            <button type="button" class="btn btn-sm btn-soft-danger btn-hapus-material"><i class="las la-times"></i> Hapus Baris</button>
-                         </div>
-                    </div>
-                </div>
-                <div class="mt-2 text-end">
-                    <button type="button" class="btn btn-sm btn-soft-info btn-tambah-material" data-index="${count}"><i class="las la-plus"></i> Tambah Material</button>
-                </div>
+                
             </td>
             <td>
                 <select class="form-select bg-light border-0" style="min-width: 95px;" name="satuan[${count}]" id="satuan-${count + 1}" required>
@@ -890,5 +708,151 @@
         
         count++; // Increment AFTER rendering so indices are correct (0, 1, 2, ...)
     }
+    const invoiceTaxLabels = {
+      ppn: 'PPN',
+      pph: 'PPh',
+      ppn_pph: 'PPN dan PPh',
+      tanpa_pajak: 'Tanpa Pajak'
+    };
+
+    function setInputLockState(input, isLocked, hintElem, message) {
+      if (!input) return;
+      if (isLocked) {
+        input.value = '0';
+        input.readOnly = true;
+        input.disabled = true;
+        input.style.backgroundColor = '#f1f3f5';
+        input.style.cursor = 'not-allowed';
+        input.style.pointerEvents = 'none';
+        input.tabIndex = -1;
+        if (hintElem) {
+          hintElem.innerHTML = '<i class="ri-lock-line me-1"></i>' + message;
+          hintElem.style.display = 'block';
+        }
+      } else {
+        input.readOnly = false;
+        input.disabled = false;
+        input.style.backgroundColor = '';
+        input.style.cursor = 'auto';
+        input.style.pointerEvents = 'auto';
+        input.removeAttribute('tabindex');
+        if (hintElem) {
+          hintElem.style.display = 'none';
+        }
+      }
+    }
+
+    function syncTaxInputs() {
+      const itemSelects = document.querySelectorAll('select[name^="item_id"]');
+      const ppnInput = document.getElementById('input-ppn');
+      const pphInput = document.getElementById('input-pph');
+      const hintPpn = document.getElementById('hint-locked-ppn');
+      const hintPph = document.getElementById('hint-locked-pph');
+
+      if (!ppnInput || !pphInput) return;
+
+      let canHavePpn = false;
+      let canHavePph = false;
+      let hasItemChosen = false;
+      let allTanpaPajak = true;
+
+      itemSelects.forEach(function (select) {
+        const opt = select.selectedOptions && select.selectedOptions[0];
+        if (opt && opt.value && !opt.disabled) {
+          hasItemChosen = true;
+          const taxType = opt.dataset.jenisPajak;
+          if (taxType === 'ppn') {
+            canHavePpn = true;
+            allTanpaPajak = false;
+          } else if (taxType === 'pph') {
+            canHavePph = true;
+            allTanpaPajak = false;
+          } else if (taxType === 'ppn_pph') {
+            canHavePpn = true;
+            canHavePph = true;
+            allTanpaPajak = false;
+          } else if (taxType !== 'tanpa_pajak') {
+            allTanpaPajak = false;
+          }
+        }
+      });
+
+      if (!hasItemChosen) {
+        setInputLockState(ppnInput, false, hintPpn);
+        setInputLockState(pphInput, false, hintPph);
+      } else if (allTanpaPajak) {
+        setInputLockState(ppnInput, true, hintPpn, 'Terkunci: Item Tanpa Pajak');
+        setInputLockState(pphInput, true, hintPph, 'Terkunci: Item Tanpa Pajak');
+      } else {
+        if (!canHavePpn) {
+          setInputLockState(ppnInput, true, hintPpn, 'Terkunci: Item tidak dikenakan PPN');
+        } else {
+          setInputLockState(ppnInput, false, hintPpn);
+        }
+
+        if (!canHavePph) {
+          setInputLockState(pphInput, true, hintPph, 'Terkunci: Item tidak dikenakan PPh');
+        } else {
+          setInputLockState(pphInput, false, hintPph);
+        }
+      }
+
+      if (typeof totalPembayaran === 'function') {
+        totalPembayaran();
+      }
+    }
+
+    function applyItemTaxDefaults(taxType) {
+      const ppnInput = document.getElementById('input-ppn');
+      const pphInput = document.getElementById('input-pph');
+      if (!ppnInput || !pphInput) return;
+
+      if (taxType === 'ppn') {
+        if (!ppnInput.value || ppnInput.value === '0') ppnInput.value = '11';
+        pphInput.value = '0';
+      } else if (taxType === 'pph') {
+        ppnInput.value = '0';
+        if (!pphInput.value || pphInput.value === '0') pphInput.value = '2';
+      } else if (taxType === 'ppn_pph') {
+        if (!ppnInput.value || ppnInput.value === '0') ppnInput.value = '11';
+        if (!pphInput.value || pphInput.value === '0') pphInput.value = '2';
+      } else if (taxType === 'tanpa_pajak') {
+        ppnInput.value = '0';
+        pphInput.value = '0';
+      }
+    }
+
+    function updateItemTaxType(select, isUserChange = false) {
+      const container = select.closest('.mb-2') || select.closest('td') || select.parentElement;
+      const label = container ? container.querySelector('.item-tax-type') : null;
+      const opt = select.selectedOptions && select.selectedOptions[0];
+      const taxType = opt ? opt.dataset.jenisPajak : '';
+      if (label) {
+        label.textContent = taxType && invoiceTaxLabels[taxType] ? `Jenis pajak item: ${invoiceTaxLabels[taxType]}` : '';
+      }
+      if (isUserChange && taxType) {
+        applyItemTaxDefaults(taxType);
+      }
+      syncTaxInputs();
+    }
+
+    document.addEventListener('change', function (event) {
+      if (event.target.matches('select[name^="item_id"]')) {
+        updateItemTaxType(event.target, true);
+      }
+    });
+
+    $(document).on('click', '.product-removal a, .product-removal button', function () {
+      setTimeout(syncTaxInputs, 150);
+    });
+
+    document.querySelectorAll('select[name^="item_id"]').forEach(function(el) {
+      updateItemTaxType(el, false);
+    });
+
+    $('#invoice_form').on('submit', function() {
+      $('#input-ppn, #input-pph').prop('disabled', false);
+    });
+
 </script>
 @endsection

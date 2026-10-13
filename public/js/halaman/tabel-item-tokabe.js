@@ -61,39 +61,55 @@ function dP() {
 
 function totalPembayaran() {
   var total;
-  var selectLain = document.getElementById('choices-potongan');
-  var inputPotongan = parseFloat(document.getElementById('input-potongan').value.replace(/[.,]/g, ''));
-  var totalHarga = parseFloat(document.getElementById('total-harga').value.replace(/[.,]/g, ''));
-  // Menambahkan logika berdasarkan pilihan pengguna
-  if (selectLain != null) {
-    if (selectLain.value == "-") {
-      document.getElementById('input-potongan').innerHTML = 0;
-      if (totalHarga) {
-        total = Math.round(totalHarga);
-      } else {
-        total = 0;
-      }
-      document.getElementById('total-pembelian').value = total.toLocaleString();
-      // Lakukan sesuatu jika value "-" dipilih
-    } else if (selectLain.value == "Diskon") {
-      var diskon = inputPotongan;
-      var potongan = diskon * totalHarga / 100;
-      total = Math.round(totalHarga - potongan);
-      document.getElementById('total-pembelian').value = total.toLocaleString();
-      // Lakukan sesuatu dengan nilai diskon yang telah dipilih
-    } else if (selectLain.value == "Potongan") {
-      var potongan = inputPotongan;
-      total = Math.round(totalHarga - potongan);
-      document.getElementById('total-pembelian').value = total.toLocaleString();
-      // Lakukan sesuatu dengan nilai potongan yang telah dipilih
-    } else if (selectLain.value == "PPN") {
-      var ppn = inputPotongan;
-      var tambahan = ppn * totalHarga / 100;
-      total = Math.round(totalHarga + tambahan);
-      document.getElementById('total-pembelian').value = total.toLocaleString();
-      // Lakukan sesuatu dengan nilai PPN yang telah dipilih
+  var totalHargaElem = document.getElementById('total-harga');
+  var totalHarga = totalHargaElem ? parseFloat(totalHargaElem.value.replace(/[.,]/g, '')) : 0;
+  if (isNaN(totalHarga)) totalHarga = 0;
+
+  var inputPpn = document.getElementById('input-ppn');
+  var inputPph = document.getElementById('input-pph');
+
+  var ppnPersen = inputPpn ? (parseFloat(inputPpn.value.replace(/,/g, '.')) || 0) : 0;
+  var pphPersen = inputPph ? (parseFloat(inputPph.value.replace(/,/g, '.')) || 0) : 0;
+
+  var nominalPpn = (ppnPersen > 0) ? Math.round((ppnPersen / 100) * totalHarga) : 0;
+  var nominalPph = (pphPersen > 0) ? Math.round((pphPersen / 100) * totalHarga) : 0;
+
+  total = Math.max(0, Math.round(totalHarga + nominalPpn - nominalPph));
+
+  var totalField = document.getElementById('total-pembelian');
+  if (totalField) {
+    totalField.value = total.toLocaleString();
+  }
+
+  // Update preview nominal labels
+  var ppnNominalLabel = document.getElementById('preview-nominal-ppn');
+  if (ppnNominalLabel) {
+    if (nominalPpn > 0) {
+      ppnNominalLabel.innerText = '+ Rp. ' + nominalPpn.toLocaleString('id-ID');
+      ppnNominalLabel.style.display = 'block';
+    } else {
+      ppnNominalLabel.innerText = '';
+      ppnNominalLabel.style.display = 'none';
     }
   }
+
+  var pphNominalLabel = document.getElementById('preview-nominal-pph');
+  if (pphNominalLabel) {
+    if (nominalPph > 0) {
+      pphNominalLabel.innerText = '- Rp. ' + nominalPph.toLocaleString('id-ID');
+      pphNominalLabel.style.display = 'block';
+    } else {
+      pphNominalLabel.innerText = '';
+      pphNominalLabel.style.display = 'none';
+    }
+  }
+
+  // Toggle Kode Transaksi PPN row
+  var rowKodePpn = document.getElementById('row-kode-ppn');
+  if (rowKodePpn) {
+    rowKodePpn.style.display = ppnPersen > 0 ? 'flex' : 'none';
+  }
+
   sisaPembayaran();
 }
 document.getElementById('total-pembelian').addEventListener('change', sisaPembayaran);
@@ -103,30 +119,27 @@ function sisaPembayaran() {
   var totalPem = parseFloat(document.getElementById('total-pembelian').value.replace(/[.,]/g, ''));
   var dp = parseFloat(document.getElementById('input-dp').value.replace(/[.,]/g, ''));
 
-  // var jenis_pem = document.getElementById('choices-payment-type').value;
-
   if (!isNaN(dp)) {
     var sisaPem = Math.round(totalPem - dp);
     document.getElementById('sisa-pembayaran').value = sisaPem.toLocaleString();
   }
   else {
-
     document.getElementById('sisa-pembayaran').value = Math.round(totalPem).toLocaleString();
   }
-
-  // if (jenis_pem == 'Cash Lunas' || jenis_pem == 'Transfer Lunas') {
-  //   document.getElementById('sisa-pembayaran').value = 0;
-  // }
 }
-
 
 // Event listener
 document.getElementById('total-harga').addEventListener('input', dP);
 document.getElementById('choices-payment-type').addEventListener('change', dP);
-document.getElementById('input-potongan').addEventListener('change', totalPembayaran);
-document.getElementById('choices-potongan').addEventListener('change', totalPembayaran);
+if (document.getElementById('input-ppn')) {
+  document.getElementById('input-ppn').addEventListener('input', totalPembayaran);
+  document.getElementById('input-ppn').addEventListener('change', totalPembayaran);
+}
+if (document.getElementById('input-pph')) {
+  document.getElementById('input-pph').addEventListener('input', totalPembayaran);
+  document.getElementById('input-pph').addEventListener('change', totalPembayaran);
+}
 document.getElementById('choices-payment-type').addEventListener('change', sisaPembayaran);
-// document.getElementById('choices-invoice').addEventListener('change', new_link);
 remove();
 resetRow();
 totalPembayaran();
@@ -200,39 +213,7 @@ function new_link() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  var selectElement = document.getElementById("choices-potongan");
-  var divElement = document.getElementById("harga-potongan");
-  var divInput = document.getElementById("input-potongan");
 
-  selectElement.addEventListener("change", function () {
-    if (selectElement.value != "-") {
-      if (selectElement.value == "Diskon") {
-        divElement.style.display = "block";
-        divInput.class = "form-control bg-light border-0";
-        divInput.row = "1";
-        divInput.name = "dskn";
-        divInput.placeholder = "Diskon";
-      }
-      if (selectElement.value == "Potongan") {
-        divElement.style.display = "block";
-        divInput.class = "form-control bg-light border-0";
-        divInput.row = "1";
-        divInput.name = "ptg";
-        divInput.placeholder = "Potongan";
-      }
-      if (selectElement.value == "PPN") {
-        divElement.style.display = "block";
-        divInput.class = "form-control bg-light border-0";
-        divInput.row = "1";
-        divInput.name = "ppn";
-        divInput.placeholder = "PPN";
-      }
-    } else {
-      divElement.style.display = "none";
-    }
-  });
-});
 totalPembayaran();
 // Event delegation for item row removal
 $(document).on('click', '.product-removal a, .product-removal button', function (e) {

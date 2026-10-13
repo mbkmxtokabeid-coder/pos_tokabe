@@ -30,14 +30,14 @@
                                               <h4 class="mb-3">Apakah ingin menghapus data?</h4>
                                               {{-- <p class="text-muted mb-4"> The transfer was not successfully received by us. the email of the recipient wasn't correct.</p> --}}
                                               <div class="hstack gap-2 justify-content-center">
-                                                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                                                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
                                                   {{-- <a href="javascript:void(0);" class="btn btn-danger">Try Again</a> --}}
                                                   <form action="/delete-spb/" method="POST">
                                                     @csrf
                                                     @method('delete')
                                                     <button type="submit" class="btn btn-danger mt-3">
                                                       <i class="las la-trash-alt fs-18 align-middle me-2"></i>
-                                                      Delete
+                                                      Hapus
                                                     </button>
                                                     </form>
                                               </div>
@@ -53,7 +53,6 @@
                 </div>
                 <!-- container-fluid -->
               </div>
-               @extends('layout.footer')
 
 @endsection
 

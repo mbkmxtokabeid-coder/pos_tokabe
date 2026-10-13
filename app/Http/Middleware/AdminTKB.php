@@ -17,10 +17,10 @@ class AdminTKB
     public function handle(Request $request, Closure $next): Response
     {
 
-        if (auth()->user()->role === 'AdminTKB' || auth()->user()->role === 'Pemilik' || auth()->user()->role === 'Admin') {
+        if (auth()->user()->role === 'Pemilik' || auth()->user()->role === 'Admin') {
             return $next($request);
         }
         Alert::error('Kamu tidak memiliki akses Admin');
-        return redirect('/daftar-spk');
+        return redirect('/welcomeTKB');
     }
 }

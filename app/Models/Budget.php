@@ -23,8 +23,4 @@ class Budget extends Model
     {
         return $this->belongsTo(KategoriBarang::class, 'kategori_id');
     }
-    function pembelian()
-    {
-        return $this->hasMany(Pembelian::class, 'anggaran');
-    }
 }

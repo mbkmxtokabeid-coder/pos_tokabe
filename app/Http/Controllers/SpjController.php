@@ -68,7 +68,7 @@ class SpjController extends Controller
     {
         // Validasi input
         $validator = Validator::make($request->all(), [
-            'spj' => 'required|string|in:Ibekami,Ibeka,Tokabe,Personal',
+            'spj' => 'required|string|in:Tokabe,Personal',
             'nomor_spj' => 'required|string|unique:spj,nomor_spj',
             'tanggal_tugas' => 'required|date_format:d/m/Y',
             'waktu_berangkat' => 'nullable|date_format:H:i',
@@ -146,7 +146,7 @@ class SpjController extends Controller
     {
         $spj = Spj::find($id);
             $validator = Validator::make($request->all(), [
-            'spj' => 'required|string|in:Ibekami,Ibeka,Tokabe,Personal',
+            'spj' => 'required|string|in:Tokabe,Personal',
             'nomor_spj' => 'required|string',
             'tanggal_tugas' => 'required|date_format:d/m/Y',
             'waktu_berangkat' => 'nullable|date_format:H:i',
@@ -216,8 +216,6 @@ class SpjController extends Controller
         $spj = $request->query('spj');
 
         $kodeMap = [
-            'Ibekami' => 'IBK',
-            'Ibeka' => 'IBK',
             'Tokabe' => 'TKB',
             'Personal' => 'PRS',
         ];

@@ -27,7 +27,7 @@ class UserRequest extends FormRequest
             'password' => 'required|min:5',
             're_password' => 'required|min:5|confirmed',
             'no_telp' => 'required|regex:/^[0-9\+\s]+$/|min:5',
-            'role' => 'required',
+            'role' => 'required|in:Pemilik,Admin',
         ];
     }
     public function messages()
@@ -47,6 +47,7 @@ class UserRequest extends FormRequest
             'no_telp.regex' => 'Format nomor telepon tidak valid.',
             'no_telp.min' => 'Kolom nomor telepon minimal harus memiliki :min karakter.',
             'role.required' => 'Kolom role harus dipilih.',
+            'role.in' => 'Role yang dipilih harus Pemilik atau Admin.',
         ];
     }
 }

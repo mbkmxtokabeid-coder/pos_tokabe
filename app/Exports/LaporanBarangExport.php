@@ -13,7 +13,6 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use App\Models\PenjualanBarang;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,7 +64,7 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
             $penjualan->tgl_penjualan = Carbon::parse($penjualan->tgl_penjualan)->locale('id')->isoFormat('DD MMMM YYYY');
 
             $qty = $penjualan->qty == 0 ? '0.00' : $penjualan->qty;
-            $hargaBarang = $penjualan->hargaBarang == 0 ? '0.00' : $penjualan->hargaBarang;
+                    $hargaBarang = $penjualan->harga == 0 ? '0.00' : $penjualan->harga;
             $jumlah_harga = $penjualan->jumlah_harga == 0 ? '0.00' : $penjualan->jumlah_harga;
             $deskripsi = $penjualan->jenis_barang . ' ' . $penjualan->deskripsi_item;
 

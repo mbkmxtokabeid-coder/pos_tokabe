@@ -1,0 +1,617 @@
+/* ==========================================================================
+   INVOICE TOKABE FORM STYLESHEET
+   Mengikuti pedoman DESIGN.md:
+   - §2 Design Tokens (Fondasi)
+   - §3 Warna & §4 Mode Gelap (Neutral Charcoal Dark Theme konsisten dengan template.blade.php)
+   - §9 Button (Primary Brand Indigo, Danger Tonal, Secondary Neutral)
+   - §10 Form & Input (Warna input #212529 netral familiar, border #383e45 rapi)
+   - §13 Tabel (Uppercase overline headers, clear row spacing, soft danger action)
+   - §15.3 Feedback / SweetAlert2 Modal Dark Theme
+   ========================================================================== */
+
+:root {
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+
+  /* Radius */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Neutral Dark Canvas Palette (Konsisten dengan template.blade.php & sistem kasir) */
+  --bg-app: #0C0F14;
+  --bg-surface: #12161D;
+  --bg-surface-2: #1A1E24;
+  --bg-input: #212529;
+  --bg-input-focus: #272C32;
+  --bg-input-readonly: #181C22;
+  
+  --border-subtle: #232A35;
+  --border-default: #383E45;
+  --border-strong: #4A525D;
+
+  /* Text Colors */
+  --text-primary: #F8F9FA;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  --text-disabled: #6C757D;
+
+  /* Brand (Indigo) */
+  --brand: #6366F1;
+  --brand-hover: #4F46E5;
+  --brand-active: #4338CA;
+  --brand-subtle: rgba(99, 102, 241, 0.12);
+  --brand-subtle-hover: rgba(99, 102, 241, 0.22);
+
+  /* Semantic Status */
+  --success: #10B981;
+  --success-hover: #059669;
+  --success-subtle: rgba(16, 185, 129, 0.12);
+  --success-text: #6EE7B7;
+  --success-border: rgba(16, 185, 129, 0.35);
+
+  --danger: #EF4444;
+  --danger-hover: #DC2626;
+  --danger-subtle: rgba(239, 68, 68, 0.12);
+  --danger-text: #FCA5A5;
+  --danger-border: rgba(239, 68, 68, 0.35);
+
+  --warning: #F59E0B;
+  --warning-subtle: rgba(245, 158, 11, 0.12);
+  --warning-text: #FCD34D;
+
+  --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.28);
+}
+
+/* ==========================================================================
+   PAGE CONTAINER & CARD STYLING (DESIGN.md §12.1)
+   ========================================================================== */
+.card {
+  background-color: var(--bg-surface, #12161D) !important;
+  border: 1px solid var(--border-subtle, #232A35) !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.card-body.border-bottom-dashed {
+  border-bottom: 1px solid var(--border-subtle, #232A35) !important;
+}
+
+.page-title-box h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #F8F9FA);
+  letter-spacing: -0.01em;
+}
+
+.breadcrumb-item a {
+  color: var(--text-tertiary, #94A3B8);
+  text-decoration: none;
+}
+.breadcrumb-item a:hover {
+  color: var(--text-secondary, #CBD5E1);
+}
+.breadcrumb-item.active {
+  color: var(--text-secondary, #CBD5E1);
+}
+
+/* ==========================================================================
+   FORM & INPUT (DESIGN.md §10)
+   Warna netral dark (#212529) yang familiar bagi pengguna lama
+   ========================================================================== */
+label,
+.form-label,
+.col-form-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary, #CBD5E1) !important;
+  margin-bottom: 6px;
+}
+
+/* Kolom input standar & select: warna #212529 netral alami */
+.form-control,
+.form-select,
+select.form-select,
+input.form-control,
+textarea.form-control {
+  background-color: #212529 !important;
+  border: 1px solid #383E45 !important;
+  border-radius: var(--radius-md, 8px) !important;
+  color: #F8F9FA !important;
+  font-size: 14px !important;
+  font-family: var(--font-sans) !important;
+  padding: 8px 12px !important;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease !important;
+}
+
+.form-select option,
+select option {
+  background-color: #212529 !important;
+  color: #F8F9FA !important;
+  padding: 8px 12px;
+}
+
+.form-control::placeholder,
+.form-select::placeholder,
+textarea.form-control::placeholder {
+  color: #878A99 !important;
+}
+
+.form-control:hover:not([readonly]):not(:disabled),
+.form-select:hover:not(:disabled),
+textarea.form-control:hover:not([readonly]):not(:disabled) {
+  border-color: #4E5661 !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus {
+  outline: none !important;
+  border-color: var(--brand, #6366F1) !important;
+  box-shadow: var(--focus-ring) !important;
+  background-color: #272C32 !important;
+  color: #FFFFFF !important;
+}
+
+/* Kolom input Readonly & Disabled: warna lembut #1A1E24 */
+.form-control[readonly],
+input[readonly].form-control,
+textarea[readonly].form-control,
+.form-control:disabled,
+.form-select:disabled,
+input:disabled {
+  background-color: #1A1E24 !important;
+  border-color: #2B3037 !important;
+  color: #CBD5E1 !important;
+  cursor: default !important;
+  box-shadow: none !important;
+}
+
+.form-control[readonly]:focus,
+input[readonly].form-control:focus {
+  border-color: #2B3037 !important;
+  box-shadow: none !important;
+}
+
+/* Input Group Addon (%) */
+.input-group .form-control {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.input-group-text {
+  background-color: #1A1E24 !important;
+  border: 1px solid #383E45 !important;
+  border-left: none !important;
+  color: #94A3B8 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  border-top-right-radius: var(--radius-md, 8px) !important;
+  border-bottom-right-radius: var(--radius-md, 8px) !important;
+}
+
+/* Validation Feedback */
+.invalid-feedback {
+  color: #F87171 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  margin-top: 4px !important;
+}
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--danger, #EF4444) !important;
+}
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* TKB Logo Box */
+.profile-user span.border-dashed {
+  border: 1.5px dashed #383E45 !important;
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  padding: 14px !important;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+.profile-user span.border-dashed:hover {
+  border-color: #10B981 !important;
+  background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* ==========================================================================
+   ITEM TABLE (DESIGN.md §13)
+   ========================================================================== */
+.invoice-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin-bottom: var(--space-3) !important;
+}
+
+.invoice-table thead tr.table-active th {
+  background-color: #1A1E24 !important;
+  color: var(--text-tertiary, #94A3B8) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--border-subtle, #232A35) !important;
+  border-top: none !important;
+  vertical-align: middle;
+}
+
+.invoice-table tbody tr.product td,
+.invoice-table tbody tr.product th {
+  padding: 12px 10px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  vertical-align: top;
+  background-color: transparent !important;
+}
+
+.invoice-table tbody tr.product:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.invoice-table .product-id {
+  color: var(--text-tertiary, #94A3B8) !important;
+  font-weight: 600;
+  font-size: 13px;
+  padding-top: 18px !important;
+  text-align: center;
+}
+
+.invoice-table .currency-select select {
+  background: transparent !important;
+  color: var(--text-tertiary, #94A3B8) !important;
+  font-weight: 600;
+  padding: 0 4px !important;
+  font-size: 11px !important;
+  cursor: pointer;
+  border: none !important;
+}
+
+.invoice-table .input-step {
+  border: 1px solid #383E45;
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  background-color: #212529;
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.invoice-table .input-step input {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-primary, #F8F9FA) !important;
+  font-weight: 600;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Delete Button in Row (DESIGN.md §9.2 Danger-Ghost/Tonal) */
+.invoice-table .product-removal .btn-danger,
+.invoice-table .product-removal a {
+  background-color: var(--danger-subtle) !important;
+  color: var(--danger-text) !important;
+  border: 1px solid var(--danger-border) !important;
+  border-radius: var(--radius-sm, 6px) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none !important;
+  transition: all 120ms ease !important;
+  cursor: pointer;
+}
+
+.invoice-table .product-removal .btn-danger:hover,
+.invoice-table .product-removal a:hover {
+  background-color: rgba(239, 68, 68, 0.25) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+/* Add Item Button (DESIGN.md §9.2 Tonal Soft Brand) */
+#add-item,
+.btn-soft-secondary {
+  background-color: var(--brand-subtle) !important;
+  color: #A5B4FC !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  border-radius: var(--radius-md, 8px) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 8px 18px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 120ms ease !important;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+#add-item:hover,
+.btn-soft-secondary:hover {
+  background-color: var(--brand-subtle-hover) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   PAYMENT & SUMMARY SECTION
+   ========================================================================== */
+.form-check-input {
+  background-color: #212529 !important;
+  border: 1.5px solid #383E45 !important;
+  cursor: pointer;
+}
+.form-check-input:checked {
+  background-color: #10B981 !important;
+  border-color: #10B981 !important;
+}
+.form-check-label {
+  color: var(--text-secondary, #CBD5E1) !important;
+  font-size: 13px !important;
+  cursor: pointer;
+  user-select: none;
+}
+
+.item-tax-type {
+  color: #94A3B8 !important;
+  font-size: 12px !important;
+  margin-top: 4px;
+  display: block;
+}
+#preview-nominal-ppn {
+  color: #34D399 !important;
+}
+#preview-nominal-pph,
+#hint-locked-ppn,
+#hint-locked-pph {
+  color: #F87171 !important;
+}
+
+/* ==========================================================================
+   FOOTER ACTION BUTTONS (DESIGN.md §9)
+   Simpan / Update (Primary Brand) · Reset Draf (Danger Tonal) · Batal (Secondary)
+   ========================================================================== */
+.hstack.gap-2 {
+  display: flex;
+  align-items: center;
+  gap: 10px !important;
+}
+
+/* Simpan & Update Button */
+#simpan,
+#update,
+button[type="submit"]#simpan,
+button[type="submit"]#update,
+.btn-simpan-tokabe {
+  background-color: var(--brand, #6366F1) !important;
+  border: 1px solid transparent !important;
+  color: #FFFFFF !important;
+  border-radius: var(--radius-md, 8px) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  height: 40px !important;
+  padding: 0 22px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  transition: all 120ms ease !important;
+  cursor: pointer;
+}
+#simpan:hover,
+#update:hover,
+button[type="submit"]#simpan:hover,
+button[type="submit"]#update:hover,
+.btn-simpan-tokabe:hover {
+  background-color: var(--brand-hover, #4F46E5) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+}
+#simpan:active,
+#update:active,
+button[type="submit"]#simpan:active,
+button[type="submit"]#update:active {
+  background-color: var(--brand-active, #4338CA) !important;
+  transform: scale(0.98);
+}
+
+/* Reset Draf Button */
+#btn-reset-draft,
+.btn-outline-danger#btn-reset-draft {
+  background-color: var(--danger-subtle) !important;
+  color: var(--danger-text) !important;
+  border: 1px solid var(--danger-border) !important;
+  border-radius: var(--radius-md, 8px) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  height: 40px !important;
+  padding: 0 18px !important;
+  transition: all 120ms ease !important;
+  cursor: pointer;
+}
+#btn-reset-draft:hover,
+.btn-outline-danger#btn-reset-draft:hover {
+  background-color: rgba(239, 68, 68, 0.22) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  transform: translateY(-1px);
+}
+#btn-reset-draft:active {
+  transform: scale(0.98);
+}
+
+/* Batal Button */
+.btn-cancel-tokabe,
+.btn-secondary.btn-cancel-tokabe {
+  background-color: var(--bg-surface-2, #1A1E24) !important;
+  color: var(--text-secondary, #CBD5E1) !important;
+  border: 1px solid var(--border-default, #383E45) !important;
+  border-radius: var(--radius-md, 8px) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  height: 40px !important;
+  padding: 0 18px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none !important;
+  transition: all 120ms ease !important;
+  cursor: pointer;
+}
+.btn-cancel-tokabe:hover,
+.btn-secondary.btn-cancel-tokabe:hover {
+  background-color: #262B33 !important;
+  color: #FFFFFF !important;
+  border-color: #4A525D !important;
+  transform: translateY(-1px);
+}
+.btn-cancel-tokabe:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   SWEETALERT2 MODAL & TOAST DARK THEME (DESIGN.md §15.3 & §4.1)
+   ========================================================================== */
+.swal2-container {
+  z-index: 100000 !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.swal2-popup {
+  background-color: #161B22 !important;
+  background: #161B22 !important;
+  color: #F8F9FA !important;
+  border: 1px solid #2D333B !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  padding: 24px !important;
+}
+
+.swal2-title {
+  color: #F8F9FA !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  font-family: var(--font-sans) !important;
+  margin-top: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.swal2-html-container {
+  color: #CBD5E1 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  font-family: var(--font-sans) !important;
+  margin: 8px 0 16px 0 !important;
+}
+
+.swal2-actions {
+  margin-top: 20px !important;
+  gap: 12px !important;
+}
+
+.swal2-styled.swal2-confirm {
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 9px 20px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.15s ease !important;
+}
+.swal2-styled.swal2-confirm:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+.swal2-styled.swal2-confirm:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.45) !important;
+}
+
+.swal2-styled.swal2-cancel {
+  background-color: #212529 !important;
+  color: #CBD5E1 !important;
+  border: 1px solid #383E45 !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 9px 20px !important;
+  transition: all 0.15s ease !important;
+}
+.swal2-styled.swal2-cancel:hover {
+  background-color: #2A3037 !important;
+  color: #FFFFFF !important;
+  border-color: #4A525D !important;
+  transform: translateY(-1px) !important;
+}
+.swal2-styled.swal2-cancel:focus {
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.35) !important;
+}
+
+/* SweetAlert Icons in Dark Mode */
+.swal2-icon.swal2-warning {
+  border-color: #F59E0B !important;
+  color: #F59E0B !important;
+}
+.swal2-icon.swal2-error {
+  border-color: #EF4444 !important;
+  color: #EF4444 !important;
+}
+.swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+  background-color: #EF4444 !important;
+}
+.swal2-icon.swal2-question {
+  border-color: #3B82F6 !important;
+  color: #3B82F6 !important;
+}
+.swal2-icon.swal2-success {
+  border-color: #10B981 !important;
+  color: #10B981 !important;
+}
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+  background-color: #10B981 !important;
+}
+.swal2-icon.swal2-success .swal2-success-ring {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+.swal2-icon.swal2-info {
+  border-color: #6366F1 !important;
+  color: #6366F1 !important;
+}
+
+/* SweetAlert Toast Dark Mode */
+.swal2-toast {
+  background-color: #1A1E24 !important;
+  color: #F8F9FA !important;
+  border: 1px solid #383E45 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+}
+.swal2-toast .swal2-title {
+  color: #F8F9FA !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+.swal2-toast .swal2-html-container {
+  color: #CBD5E1 !important;
+  font-size: 13px !important;
+  margin: 4px 0 0 0 !important;
+}

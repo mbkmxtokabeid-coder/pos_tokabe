@@ -30,7 +30,7 @@ class BarangController extends Controller
         $kategori = Barang::join('kategori_barang', 'barang.kategori_id', '=', 'kategori_barang.id')
             ->pluck('kategori_barang.nama_kategori', 'barang.kategori_id');
         
-        $kategori_brg = KategoriBarang::whereNotIn('id', [7, 5])->get();
+        $kategori_brg = KategoriBarang::where('id', '!=', 5)->get();
 
         $barang = $barang->sortBy(function ($barang) {
             return $barang->kategori_item->nama_kategori ?? '';
@@ -102,7 +102,11 @@ class BarangController extends Controller
         $hargaModal = intval(str_replace(',', '', $request->harga_modal));
         $hargaJual = intval(str_replace(',', '', $request->harga_jual));
 
-        $barang->jenis_barang = $request->jenis;
+        if ($request->filled('jenis')) {
+            $barang->jenis_barang = $request->jenis;
+        } elseif ($request->filled('jenis_barang')) {
+            $barang->jenis_barang = $request->jenis_barang;
+        }
         $barang->stok = $stok;
         $barang->harga_modal = $hargaModal;
         $barang->harga_jual = $hargaJual;
@@ -111,84 +115,7 @@ class BarangController extends Controller
         Alert::success('Stok Berhasil di Update');
         return redirect('listBarang');
     }
-    
-    public function daftarTinta()
-    {
-        // Menambahkan filter is_active = 1
-        $tinta = Barang::where('is_active', 1)
-            ->where('kategori_id', 7)
-            ->orderByDesc('created_at')
-            ->get();
 
-        foreach ($tinta as $ink) {
-            $ink->formatted_stock = number_format($ink->stok, 0, ',', ',');
-        }
-        return view('pages.barang.daftar-tinta', compact('tinta'));
-    }
-
-    public function addTinta()
-    {
-        return view('pages.barang.tambah-tinta');
-    }
-
-    public function storeTinta(Request $request)
-    {
-        $stok = $request->stok;
-        $noComaStok = str_replace(',', '', $stok);
-
-        Barang::create([
-            'kategori_id' => $request->kategori,
-            'jenis_barang' => $request->nama_tinta,
-            'kode_barang' => $request->kode_tinta,
-            'stok' => $noComaStok,
-            'harga_modal' => $request->harga_modal,
-            'harga_jual' => $request->harga_jual,
-            'tgl_masuk' => Carbon::createFromFormat('d/m/Y', $request->tgl_masuk)->format('Y-m-d'),
-            'is_active' => 1,
-        ]);
-        Alert::success('Tinta Berhasil ditambahkan');
-        return redirect(route('stokTinta'));
-    }
-
-    public function editStokTinta($id)
-    {
-        $tinta = Barang::find($id);
-        if ($tinta->stok < 0) {
-            $tinta->stok = 0;
-        }
-        $format_tgl = Carbon::createFromFormat('Y-m-d H:i:s', $tinta->tgl_masuk)->format('d/m/Y');
-        return view('pages.barang.edit-tinta', compact('tinta', 'format_tgl'));
-    }
-
-    public function updateTinta(Request $request, $id)
-    {
-        $tinta = Barang::find($id);
-        if ($request->stok < 0) {
-            Alert::error('Stok tidak boleh di bawah 0');
-        }
-        $stok = $request->stok;
-        $noComaStok = str_replace(',', '', $stok);
-
-        $tinta->update([
-            'kategori_id' => $request->kategori,
-            'jenis_barang' => $request->nama_tinta,
-            'kode_barang' => $request->kode_tinta,
-            'stok' => $noComaStok,
-            'harga_modal' => $request->harga_modal,
-            'harga_jual' => $request->harga_jual,
-            'tgl_masuk' => Carbon::createFromFormat('d/m/Y', $request->tgl_masuk)->format('Y-m-d'),
-        ]);
-        Alert::success('Tinta Berhasil diUpdate');
-        return redirect(route('stokTinta'));
-    }
-
-    public function destroyTinta($id)
-    {
-        $barang = Barang::find($id);
-        $barang->delete();
-        Alert::success('Tinta berhasil dihapus');
-        return redirect(route('stokTinta'));
-    }
     
     public function dataBarang($kategori_id)
     {

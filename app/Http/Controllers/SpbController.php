@@ -6,8 +6,8 @@ use App\Models\Barang;
 use App\Models\BarangSpb;
 use App\Models\KategoriBarang;
 use Illuminate\Http\Request;
-use App\Models\Penjualan;
-use App\Models\Perusahaan;
+use App\Models\PenjualanTokabe;
+
 use App\Models\Spb;
 use Carbon\Carbon;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -37,9 +37,9 @@ class SpbController extends Controller
     }
     public function tambahSPB()
     {
-        $namaPerusahaan = Perusahaan::all();
-        $customer = Penjualan::pluck('customer');
-        $perusahaan = Penjualan::pluck('perusahaan');
+        $namaPerusahaan = collect([(object)['id' => 2, 'nama_perusahaan' => 'Total Karya Berkah']]);
+        $customer = PenjualanTokabe::pluck('customer');
+        $perusahaan = PenjualanTokabe::pluck('perusahaan');
         $barang = KategoriBarang::all();
         return view('pages.SPB.tambah-spb', compact('customer', 'perusahaan', 'barang','namaPerusahaan'));
     }
@@ -81,17 +81,17 @@ class SpbController extends Controller
 
         foreach ($request->barang_id as $key => $value) {
             $kategori_brg = KategoriBarang::find($value);
+            if (!$kategori_brg) {
+                continue;
+            }
             $keterangan = (!empty($request->keterangan[$key])) ? $request->keterangan[$key] : '-------------------';
-
-
-
 
             $brg_spb = [
                 'barang_id' => $kategori_brg->id,
                 'spb' => $spb->id,
-                'deskripsi' => $request->deskripsi_item[$key],
-                'satuan' => $request->satuan[$key],
-                'qty' => $request->qty[$key],
+                'deskripsi' => $request->deskripsi_item[$key] ?? '',
+                'satuan' => $request->satuan[$key] ?? 'Pcs',
+                'qty' => $request->qty[$key] ?? 1,
                 'keterangan' => $keterangan,
             ];
             BarangSpb::create($brg_spb);
@@ -128,10 +128,10 @@ class SpbController extends Controller
 
     public function editSPB($id)
     {
-        $namaPerusahaan = Perusahaan::all();
+        $namaPerusahaan = collect([(object)['id' => 2, 'nama_perusahaan' => 'Total Karya Berkah']]);
         $spb = Spb::where('id', $id)->first();
-        $customer = Penjualan::pluck('customer');
-        $perusahaan = Penjualan::pluck('perusahaan');
+        $customer = PenjualanTokabe::pluck('customer');
+        $perusahaan = PenjualanTokabe::pluck('perusahaan');
         $kategori_brg = KategoriBarang::all();
         $brg_spb = BarangSpb::where('spb', $id)->get();
         $barangs = [];

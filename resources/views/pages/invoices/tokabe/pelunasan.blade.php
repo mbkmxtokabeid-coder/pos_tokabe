@@ -38,7 +38,7 @@
 
         <div class="mb-4">
             <p class="text-sm text-gray-700 mb-1">Nama Pelanggan:</p>
-            <p class="text-base text-gray-800">{{ $invoice->customer . ' / ' . $invoice->perusahaan }}</p>
+            <p class="text-base text-gray-800">{{ $invoice->customer }}</p>
         </div>
 
         @foreach ($penjualan_barang as $index => $jual)
