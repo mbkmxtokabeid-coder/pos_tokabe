@@ -501,7 +501,21 @@ class PenjualanTokabeController extends Controller
         $day = $tanggal->format('d');
         $formatJam = $tanggal->format('H:i'); 
         $hariIni = sprintf('%s-%s-%s', $year, $month, $day);
-        $jenisBarang = Item::orderBy('nama_item')->get();
+        $catalogItems = Item::orderBy('nama_item')->get();
+        if ($catalogItems->isEmpty()) {
+            $activeBarangs = Barang::where('is_active', 1)->get();
+            foreach ($activeBarangs as $b) {
+                $nama = trim($b->jenis_barang);
+                if ($nama !== '') {
+                    Item::firstOrCreate(
+                        ['nama_item' => $nama],
+                        ['jenis_pajak' => 'tanpa_pajak']
+                    );
+                }
+            }
+            $catalogItems = Item::orderBy('nama_item')->get();
+        }
+        $jenisBarang = $catalogItems;
 
         $kontak = PenjualanTokabe::select('customer', 'no_telepon', 'perusahaan')->get();
         try {
@@ -521,9 +535,14 @@ class PenjualanTokabeController extends Controller
         // Konversi bulan ke angka Romawi
         $romawiBulan = $this->convertToRoman((int)$month);
 
-        // Ambil invoice terakhir di bulan dan tahun yang sama berdasarkan tgl_penjualan
-        $lastInvoice = PenjualanTokabe::whereYear('tgl_penjualan', $year)
-            ->whereMonth('tgl_penjualan', $month)
+        // Ambil invoice terakhir di bulan dan tahun yang sama (termasuk yang dibatalkan maupun dihapus/soft-deleted)
+        $lastInvoice = PenjualanTokabe::withTrashed()
+            ->where(function ($q) use ($year, $month, $romawiBulan) {
+                $q->where(function ($sub) use ($year, $month) {
+                    $sub->whereYear('tgl_penjualan', $year)
+                        ->whereMonth('tgl_penjualan', $month);
+                })->orWhere('nomor_invoice', 'LIKE', "%/TKB/{$romawiBulan}/{$year}");
+            })
             ->orderByRaw("CAST(SUBSTRING_INDEX(nomor_invoice, '/', 1) AS UNSIGNED) DESC")
             ->pluck('nomor_invoice')
             ->first();
@@ -817,6 +836,11 @@ class PenjualanTokabeController extends Controller
 
     public function delete($id)
     {
+        if (auth()->check() && auth()->user()->role === 'Admin' && auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat menghapus invoice secara langsung. Silakan gunakan fitur Request Hapus.');
+            return redirect('list-invoice/tokabe');
+        }
+
         $penjualan = PenjualanTokabe::find($id);
         
         if (!$penjualan) {
@@ -837,6 +861,12 @@ class PenjualanTokabeController extends Controller
             }
         }
 
+        // Tandai status sebagai Dihapus jika statusnya belum Batal
+        if ($penjualan->status !== 'Batal') {
+            $penjualan->status = 'Dihapus';
+            $penjualan->save();
+        }
+
         // Menghapus penjualan dan barang penjualan terkait
         $penjualan->penjualanBarang()->delete();
         $penjualan->delete();
@@ -854,6 +884,19 @@ class PenjualanTokabeController extends Controller
         $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
         $jenisBarang = Barang::with('kategori_item')->where('is_active', 1)->get();
         $items = Item::orderBy('nama_item')->get();
+        if ($items->isEmpty()) {
+            $activeBarangs = Barang::where('is_active', 1)->get();
+            foreach ($activeBarangs as $b) {
+                $nama = trim($b->jenis_barang);
+                if ($nama !== '') {
+                    Item::firstOrCreate(
+                        ['nama_item' => $nama],
+                        ['jenis_pajak' => 'tanpa_pajak']
+                    );
+                }
+            }
+            $items = Item::orderBy('nama_item')->get();
+        }
         $jam = substr($inv->tgl_penjualan, 11, 5);
         $nomor_unik = $inv->nomor_invoice;
         $perusahaan = $inv->perusahaan;
@@ -1182,6 +1225,32 @@ class PenjualanTokabeController extends Controller
         return view('pages.invoices.tokabe.pelunasan', compact('invoice', 'penjualan_barang', 'barang'));
     }
 
+    public function batalPage($id)
+    {
+        $invoice = PenjualanTokabe::findOrFail($id);
+        $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
+        $invoice->formatted_total_pembayaran = number_format($invoice->total_pembayaran, 0, ',', '.');
+        $invoice->formatted_sisa_pembayaran = number_format($invoice->sisa_pembayaran, 0, ',', '.');
+        $barang = [];
+        foreach ($penjualan_barang as $item) {
+            $barang[] = $this->productForInvoiceLine($item);
+        }
+        return view('pages.invoices.tokabe.batal', compact('invoice', 'penjualan_barang', 'barang'));
+    }
+
+    public function deletePage($id)
+    {
+        $invoice = PenjualanTokabe::findOrFail($id);
+        $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
+        $invoice->formatted_total_pembayaran = number_format($invoice->total_pembayaran, 0, ',', '.');
+        $invoice->formatted_sisa_pembayaran = number_format($invoice->sisa_pembayaran, 0, ',', '.');
+        $barang = [];
+        foreach ($penjualan_barang as $item) {
+            $barang[] = $this->productForInvoiceLine($item);
+        }
+        return view('pages.invoices.tokabe.delete', compact('invoice', 'penjualan_barang', 'barang'));
+    }
+
     public function statusLunas($id)
     {
         $inv = PenjualanTokabe::find($id);
@@ -1216,7 +1285,7 @@ class PenjualanTokabeController extends Controller
         $invoice->status = 'Batal';
         $invoice->alasan_batal = $request->alasan_batal;
         $invoice->save();
-        return redirect()->back()->with('batal', 'Invoice Tokabe berhasil dibatalkan.');
+        return redirect()->route('list_invoice_tokabe')->with('batal', 'Invoice Tokabe berhasil dibatalkan.');
     }
 
     public function cetakInvoiceTKB(Request $request, $id)

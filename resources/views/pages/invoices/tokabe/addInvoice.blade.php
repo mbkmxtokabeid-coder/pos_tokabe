@@ -240,7 +240,7 @@ $(document).ready(function () {
                                         <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian  </label>
                                        </div>
                                        <div class="col-lg-7">
-                                        <input type="text" class="form-control @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}">
+                                        <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}" autocomplete="off">
                                         @error('tgl_selesai')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -258,7 +258,7 @@ $(document).ready(function () {
                                  <div id="template-options-barang" style="display: none;">
                                     <option selected disabled>Pilih Item</option>
                                      @foreach ($jenisBarang as $jns)
-                                         <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}">{{$jns->nama_item}}</option>
+                                         <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}">{{$jns->nama_item}}</option>
                                      @endforeach
                                  </div>
                                  <!-- END TEMPLATE -->
@@ -293,7 +293,7 @@ $(document).ready(function () {
                                         <select class="form-select @error('item_id.0') is-invalid @enderror" id="productName-1" name="item_id[0]" required>
                                             <option selected disabled>Pilih Item</option>
                                              @foreach ($jenisBarang as $jns)
-                                             <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" {{old('item_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->nama_item}}</option>
+                                             <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}" {{old('item_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->nama_item}}</option>
                                              @endforeach
                                         </select>
                                         <small class="form-text text-muted item-tax-type" id="item-tax-type-1"></small>
@@ -530,23 +530,36 @@ $(document).ready(function () {
            </script>
            
           <script>
-   document.addEventListener("DOMContentLoaded", function () {
-     let dateField = document.getElementById("date-field");
-     let invoiceInput = document.getElementById("noInvoice");
- 
-     flatpickr(dateField, {
-         dateFormat: "Y-m-d",
-         defaultDate: "{{ $hariIni }}",
-         onChange: function (selectedDates, dateStr) {
-             fetch(`/invoice/get-invoice-number?tanggal=${dateStr}`)
-                 .then(response => response.json())
-                 .then(data => {
-                     invoiceInput.value = data.no_invoice;
-                 })
-                 .catch(error => console.error('Error fetching invoice number:', error));
-         }
-     });
-   });
+    document.addEventListener("DOMContentLoaded", function () {
+      let dateField = document.getElementById("date-field");
+      let invoiceInput = document.getElementById("noInvoice");
+      let dateInput = document.getElementById("dateInput");
+
+      if (dateField) {
+        flatpickr(dateField, {
+            dateFormat: "Y-m-d",
+            defaultDate: "{{ $hariIni }}",
+            onChange: function (selectedDates, dateStr) {
+                fetch(`/invoice/get-invoice-number?tanggal=${dateStr}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        invoiceInput.value = data.no_invoice;
+                    })
+                    .catch(error => console.error('Error fetching invoice number:', error));
+            }
+        });
+      }
+
+      if (dateInput) {
+        flatpickr(dateInput, {
+            dateFormat: "Y-m-d",
+            allowInput: true,
+            @if(old('tgl_selesai'))
+            defaultDate: "{{ old('tgl_selesai') }}"
+            @endif
+        });
+      }
+    });
    </script> 
            
 {!! JsValidator::formRequest('App\Http\Requests\InvoiceRequest') !!}
@@ -713,6 +726,20 @@ $(document).ready(function () {
     document.addEventListener('change', function (event) {
       if (event.target.matches('select[name^="item_id"]')) {
         updateItemTaxType(event.target, true);
+        const sel = event.target;
+        const opt = sel.selectedOptions && sel.selectedOptions[0];
+        if (opt && opt.dataset.harga && parseInt(opt.dataset.harga) > 0) {
+          const row = sel.closest('tr.product') || sel.closest('tr');
+          if (row) {
+            const rateInput = row.querySelector('input[id^="productRate-"]');
+            if (rateInput && (!rateInput.value || rateInput.value === '0' || rateInput.value === 'Rp. 0.000' || rateInput.value === 'Rp.0.000' || rateInput.value === '')) {
+              rateInput.value = parseInt(opt.dataset.harga).toLocaleString('id-ID');
+              if (typeof autoCalc === 'function') {
+                autoCalc(rateInput);
+              }
+            }
+          }
+        }
       }
     });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barang;
+use App\Models\Item;
 use Illuminate\Http\Request;
 use App\Models\KategoriBarang;
 use RealRashid\SweetAlert\Facades\Alert;
@@ -66,6 +67,13 @@ class BarangController extends Controller
             'harga_jual' => $noComaJual,
             'is_active' => 1, // Default aktif saat dibuat
         ]);
+
+        if (!empty($request->jenis_barang)) {
+            Item::firstOrCreate(
+                ['nama_item' => trim($request->jenis_barang)],
+                ['jenis_pajak' => 'tanpa_pajak']
+            );
+        }
 
         Alert::success('Barang Berhasil ditambahkan');
         return redirect('listBarang');

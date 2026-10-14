@@ -204,6 +204,7 @@
                       <option value="Lunas">Lunas</option>
                       <option value="Belum Lunas">Belum Lunas</option>
                       <option value="Batal">Batal</option>
+                      <option value="Dihapus">Dihapus</option>
                     </select>
                   </div>
                 </div>

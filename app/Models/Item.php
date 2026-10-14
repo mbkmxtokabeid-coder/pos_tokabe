@@ -25,4 +25,10 @@ class Item extends Model
     {
         return $this->nama_item;
     }
+
+    public function getHargaJualAttribute(): int
+    {
+        $barang = Barang::where('jenis_barang', $this->nama_item)->where('is_active', 1)->first();
+        return $barang ? (int)$barang->harga_jual : 0;
+    }
 }

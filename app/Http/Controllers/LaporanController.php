@@ -26,7 +26,7 @@ class LaporanController extends Controller
         Carbon::setLocale('id');
         $perusahaan = collect([2 => 'Total Karya Berkah']);
         $katInv = Invoice::where('perusahaan_id', 2)->pluck('nama_invoice', 'id');
-        $distinctPenjualan = PenjualanTokabe::distinct()->pluck('tgl_penjualan');
+        $distinctPenjualan = PenjualanTokabe::withTrashed()->distinct()->pluck('tgl_penjualan');
         $namaBulan = [];
         $daftarTahun = [];
 
@@ -52,6 +52,15 @@ class LaporanController extends Controller
     private function preparePenjualansForPdf($penjualans)
     {
         foreach ($penjualans as $inv) {
+            // Jika invoice di-soft-delete dan status bukan Batal, tandai sebagai Dihapus
+            if ($inv instanceof PenjualanTokabe) {
+                if ($inv->trashed() && $inv->status !== 'Batal') {
+                    $inv->status = 'Dihapus';
+                }
+            } elseif (isset($inv->deleted_at) && $inv->deleted_at !== null && $inv->status !== 'Batal') {
+                $inv->status = 'Dihapus';
+            }
+
             $inv->formatted_tgl_penjualan = Carbon::parse($inv->tgl_penjualan)->locale('id')->isoFormat('DD MMMM YYYY');
             $inv->formatted_total_pembayaran = 'Rp.' . number_format($inv->total_pembayaran, 0, ',', ',');
             $inv->formatted_total_harga = 'Rp.' . number_format($inv->total_harga, 0, ',', ',');
@@ -91,7 +100,6 @@ class LaporanController extends Controller
                         ->leftJoin('barang', $tableRelasi . '.barang_id', '=', 'barang.id')
                         ->leftJoin('items', $tableRelasi . '.item_id', '=', 'items.id')
                         ->where($tableRelasi . '.' . $fkColumn, $inv->id)
-                        ->whereNull($tableRelasi . '.deleted_at')
                         ->select(DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'), $tableRelasi . '.deskripsi_item', $tableRelasi . '.qty', $tableRelasi . '.satuan')
                         ->get();
                 } catch (\Exception $e) {
@@ -129,7 +137,7 @@ class LaporanController extends Controller
             }
         }
 
-        $query = PenjualanTokabe::query();
+        $query = PenjualanTokabe::withTrashed();
         if (is_null($tglAkhir)) {
             $query->whereDate('tgl_penjualan', $tglMulai);
             $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
@@ -174,12 +182,20 @@ class LaporanController extends Controller
         $invoice = Invoice::find($request->invoice); // Mengambil data invoice berdasarkan ID
         $namaInvoice = $invoice ? $invoice->nama_invoice : 'Semua Invoice';
 
-        $query = PenjualanTokabe::orderByDesc('created_at');
+        $query = PenjualanTokabe::withTrashed()->orderByDesc('created_at');
         if ($request->invoice != 'semua' && !empty($request->invoice)) {
             $query->where('invoice', $request->invoice);
         }
         if ($status_invoice != 'semua' && $status_invoice != 'Semua Status' && !empty($status_invoice)) {
-            $query->where('status', $status_invoice);
+            if ($status_invoice === 'Dihapus') {
+                $query->where(function ($q) {
+                    $q->whereNotNull('deleted_at')->orWhere('status', 'Dihapus');
+                });
+            } elseif ($status_invoice === 'Batal') {
+                $query->where('status', 'Batal');
+            } else {
+                $query->where('status', $status_invoice)->whereNull('deleted_at');
+            }
         }
         $penjualans = $query->get();
 
@@ -227,7 +243,8 @@ class LaporanController extends Controller
         }
 
         $tahun = $request->input('tahun', date('Y'));
-        $query = PenjualanTokabe::whereMonth('tgl_penjualan', $bulan)
+        $query = PenjualanTokabe::withTrashed()
+            ->whereMonth('tgl_penjualan', $bulan)
             ->whereYear('tgl_penjualan', $tahun);
         if ($request->invoice != 'semua' && !empty($request->invoice)) {
             $query->where('invoice', $request->invoice);
@@ -261,7 +278,7 @@ class LaporanController extends Controller
         $tahun = $request->tahun;
         $namaPerusahaan = 'Total Karya Berkah';
 
-        $query = PenjualanTokabe::whereYear('tgl_penjualan', $tahun);
+        $query = PenjualanTokabe::withTrashed()->whereYear('tgl_penjualan', $tahun);
         if ($request->invoice != 'semua' && !empty($request->invoice)) {
             $query->where('invoice', $request->invoice);
         }
@@ -309,89 +326,42 @@ class LaporanController extends Controller
             }
         }
 
-        if ($request->invoice == 'semua') {
-            
-            if (is_null($tglAkhir)) {
+        $query = DB::table('penjualan_tokabe')
+            ->join('penjualan_jasa_tokabe', 'penjualan_tokabe.id', '=', 'penjualan_jasa_tokabe.penjualan_id')
+            ->leftJoin('barang', 'penjualan_jasa_tokabe.barang_id', '=', 'barang.id')
+            ->leftJoin('items', 'penjualan_jasa_tokabe.item_id', '=', 'items.id')
+            ->select(
+                'penjualan_tokabe.nomor_invoice',
+                'penjualan_tokabe.tgl_penjualan',
+                'penjualan_tokabe.customer',
+                'penjualan_tokabe.perusahaan',
+                'penjualan_tokabe.no_telepon',
+                'penjualan_tokabe.deleted_at',
+                'penjualan_tokabe.status',
+                'penjualan_jasa_tokabe.deskripsi_item',
+                'penjualan_jasa_tokabe.qty',
+                'penjualan_jasa_tokabe.harga',
+                'penjualan_jasa_tokabe.jumlah_harga',
+                DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang')
+            );
 
-                $penjualans = DB::table('penjualan_tokabe')
-                    ->whereDate('tgl_penjualan', $tglMulai)
-                    ->join('penjualan_jasa_tokabe', 'penjualan_tokabe.id', '=', 'penjualan_jasa_tokabe.penjualan_id')
-                    ->leftJoin('barang', 'penjualan_jasa_tokabe.barang_id', '=', 'barang.id')
-                    ->leftJoin('items', 'penjualan_jasa_tokabe.item_id', '=', 'items.id')
-                    ->select('penjualan_tokabe.nomor_invoice', 'penjualan_tokabe.tgl_penjualan', 'penjualan_tokabe.customer', 'penjualan_tokabe.perusahaan', 'penjualan_tokabe.no_telepon', 'penjualan_tokabe.status', 'penjualan_jasa_tokabe.deskripsi_item', 'penjualan_jasa_tokabe.qty', 'penjualan_jasa_tokabe.harga', 'penjualan_jasa_tokabe.jumlah_harga', DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'))
-                    ->whereNull('penjualan_jasa_tokabe.deleted_at')
-                    // ->where('deleted_at','<>','Null')
-                    ->where('status', '<>', 'Batal')
-                    ->orderBy('penjualan_tokabe.tgl_penjualan', 'asc')
-                    ->get();
-
-                $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
-                
-                $grandTotal = $penjualans->sum('jumlah_harga');
-
-                
-            } else {
-                
-                $penjualans = DB::table('penjualan_tokabe')
-                    // ->where('penjualan.deleted_at',null)
-                    ->whereBetween('tgl_penjualan', [$tglMulai, $tglAkhir])
-                    ->join('penjualan_jasa_tokabe', 'penjualan_tokabe.id', '=', 'penjualan_jasa_tokabe.penjualan_id')
-                    ->leftJoin('barang', 'penjualan_jasa_tokabe.barang_id', '=', 'barang.id')
-                    ->leftJoin('items', 'penjualan_jasa_tokabe.item_id', '=', 'items.id')
-                    ->select('penjualan_tokabe.nomor_invoice', 'penjualan_tokabe.tgl_penjualan', 'penjualan_tokabe.customer', 'penjualan_tokabe.perusahaan', 'penjualan_tokabe.no_telepon', 'penjualan_tokabe.status', 'penjualan_jasa_tokabe.deskripsi_item', 'penjualan_jasa_tokabe.qty', 'penjualan_jasa_tokabe.harga', 'penjualan_jasa_tokabe.jumlah_harga', DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'))
-                    ->whereNull('penjualan_jasa_tokabe.deleted_at')
-                    ->where('status', '<>', 'Batal')
-                    ->orderBy('penjualan_tokabe.tgl_penjualan', 'asc')
-                    ->get();
-
-                $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
-                $tglAkhirFormat = Carbon::parse($tglAkhir)->isoFormat('DD MMMM YYYY');
-
-                $grandTotal = $penjualans->sum('jumlah_harga');
-                
-
-            }
+        if (is_null($tglAkhir)) {
+            $query->whereDate('penjualan_tokabe.tgl_penjualan', $tglMulai);
+            $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
         } else {
-            if (is_null($tglAkhir)) {
-                // $penjualans = Penjualan::whereDate('tgl_penjualan', $tglMulai)->where('invoice', $request->invoice)->get();
-                $penjualans = DB::table('penjualan_tokabe')
-                    ->whereDate('tgl_penjualan', $tglMulai)
-                    ->join('penjualan_jasa_tokabe', 'penjualan_tokabe.id', '=', 'penjualan_jasa_tokabe.penjualan_id')
-                    ->leftJoin('barang', 'penjualan_jasa_tokabe.barang_id', '=', 'barang.id')
-                    ->leftJoin('items', 'penjualan_jasa_tokabe.item_id', '=', 'items.id')
-                    ->select('penjualan_tokabe.nomor_invoice', 'penjualan_tokabe.tgl_penjualan', 'penjualan_tokabe.customer', 'penjualan_tokabe.perusahaan', 'penjualan_tokabe.no_telepon', 'penjualan_tokabe.status', 'penjualan_jasa_tokabe.deskripsi_item', 'penjualan_jasa_tokabe.qty', 'penjualan_jasa_tokabe.harga', 'penjualan_jasa_tokabe.jumlah_harga', DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'))
-                    ->where('penjualan_tokabe.invoice', $request->invoice)
-                    ->whereNull('penjualan_jasa_tokabe.deleted_at')
-                    ->where('status', '<>', 'Batal')
-                    ->orderBy('penjualan_tokabe.tgl_penjualan', 'asc')
-                    ->get();
-                $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
-
-                $grandTotal = $penjualans->sum('jumlah_harga');
-            } else {
-                // $penjualans = Penjualan::whereBetween('tgl_penjualan', [$tglMulai, $tglAkhir])->where('invoice', $request->invoice)->get();
-                $penjualans = DB::table('penjualan_tokabe')
-                    ->whereBetween('tgl_penjualan', [$tglMulai, $tglAkhir])
-                    ->join('penjualan_jasa_tokabe', 'penjualan_tokabe.id', '=', 'penjualan_jasa_tokabe.penjualan_id')
-                    ->leftJoin('barang', 'penjualan_jasa_tokabe.barang_id', '=', 'barang.id')
-                    ->leftJoin('items', 'penjualan_jasa_tokabe.item_id', '=', 'items.id')
-                    ->select('penjualan_tokabe.nomor_invoice', 'penjualan_tokabe.tgl_penjualan', 'penjualan_tokabe.customer', 'penjualan_tokabe.perusahaan', 'penjualan_tokabe.no_telepon', 'penjualan_tokabe.status', 'penjualan_jasa_tokabe.deskripsi_item', 'penjualan_jasa_tokabe.qty', 'penjualan_jasa_tokabe.harga', 'penjualan_jasa_tokabe.jumlah_harga', DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'))
-                    ->where('penjualan_tokabe.invoice', $request->invoice)
-                    ->whereNull('penjualan_jasa_tokabe.deleted_at')
-                    ->where('status', '<>', 'Batal')
-                    ->orderBy('penjualan_tokabe.tgl_penjualan', 'asc')
-                    ->get();
-                    
-                    
-                    
-                $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
-                $tglAkhirFormat = Carbon::parse($tglAkhir)->isoFormat('DD MMMM YYYY');
-
-                $grandTotal = $penjualans->sum('jumlah_harga');
-            }
+            $query->whereBetween('penjualan_tokabe.tgl_penjualan', [$tglMulai . ' 00:00:00', $tglAkhir . ' 23:59:59']);
+            $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
+            $tglAkhirFormat = Carbon::parse($tglAkhir)->isoFormat('DD MMMM YYYY');
         }
 
-        $periode = 'Tanggal ' . $tglAkhirFormat != null ? $tglMulaiFormat . ' - ' . $tglAkhirFormat : $tglMulaiFormat;
+        if ($request->invoice != 'semua' && !empty($request->invoice)) {
+            $query->where('penjualan_tokabe.invoice', $request->invoice);
+        }
+
+        $penjualans = $query->orderBy('penjualan_tokabe.tgl_penjualan', 'asc')->get();
+        $grandTotal = $penjualans->sum('jumlah_harga');
+
+        $periode = $tglAkhirFormat != null ? 'Tanggal ' . $tglMulaiFormat . ' - ' . $tglAkhirFormat : 'Tanggal ' . $tglMulaiFormat;
 
         if ($penjualans->isEmpty()) {
             Alert::error('Data pada tanggal tersebut tidak tersedia');
@@ -407,6 +377,9 @@ class LaporanController extends Controller
                 $formatGrandTotal = 'Rp.' . number_format($grandTotal, 0, ',', ',');
                 // Render tampilan PDF
                 foreach ($penjualans as $inv) {
+                    if (isset($inv->deleted_at) && $inv->deleted_at !== null && $inv->status !== 'Batal') {
+                        $inv->status = 'Dihapus';
+                    }
                     $inv->formatted_tgl_penjualan = Carbon::parse($inv->tgl_penjualan)->locale('id')->isoFormat('DD MMMM YYYY');
                     $inv->formatted_harga_barang = 'Rp.' . number_format($inv->harga, 0, ',', ',');
 

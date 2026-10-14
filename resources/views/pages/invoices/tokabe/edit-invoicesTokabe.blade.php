@@ -200,7 +200,7 @@
                                         <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian  </label>
                                        </div>
                                        <div class="col-lg-7">
-                                        <input type="text" class="form-control @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ $inv->tgl_selesai }}">
+                                        <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ $inv->tgl_selesai }}" autocomplete="off">
                                         @error('tgl_selesai')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -225,7 +225,7 @@
                                  <div id="template-options-item" style="display: none;">
                                     <option selected disabled>Pilih Item</option>
                                     @foreach ($items as $catalogItem)
-                                        <option value="{{$catalogItem->id}}" data-jenis-pajak="{{$catalogItem->jenis_pajak}}">{{$catalogItem->nama_item}}</option>
+                                        <option value="{{$catalogItem->id}}" data-jenis-pajak="{{$catalogItem->jenis_pajak}}" data-harga="{{$catalogItem->harga_jual ?? 0}}">{{$catalogItem->nama_item}}</option>
                                     @endforeach
                                  </div>
                                  <!-- END TEMPLATE -->
@@ -261,7 +261,7 @@
                                       @if ($jual->item_id)
                                       <select class="form-select @error('item_id.'.$index) is-invalid @enderror" data-choices data-choices-sorting="true" id="productName-{{$index+1}}" name="item_id[{{$index}}]" >
                                           @foreach ($items as $catalogItem)
-                                            <option value="{{$catalogItem->id}}" data-jenis-pajak="{{$catalogItem->jenis_pajak}}" {{ $catalogItem->id == $jual->item_id ? 'selected' : '' }}>{{$catalogItem->nama_item}}</option>
+                                            <option value="{{$catalogItem->id}}" data-jenis-pajak="{{$catalogItem->jenis_pajak}}" data-harga="{{$catalogItem->harga_jual ?? 0}}" {{ $catalogItem->id == $jual->item_id ? 'selected' : '' }}>{{$catalogItem->nama_item}}</option>
                                           @endforeach
                                       </select>
                                       @else
@@ -533,6 +533,30 @@
 <script>
 
 
+    document.addEventListener("DOMContentLoaded", function () {
+        let dateField = document.getElementById("date-field");
+        let dateInput = document.getElementById("dateInput");
+
+        if (dateField && !dateField._flatpickr) {
+            flatpickr(dateField, {
+                dateFormat: "Y-m-d",
+                @if(!empty($inv->tgl_penjualan))
+                defaultDate: "{{ $inv->tgl_penjualan }}",
+                @endif
+            });
+        }
+
+        if (dateInput && !dateInput._flatpickr) {
+            flatpickr(dateInput, {
+                dateFormat: "Y-m-d",
+                allowInput: true,
+                @if(!empty($inv->tgl_selesai))
+                defaultDate: "{{ $inv->tgl_selesai }}",
+                @endif
+            });
+        }
+    });
+
     $(document).ready(function() {
         $('.material-select').each(function() {
             if ($(this).val() !== '') {
@@ -541,7 +565,13 @@
         });
     });
 
-    
+    function calcTokabeEditMaterialQty(row) {
+        var panjang = parseFloat(row.find('.material-panjang').val());
+        var lebar = parseFloat(row.find('.material-lebar').val());
+        var productRow = row.closest('tr.product');
+        if (!productRow.length) {
+            productRow = row.closest('tr');
+        }
         var itemQty = parseFloat(productRow.find('input[name="qty[]"], [id^="product-qty-"]').val()) || 1;
 
         if (!isNaN(panjang) && !isNaN(lebar)) {
@@ -839,6 +869,20 @@
     document.addEventListener('change', function (event) {
       if (event.target.matches('select[name^="item_id"]')) {
         updateItemTaxType(event.target, true);
+        const sel = event.target;
+        const opt = sel.selectedOptions && sel.selectedOptions[0];
+        if (opt && opt.dataset.harga && parseInt(opt.dataset.harga) > 0) {
+          const row = sel.closest('tr.product') || sel.closest('tr');
+          if (row) {
+            const rateInput = row.querySelector('input[id^="productRate-"]');
+            if (rateInput && (!rateInput.value || rateInput.value === '0' || rateInput.value === 'Rp. 0.000' || rateInput.value === 'Rp.0.000' || rateInput.value === '')) {
+              rateInput.value = parseInt(opt.dataset.harga).toLocaleString('id-ID');
+              if (typeof autoCalc === 'function') {
+                autoCalc(rateInput);
+              }
+            }
+          }
+        }
       }
     });
 

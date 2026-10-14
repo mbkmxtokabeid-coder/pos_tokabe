@@ -96,6 +96,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/ubah-status-lock-tokabe/{id}', [PenjualanTokabeController::class, 'lock'])->name('tokabe.lock');
             Route::get('/tokabe-approval/{id}', [PenjualanTokabeController::class, 'approvalPage'])->middleware('role:Pemilik')->name('tokabe.approval.page');
             Route::get('/tokabe-pelunasan/{id}', [PenjualanTokabeController::class, 'pelunasanPage'])->middleware('role:Pemilik')->name('tokabe.pelunasan.page');
+            Route::get('/tokabe-batal/{id}', [PenjualanTokabeController::class, 'batalPage'])->middleware('role:Pemilik')->name('tokabe.batal.page');
+            Route::get('/tokabe-delete/{id}', [PenjualanTokabeController::class, 'deletePage'])->middleware('role:Pemilik')->name('tokabe.delete.page');
             Route::post('/ubah-status-batal-tokabe/{id}', [PenjualanTokabeController::class, 'storeStatusBatal'])->name('tokabe.status.batal');
             Route::post('/ubah-status-lunas-tokabe/{id}', [PenjualanTokabeController::class, 'statusLunas'])->name('tokabe.status.lunas');
 

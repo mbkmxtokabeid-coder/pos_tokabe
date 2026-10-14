@@ -53,6 +53,15 @@ class PenjualanTokabeViewRenderTest extends TestCase
         return $inv->approval !== 'Unlock';
     }
 
+    /**
+     * Should the "Request Batal" button be shown for Admin?
+     * Blade: @if($isAdminTkb && $inv->status !== 'Batal') ... Request Batal ...
+     */
+    private function shouldShowRequestBatal(object $inv): bool
+    {
+        return $inv->status !== 'Batal';
+    }
+
     // -------------------------------------------------------------------------
     // Data Providers
     // -------------------------------------------------------------------------
@@ -353,5 +362,30 @@ class PenjualanTokabeViewRenderTest extends TestCase
         $this->assertFalse($this->shouldShowEdit($inv), 'Lock invoice must NOT show Edit');
         $this->assertFalse($this->shouldShowLock($inv), 'Lock invoice must NOT show Lock');
         $this->assertTrue($this->shouldShowMintaUnlock($inv), 'Lock invoice must show Minta Unlock');
+    }
+
+    // -------------------------------------------------------------------------
+    // Request Batal tests for Admin
+    // -------------------------------------------------------------------------
+
+    /**
+     * @dataProvider invoiceApprovalProvider
+     *
+     * For any invoice with status != 'Batal', shouldShowRequestBatal must be true.
+     * For any invoice with status = 'Batal', shouldShowRequestBatal must be false.
+     */
+    public function test_request_batal_shown_only_when_not_batal(object $inv): void
+    {
+        if ($inv->status === 'Batal') {
+            $this->assertFalse(
+                $this->shouldShowRequestBatal($inv),
+                "Invoice with status='Batal' must NOT show 'Request Batal'"
+            );
+        } else {
+            $this->assertTrue(
+                $this->shouldShowRequestBatal($inv),
+                "Invoice with status='{$inv->status}' must show 'Request Batal'"
+            );
+        }
     }
 }

@@ -359,12 +359,87 @@
         border-top: none !important;
         padding: 11px 14px !important;
         vertical-align: middle !important;
-        cursor: default !important;
-        background-image: none !important;
+        position: relative !important;
+        user-select: none !important;
+        transition: background .15s ease, color .15s ease;
     }
 
-    #scroll-horizontal thead th::before,
-    #scroll-horizontal thead th::after {
+    /* Sortable Header Columns */
+    #scroll-horizontal thead th.sorting,
+    #scroll-horizontal thead th.sorting_asc,
+    #scroll-horizontal thead th.sorting_desc {
+        cursor: pointer !important;
+        padding-right: 28px !important;
+    }
+
+    #scroll-horizontal thead th.sorting:hover,
+    #scroll-horizontal thead th.sorting_asc:hover,
+    #scroll-horizontal thead th.sorting_desc:hover {
+        background: #1E293B !important;
+        color: var(--text-primary, #F1F5F9) !important;
+    }
+
+    #scroll-horizontal thead th.sorting_disabled {
+        cursor: default !important;
+        padding-right: 14px !important;
+    }
+
+    /* Custom Sort Indicators */
+    #scroll-horizontal thead th.sorting::after {
+        content: "\f124" !important;
+        font-family: 'remixicon' !important;
+        position: absolute !important;
+        right: 8px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 13px !important;
+        color: var(--text-tertiary, #64748B) !important;
+        opacity: 0.4 !important;
+        transition: opacity .15s ease, color .15s ease;
+    }
+    #scroll-horizontal thead th.sorting:hover::after {
+        opacity: 1 !important;
+        color: var(--brand, #818CF8) !important;
+    }
+
+    #scroll-horizontal thead th.sorting_asc {
+        color: var(--brand, #818CF8) !important;
+        background: #17243B !important;
+    }
+    #scroll-horizontal thead th.sorting_asc::after {
+        content: "\ea78" !important;
+        font-family: 'remixicon' !important;
+        position: absolute !important;
+        right: 8px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 14px !important;
+        color: var(--brand, #818CF8) !important;
+        opacity: 1 !important;
+    }
+
+    #scroll-horizontal thead th.sorting_desc {
+        color: var(--brand, #818CF8) !important;
+        background: #17243B !important;
+    }
+    #scroll-horizontal thead th.sorting_desc::after {
+        content: "\ea4c" !important;
+        font-family: 'remixicon' !important;
+        position: absolute !important;
+        right: 8px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        font-size: 14px !important;
+        color: var(--brand, #818CF8) !important;
+        opacity: 1 !important;
+    }
+
+    #scroll-horizontal thead th::before {
+        display: none !important;
+        content: "" !important;
+    }
+
+    #scroll-horizontal thead th.sorting_disabled::after {
         display: none !important;
         content: "" !important;
     }
@@ -386,14 +461,23 @@
     #scroll-horizontal th:nth-child(3), #scroll-horizontal td:nth-child(3) { width: 220px; text-align: left !important; }
     #scroll-horizontal th:nth-child(4), #scroll-horizontal td:nth-child(4) { width: 140px; text-align: left !important; }
     #scroll-horizontal th:nth-child(5), #scroll-horizontal td:nth-child(5) { width: 165px; text-align: left !important; }
-    #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 130px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 110px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 145px; min-width: 140px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 120px; min-width: 115px; text-align: center !important; }
     #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 270px; text-align: left !important; }
     #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 120px; text-align: right !important; font-variant-numeric: tabular-nums; }
     #scroll-horizontal th:nth-child(10), #scroll-horizontal td:nth-child(10) { width: 145px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; }
-    #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 145px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 155px; min-width: 145px; text-align: center !important; }
     #scroll-horizontal th:nth-child(12), #scroll-horizontal td:nth-child(12) { width: 140px; text-align: left !important; }
     #scroll-horizontal th:nth-child(13), #scroll-horizontal td:nth-child(13) { width: 75px; text-align: center !important; }
+
+    /* Header padding for centered sortable columns */
+    #scroll-horizontal thead th:nth-child(6),
+    #scroll-horizontal thead th:nth-child(7),
+    #scroll-horizontal thead th:nth-child(11) {
+        text-align: center !important;
+        padding-left: 20px !important;
+        padding-right: 28px !important;
+    }
 
     #scroll-horizontal tbody td:nth-child(2),
     #scroll-horizontal tbody td:nth-child(3),
@@ -415,10 +499,104 @@
         transition: color 240ms cubic-bezier(0.2, 0, 0, 1);
     }
 
+    #scroll-horizontal tbody td:nth-child(6),
+    #scroll-horizontal tbody td:nth-child(7),
     #scroll-horizontal tbody td:nth-child(9),
-    #scroll-horizontal tbody td:nth-child(10) {
-        white-space: nowrap;
+    #scroll-horizontal tbody td:nth-child(10),
+    #scroll-horizontal tbody td:nth-child(11) {
+        white-space: nowrap !important;
     }
+
+    /* ==========================================================================
+       DESIGN SYSTEM BADGES — Sesuai DESIGN.md §14.1 (Badge, Tag & Status)
+       Bentuk pill, tinggi 22–24, padding-x 8, font 12/500, titik/ikon + teks
+       ========================================================================== */
+    .badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        height: 24px !important;
+        padding: 0 var(--space-2, 8px) !important;
+        font-family: var(--font-sans, "Inter", system-ui, -apple-system, sans-serif) !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        line-height: 1 !important;
+        border-radius: var(--radius-full, 9999px) !important;
+        border: 1px solid transparent !important;
+        white-space: nowrap !important;
+        user-select: none !important;
+        box-sizing: border-box !important;
+        vertical-align: middle !important;
+    }
+
+    .badge::before {
+        content: "" !important;
+        width: 6px !important;
+        height: 6px !important;
+        border-radius: 50% !important;
+        background: currentColor !important;
+        flex-shrink: 0 !important;
+        display: inline-block !important;
+    }
+
+    /* Khusus badge dengan ikon (misal approval lock/unlock): sembunyikan dot ::before */
+    .badge.badge--icon::before {
+        display: none !important;
+    }
+    .badge.badge--icon i {
+        font-size: 13px !important;
+        line-height: 1 !important;
+    }
+
+    /* Varian Semantik — DESIGN.md §14.1 & §4 Mode Gelap */
+    /* Berhasil: success — Lunas, Selesai, Aktif */
+    .badge--success {
+        color: var(--success-text, #6EE7B7) !important;
+        background-color: var(--success-subtle, rgb(16 185 129 / 0.15)) !important;
+        border-color: var(--success-border, rgb(16 185 129 / 0.35)) !important;
+    }
+
+    /* Menunggu: warning — Belum Lunas, Menunggu, Ditahan */
+    .badge--warning {
+        color: var(--warning-text, #FCD34D) !important;
+        background-color: var(--warning-subtle, rgb(245 158 11 / 0.15)) !important;
+        border-color: var(--warning-border, rgb(245 158 11 / 0.35)) !important;
+    }
+
+    /* Gagal: danger — Batal, Hapus, Dibatalkan, Habis */
+    .badge--danger {
+        color: var(--danger-text, #FCA5A5) !important;
+        background-color: var(--danger-subtle, rgb(239 68 68 / 0.15)) !important;
+        border-color: var(--danger-border, rgb(239 68 68 / 0.35)) !important;
+    }
+
+    /* Info: info — Informasi, Tipe Pembayaran Cash/Transfer Lunas */
+    .badge--info {
+        color: var(--info-text, #93C5FD) !important;
+        background-color: var(--info-subtle, rgb(59 130 246 / 0.15)) !important;
+        border-color: var(--info-border, rgb(59 130 246 / 0.35)) !important;
+    }
+
+    /* Brand / Primer */
+    .badge--brand {
+        color: #A5B4FC !important;
+        background-color: var(--brand-subtle, rgb(99 102 241 / 0.15)) !important;
+        border-color: rgb(99 102 241 / 0.35) !important;
+    }
+
+    /* Netral: gray — Draf, Default */
+    .badge--neutral {
+        color: var(--text-secondary, #CBD5E1) !important;
+        background-color: var(--bg-surface-2, #1E293B) !important;
+        border-color: var(--border-subtle, #334155) !important;
+    }
+
+    /* Backward compatibility fallback */
+    .badge-status-tkb { display: inline-flex !important; }
+    .badge-status-tkb--lunas { color: var(--success-text, #6EE7B7) !important; background-color: var(--success-subtle, rgb(16 185 129 / 0.15)) !important; border-color: var(--success-border, rgb(16 185 129 / 0.35)) !important; }
+    .badge-status-tkb--belum-lunas { color: var(--warning-text, #FCD34D) !important; background-color: var(--warning-subtle, rgb(245 158 11 / 0.15)) !important; border-color: var(--warning-border, rgb(245 158 11 / 0.35)) !important; }
+    .badge-status-tkb--batal, .badge-status-tkb--hapus { color: var(--danger-text, #FCA5A5) !important; background-color: var(--danger-subtle, rgb(239 68 68 / 0.15)) !important; border-color: var(--danger-border, rgb(239 68 68 / 0.35)) !important; }
 
     /* ------------------------------------------------------------------ */
     /* Baris Tabel: Animasi Masuk & Keluar Hover yang Sangat Smooth      */
@@ -1667,7 +1845,30 @@
                         <h5 class="card-title mb-0" style="font-size:15px;font-weight:600;color:var(--text-primary,#F1F5F9);">Daftar Invoice Tokabe</h5>
                         <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--info-subtle,rgb(59 130 246/0.12));color:var(--info-text,#93C5FD);border:1px solid var(--info-border,rgb(59 130 246/0.35));"><i class="ri-information-line"></i>Klik baris untuk melihat rincian lengkap</span>
                     </div>
-                    <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        {{-- Tombol Sort/Urutkan Invoice --}}
+                        <div class="dropdown">
+                            <button type="button" id="dropdownSortInvoice" data-bs-toggle="dropdown" aria-expanded="false" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;font-size:13px;font-weight:500;background:var(--bg-surface,#0F172A);color:var(--text-primary,#F1F5F9);border:1px solid var(--border-default,#334155);border-radius:8px;cursor:pointer;transition:all .15s ease;">
+                                <i class="ri-sort-desc" style="color:var(--brand,#818CF8);font-size:15px;"></i>
+                                <span id="text-current-sort">Urutkan: Tanggal Terbaru</span>
+                                <i class="ri-arrow-down-s-line" style="font-size:14px;color:var(--text-tertiary,#94A3B8);"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="dropdownSortInvoice" style="background:var(--bg-surface,#0F172A);border:1px solid var(--border-subtle,#1E293B);border-radius:10px;padding:6px;min-width:230px;z-index:1050;">
+                                <li><button type="button" class="dropdown-item sort-action-btn active" data-col="4" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-calendar-line" style="color:var(--brand,#818CF8);"></i> Tanggal Terbaru</button></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="4" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-calendar-line" style="color:var(--text-tertiary,#94A3B8);"></i> Tanggal Terlama</button></li>
+                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="9" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-money-dollar-circle-line" style="color:var(--success,#10B981);"></i> Total Tertinggi</button></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="9" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-money-dollar-circle-line" style="color:var(--text-tertiary,#94A3B8);"></i> Total Terendah</button></li>
+                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="1" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-hashtag" style="color:var(--brand,#818CF8);"></i> Nomor Invoice (A-Z)</button></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="1" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-hashtag" style="color:var(--text-tertiary,#94A3B8);"></i> Nomor Invoice (Z-A)</button></li>
+                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="2" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-user-line" style="color:var(--brand,#818CF8);"></i> Pelanggan (A-Z)</button></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="2" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-user-line" style="color:var(--text-tertiary,#94A3B8);"></i> Pelanggan (Z-A)</button></li>
+                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
+                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="5" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-checkbox-circle-line" style="color:var(--warning-text,#FCD34D);"></i> Status Pembayaran</button></li>
+                            </ul>
+                        </div>
                         <button type="button" id="btn-toggle-all-rows" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;font-size:13px;font-weight:500;background:var(--brand-subtle,rgb(99 102 241/0.12));color:var(--brand,#6366F1);border:1px solid rgb(99 102 241/0.3);border-radius:8px;cursor:pointer;"><i class="ri-expand-diagonal-line"></i><span id="text-toggle-all-rows">Buka Semua Rincian</span></button>
                     </div>
                   </div>
@@ -1736,31 +1937,37 @@
 
                                       <td><span style="font-family: monospace; font-size: 13px; color: #CBD5E1;">{{$inv->no_telepon ?: "-"}}</span></td>
 
-                                      <td><span class="text-white">{{$inv->formatted_tgl_penjualan}}</span>
+                                      <td data-order="{{ $inv->tgl_penjualan }}"><span class="text-white">{{$inv->formatted_tgl_penjualan}}</span>
 
                                         @if ($inv->updated_at != $inv->created_at)
 
                                             <br><span style="font-size:11px;color:var(--text-tertiary,#94A3B8);">Diperbarui: {{ $inv->formatted_tgl_update }}</span>
 
-                                        @endif</td>
-
-                                      {{-- Badge Status --}}
-                                      <td class="text-center">
+                                        @endif</td>                                      {{-- Badge Status (DESIGN.md §14.1) --}}
+                                      <td data-order="{{ $inv->status }}" class="text-center">
                                           @if ($inv->status == 'Lunas')
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--success-subtle,rgb(16 185 129/0.12));color:var(--success-text,#6EE7B7);border:1px solid var(--success-border,rgb(16 185 129/0.35));"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>Lunas</span>
+                                              <span class="badge badge--success">Lunas</span>
                                           @elseif($inv->status == 'Belum Lunas')
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--danger-subtle,rgb(239 68 68/0.12));color:var(--danger-text,#FCA5A5);border:1px solid var(--danger-border,rgb(239 68 68/0.35));"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>Belum Lunas</span>
+                                              <span class="badge badge--warning">Belum Lunas</span>
+                                          @elseif($inv->status == 'Batal')
+                                              <span class="badge badge--danger">Batal</span>
+                                          @elseif($inv->status == 'Hapus')
+                                              <span class="badge badge--danger">Hapus</span>
                                           @else
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--bg-surface-2,#1E293B);color:var(--text-secondary,#CBD5E1);border:1px solid var(--border-subtle,#1E293B);"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>{{$inv->status}}</span>
+                                              <span class="badge badge--neutral">{{$inv->status}}</span>
                                           @endif
                                       </td>
 
-                                      {{-- Badge Approval --}}
-                                      <td class="text-center">
+                                      {{-- Badge Approval (DESIGN.md §14.1) --}}
+                                      <td data-order="{{ $inv->approval }}" class="text-center">
                                           @if($inv->approval == 'Unlock')
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--success-subtle,rgb(16 185 129/0.12));color:var(--success-text,#6EE7B7);border:1px solid var(--success-border,rgb(16 185 129/0.35));"><i class="ri-lock-unlock-line" style="font-size:11px;"></i>Unlock</span>
+                                              <span class="badge badge--success badge--icon">
+                                                  <i class="ri-lock-unlock-line"></i>Unlock
+                                              </span>
                                           @else
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--warning-subtle,rgb(245 158 11/0.12));color:var(--warning-text,#FCD34D);border:1px solid var(--warning-border,rgb(245 158 11/0.35));"><i class="ri-lock-line" style="font-size:11px;"></i>Lock</span>
+                                              <span class="badge badge--warning badge--icon">
+                                                  <i class="ri-lock-line"></i>Lock
+                                              </span>
                                           @endif
                                       </td>
 
@@ -1812,16 +2019,14 @@
 
 
                                       {{-- Panjar & Total: tabular-nums, rata kanan --}}
-                                      <td style="text-align:right; font-variant-numeric:tabular-nums; color:#CBD5E1;">Rp {{$inv->formatted_dp}}</td>
+                                      <td data-order="{{ (float)($inv->dp ?? 0) }}" style="text-align:right; font-variant-numeric:tabular-nums; color:#CBD5E1;">Rp {{$inv->formatted_dp}}</td>
 
-                                      <td style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums; color:#FFFFFF;">Rp {{$inv->formatted_total_pembayaran}}</td>
-
-                                      {{-- Badge Tipe Pembayaran --}}
+                                      <td data-order="{{ (float)($inv->total_pembayaran ?? 0) }}" style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums; color:#FFFFFF;">Rp {{$inv->formatted_total_pembayaran}}</td>                                      {{-- Badge Tipe Pembayaran (DESIGN.md §14.1) --}}
                                       <td class="text-center">
-                                          @if ($inv->jenis_pembayaran == 'Cash Lunas' || $inv->jenis_pembayaran == 'Transfer Lunas')
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--brand-subtle,rgb(99 102 241/0.12));color:#A5B4FC;border:1px solid rgb(99 102 241/0.3);"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>{{$inv->jenis_pembayaran}}</span>
+                                          @if ($inv->jenis_pembayaran == 'Cash Lunas' || $inv->jenis_pembayaran == 'Transfer Lunas' || $inv->jenis_pembayaran == 'Cash')
+                                              <span class="badge badge--info">{{$inv->jenis_pembayaran}}</span>
                                           @else
-                                              <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--warning-subtle,rgb(245 158 11/0.12));color:var(--warning-text,#FCD34D);border:1px solid var(--warning-border,rgb(245 158 11/0.35));"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;"></span>{{$inv->jenis_pembayaran}}</span>
+                                              <span class="badge badge--warning">{{$inv->jenis_pembayaran}}</span>
                                           @endif
                                       </td>
 
@@ -1858,6 +2063,15 @@
                                               // Pesan Request Pelunasan
 
                                               $msgLunasTkb = urlencode("Halo, saya ingin Request perubahan status pelunasan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman ubah status pelunasan:\n" . url("/tokabe-pelunasan/{$inv->id}"));
+
+
+                                               // Pesan Request Batal
+
+                                               $msgBatalTkb = urlencode("Halo, saya ingin Request pembatalan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman pembatalan invoice:\n" . url("/tokabe-batal/{$inv->id}"));
+
+                                               // Pesan Request Delete
+
+                                               $msgDeleteTkb = urlencode("Halo, saya ingin Request penghapusan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
 
 
 
@@ -2047,7 +2261,7 @@
 
                                                   {{-- === ADMIN: Request Pelunasan via WA === --}}
 
-                                                  @if($isAdminTkb && $inv->status !== 'Lunas')
+                                                  @if($isAdminTkb && $inv->status !== 'Lunas' && $inv->status !== 'Batal')
 
                                                   <li>
 
@@ -2064,6 +2278,34 @@
                                                       <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (Owner 2)
+
+                                                      </a>
+
+                                                  </li>
+
+                                                  @endif
+
+
+
+                                                  {{-- === ADMIN: Request Batal via WA === --}}
+
+                                                  @if($isAdminTkb && $inv->status !== 'Batal')
+
+                                                  <li>
+
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
+
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (Owner 1)
+
+                                                      </a>
+
+                                                  </li>
+
+                                                  <li>
+
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
+
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (Owner 2)
 
                                                       </a>
 
@@ -2091,7 +2333,7 @@
 
 
 
-                                                  {{-- === EDIT & BATAL: hanya jika Pemilik, atau Admin dengan approval Unlock === --}}
+                                                  {{-- === EDIT: hanya jika Pemilik, atau Admin dengan approval Unlock === --}}
 
                                                   @if($canManageTkb)
 
@@ -2105,13 +2347,19 @@
 
                                                   </li>
 
-                                                  @if($inv->status !== 'Batal')
+                                                  @endif
+
+
+
+                                                  {{-- === OWNER: Pembatalan langsung === --}}
+
+                                                  @if($isOwnerTkb && $inv->status !== 'Batal')
 
                                                   <li>
 
                                                       <button type="button" class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" onclick="confirmBatalTkb('{{ $inv->id }}', '{{ $inv->nomor_invoice }}')">
 
-                                                          <i class="ri-folder-reduce-line" style="font-size:16px;color:var(--text-tertiary,#94A3B8);flex-shrink:0;"></i>Invoice Batal
+                                                          <i class="ri-folder-reduce-line" style="font-size:16px;color:var(--danger,#EF4444);flex-shrink:0;"></i>Invoice Batal
 
                                                       </button>
 
@@ -2127,11 +2375,41 @@
 
                                                   @endif
 
+
+
+                                                  {{-- === ADMIN: Request Hapus via WA === --}}
+
+                                                  @if($isAdminTkb)
+
+                                                  <li style="height:1px;margin:4px 0;background:var(--border-subtle,#1E293B);"></li>
+
+                                                  <li>
+
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
+
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 1)
+
+                                                      </a>
+
+                                                  </li>
+
+                                                  <li>
+
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
+
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 2)
+
+                                                      </a>
+
+                                                  </li>
+
                                                   @endif
 
 
 
-                                                  {{-- DELETE --}}
+                                                  {{-- === OWNER: Hapus langsung === --}}
+
+                                                  @if($isOwnerTkb)
 
                                                   <li style="height:1px;margin:4px 0;background:var(--border-subtle,#1E293B);"></li>
 
@@ -2143,7 +2421,7 @@
 
                                                           @method('delete')
 
-                                                          <button class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" type="button" onclick="showConfirmation('{{ $inv->nomor_invoice }}', '{{ $inv->id }}')">
+                                                          <button class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);" type="button" onclick="showConfirmation('{{ $inv->nomor_invoice }}', '{{ $inv->id }}')">
 
                                                               <i class="ri-delete-bin-line" style="font-size:16px;flex-shrink:0;"></i>Hapus
 
@@ -2152,6 +2430,8 @@
                                                       </form>
 
                                                   </li>
+
+                                                  @endif
 
                                               </ul>
 
@@ -2232,9 +2512,12 @@
         const invoiceTable = $('#scroll-horizontal').DataTable({
             autoWidth: false,
             scrollX: false,
-            ordering: false,
-            bSort: false,
-            order: [],
+            ordering: true,
+            bSort: true,
+            order: [[4, 'desc']],
+            columnDefs: [
+                { orderable: false, targets: [0, 3, 7, 12] }
+            ],
             dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
             pageLength: 25,
             lengthMenu: [
@@ -2264,6 +2547,44 @@
                 $('#scroll-horizontal .row-expand-indicator').attr('aria-expanded', 'true');
             }
             adjustInvoiceTable();
+        });
+
+        // Pertahankan nomor urut 1, 2, 3... tetap rapi berurutan saat tabel disortir
+        invoiceTable.on('order.dt search.dt', function () {
+            invoiceTable.column(0, {search:'applied', order:'applied'}).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1;
+            });
+        });
+
+        // Handler tombol Urutkan Invoice
+        $(document).on('click', '.sort-action-btn', function(e) {
+            e.preventDefault();
+            const col = parseInt($(this).data('col'));
+            const dir = $(this).data('dir');
+            const text = $(this).text().trim();
+            
+            invoiceTable.order([col, dir]).draw();
+            
+            $('.sort-action-btn').removeClass('active');
+            $(this).addClass('active');
+            $('#text-current-sort').text('Urutkan: ' + text);
+        });
+
+        // Sinkronisasi status tombol Urutkan saat user mengklik header kolom tabel langsung
+        invoiceTable.on('order.dt', function () {
+            const currentOrder = invoiceTable.order();
+            if (currentOrder && currentOrder.length) {
+                const col = currentOrder[0][0];
+                const dir = currentOrder[0][1];
+                $('.sort-action-btn').removeClass('active');
+                const $matchingBtn = $(`.sort-action-btn[data-col="${col}"][data-dir="${dir}"]`);
+                if ($matchingBtn.length) {
+                    $matchingBtn.addClass('active');
+                    $('#text-current-sort').text('Urutkan: ' + $matchingBtn.text().trim());
+                } else {
+                    $('#text-current-sort').text('Urutkan: Kolom ' + (col + 1));
+                }
+            }
         });
 
         function adjustInvoiceTable() {

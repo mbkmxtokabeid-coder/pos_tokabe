@@ -60,6 +60,9 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
         $data = [];
 
         foreach ($this->penjualanBarangs as $index => $penjualan) {
+            if (isset($penjualan->deleted_at) && $penjualan->deleted_at !== null && $penjualan->status !== 'Batal') {
+                $penjualan->status = 'Dihapus';
+            }
             
             $penjualan->tgl_penjualan = Carbon::parse($penjualan->tgl_penjualan)->locale('id')->isoFormat('DD MMMM YYYY');
 

@@ -243,6 +243,122 @@ class PenjualanTokabeRoleAccessTest extends TestCase
     }
 
     // =========================================================================
+    // Property 6: Akses halaman pembatalan hanya untuk Pemilik
+    // =========================================================================
+
+    /**
+     * @dataProvider nonPemilikUserProvider
+     *
+     * For any user with role other than 'Pemilik', the role check for
+     * tokabe.batal.page must result in access denial (returns false).
+     */
+    public function test_non_pemilik_is_denied_access_to_batal_page(
+        string $role,
+        string $name,
+        int $id
+    ): void {
+        // Arrange
+        $user = new \stdClass();
+        $user->id   = $id;
+        $user->name = $name;
+        $user->role = $role;
+
+        // Act: apply the role check (mirrors middleware role:Pemilik on tokabe.batal.page)
+        $accessGranted = $this->roleCheckPemilik($user);
+
+        // Assert: access must be denied for any non-Pemilik role
+        $this->assertFalse(
+            $accessGranted,
+            "Role '{$role}' should be denied access to tokabe.batal.page, but was granted."
+        );
+    }
+
+    /**
+     * @dataProvider pemilikUserProvider
+     *
+     * For a user with role 'Pemilik', the role check for tokabe.batal.page
+     * must grant access (returns true).
+     */
+    public function test_pemilik_is_granted_access_to_batal_page(
+        string $role,
+        string $name,
+        int $id
+    ): void {
+        // Arrange
+        $user = new \stdClass();
+        $user->id   = $id;
+        $user->name = $name;
+        $user->role = $role; // 'Pemilik'
+
+        // Act
+        $accessGranted = $this->roleCheckPemilik($user);
+
+        // Assert
+        $this->assertTrue(
+            $accessGranted,
+            "Role 'Pemilik' should be granted access to tokabe.batal.page, but was denied."
+        );
+    }
+
+    // =========================================================================
+    // Property 7: Akses halaman delete hanya untuk Pemilik
+    // =========================================================================
+
+    /**
+     * @dataProvider nonPemilikUserProvider
+     *
+     * For any user with role other than 'Pemilik', the role check for
+     * tokabe.delete.page must result in access denial (returns false).
+     */
+    public function test_non_pemilik_is_denied_access_to_delete_page(
+        string $role,
+        string $name,
+        int $id
+    ): void {
+        // Arrange: create a stdClass user with a non-Pemilik role
+        $user = new \stdClass();
+        $user->id   = $id;
+        $user->name = $name;
+        $user->role = $role;
+
+        // Act: apply the role check (mirrors middleware role:Pemilik on tokabe.delete.page)
+        $accessGranted = $this->roleCheckPemilik($user);
+
+        // Assert: access must be denied for any non-Pemilik role
+        $this->assertFalse(
+            $accessGranted,
+            "Role '{$role}' should be denied access to tokabe.delete.page, but was granted."
+        );
+    }
+
+    /**
+     * @dataProvider pemilikUserProvider
+     *
+     * For a user with role 'Pemilik', the role check for tokabe.delete.page
+     * must grant access (returns true).
+     */
+    public function test_pemilik_is_granted_access_to_delete_page(
+        string $role,
+        string $name,
+        int $id
+    ): void {
+        // Arrange
+        $user = new \stdClass();
+        $user->id   = $id;
+        $user->name = $name;
+        $user->role = $role; // 'Pemilik'
+
+        // Act
+        $accessGranted = $this->roleCheckPemilik($user);
+
+        // Assert
+        $this->assertTrue(
+            $accessGranted,
+            "Role 'Pemilik' should be granted access to tokabe.delete.page, but was denied."
+        );
+    }
+
+    // =========================================================================
     // Additional edge-case: role string is case-sensitive
     // =========================================================================
 

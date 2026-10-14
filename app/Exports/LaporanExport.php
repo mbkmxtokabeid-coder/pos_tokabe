@@ -66,6 +66,10 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
         $data = [];
 
         foreach ($this->penjualans as $index => $penjualan) {
+            if ((method_exists($penjualan, 'trashed') && $penjualan->trashed() && $penjualan->status !== 'Batal') ||
+                (isset($penjualan->deleted_at) && $penjualan->deleted_at !== null && $penjualan->status !== 'Batal')) {
+                $penjualan->status = 'Dihapus';
+            }
             
             $penjualan->tgl_penjualan = Carbon::parse($penjualan->tgl_penjualan)->locale('id')->isoFormat('DD MMMM, YYYY');
 
@@ -79,7 +83,6 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
                         ->leftJoin('barang', $tableRelasi . '.barang_id', '=', 'barang.id')
                         ->leftJoin('items', $tableRelasi . '.item_id', '=', 'items.id')
                         ->where($tableRelasi . '.' . $fkColumn, $penjualan->id)
-                        ->whereNull($tableRelasi . '.deleted_at')
                         ->select(DB::raw('COALESCE(items.nama_item, barang.jenis_barang) as jenis_barang'), $tableRelasi . '.deskripsi_item', $tableRelasi . '.qty', $tableRelasi . '.satuan')
                         ->get();
                 } catch (\Exception $e) {
