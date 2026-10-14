@@ -121,6 +121,19 @@ class PenjualanTokabeController extends Controller
         $jumlahPerBulan = $totalPerBulan;
         $jumlahInvoice = $generalStats->jumlah_invoice ?? 0;
 
+        // KONSOLIDASI DIHAPUS (Soft Deleted) TAHUN INI
+        $deletedStats = DB::table('penjualan_tokabe')
+            ->whereNotNull('deleted_at')
+            ->whereYear('tgl_penjualan', $yearNow)
+            ->selectRaw("
+                COUNT(*) as hapus,
+                COALESCE(SUM(total_pembayaran), 0) as jumlah_hapus
+            ")
+            ->first();
+
+        $hapus = $deletedStats->hapus ?? 0;
+        $jumlahHapus = $deletedStats->jumlah_hapus ?? 0;
+
         // =========================================================================
         // 4. DATA INVOICE TOKABE (Eager load user & penjualanBarang cegah N+1)
         // =========================================================================
@@ -223,6 +236,7 @@ class PenjualanTokabeController extends Controller
             'jumlahPerBulan', 'jumlahPerTahun', 'belumLunasMonth',
             'jumlahPO', 'countAllInvPO', 'jumlahPOLunas', 'countAllSettledPO', 
             'jumlahPOBlmLunas', 'countAllOutstandingPO', 'jumlahBBPerBulanPO', 'blmLunasPO',
+            'hapus', 'jumlahHapus',
             'ppnTotal', 'ppnTotalCount', 'ppn01', 'ppn01Count', 'ppn02', 'ppn02Count',
             'ppn03', 'ppn03Count', 'ppn04', 'ppn04Count', 'pphTotal', 'pphTotalCount', 'availableYears'
         ));
@@ -243,6 +257,7 @@ class PenjualanTokabeController extends Controller
 
         $query = PenjualanTokabe::query();
         $card4Query = PenjualanTokabe::query();
+        $queryDeleted = PenjualanTokabe::onlyTrashed();
 
         $periodLabel = '';
         $card4MonthName = '';
@@ -250,6 +265,7 @@ class PenjualanTokabeController extends Controller
         if ($timeframe === 'today') {
             $today = $now->toDateString();
             $query->whereDate('tgl_penjualan', $today);
+            $queryDeleted->whereDate('tgl_penjualan', $today);
             $periodLabel = 'HARI INI';
             
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
@@ -258,18 +274,21 @@ class PenjualanTokabeController extends Controller
             $startOfWeek = $now->copy()->startOfWeek()->format('Y-m-d 00:00:00');
             $endOfWeek = $now->copy()->endOfWeek()->format('Y-m-d 23:59:59');
             $query->whereBetween('tgl_penjualan', [$startOfWeek, $endOfWeek]);
+            $queryDeleted->whereBetween('tgl_penjualan', [$startOfWeek, $endOfWeek]);
             $periodLabel = 'MINGGU INI';
 
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
             $card4MonthName = strtoupper($now->translatedFormat('F Y'));
         } elseif ($timeframe === 'month') {
             $query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
+            $queryDeleted->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
             $periodLabel = 'BULAN ' . strtoupper($now->translatedFormat('F Y'));
 
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
             $card4MonthName = strtoupper($now->translatedFormat('F Y'));
         } elseif ($timeframe === 'year') {
             $query->whereYear('tgl_penjualan', $yearNow);
+            $queryDeleted->whereYear('tgl_penjualan', $yearNow);
             $periodLabel = 'TAHUN ' . $yearNow;
 
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
@@ -277,6 +296,7 @@ class PenjualanTokabeController extends Controller
         } elseif ($timeframe === 'last_year') {
             $lastYear = $yearNow - 1;
             $query->whereYear('tgl_penjualan', $lastYear);
+            $queryDeleted->whereYear('tgl_penjualan', $lastYear);
             $periodLabel = 'TAHUN ' . $lastYear;
 
             $card4Query->whereYear('tgl_penjualan', $lastYear)->whereMonth('tgl_penjualan', 12);
@@ -285,12 +305,14 @@ class PenjualanTokabeController extends Controller
             if ($mode === 'date' && $date) {
                 $parsedDate = Carbon::parse($date);
                 $query->whereDate('tgl_penjualan', $parsedDate->toDateString());
+                $queryDeleted->whereDate('tgl_penjualan', $parsedDate->toDateString());
                 $periodLabel = 'TANGGAL ' . $parsedDate->format('d/m/Y');
 
                 $card4Query->whereYear('tgl_penjualan', $parsedDate->year)->whereMonth('tgl_penjualan', $parsedDate->month);
                 $card4MonthName = strtoupper($parsedDate->translatedFormat('F Y'));
             } elseif ($mode === 'month' && $month && $year) {
                 $query->whereYear('tgl_penjualan', $year)->whereMonth('tgl_penjualan', $month);
+                $queryDeleted->whereYear('tgl_penjualan', $year)->whereMonth('tgl_penjualan', $month);
                 $parsedDate = Carbon::createFromDate($year, $month, 1);
                 $periodLabel = 'BULAN ' . strtoupper($parsedDate->translatedFormat('F Y'));
 
@@ -298,6 +320,7 @@ class PenjualanTokabeController extends Controller
                 $card4MonthName = strtoupper($parsedDate->translatedFormat('F Y'));
             } elseif ($mode === 'year' && $year) {
                 $query->whereYear('tgl_penjualan', $year);
+                $queryDeleted->whereYear('tgl_penjualan', $year);
                 $periodLabel = 'TAHUN ' . $year;
 
                 $card4Month = ($year == $yearNow) ? $monthNow : 12;
@@ -379,6 +402,11 @@ class PenjualanTokabeController extends Controller
         $totalBatal = (clone $dataBatal)->sum('total_pembayaran');
         $valCard5 = number_format($totalBatal, 0, ',', '.');
 
+        // Card Hapus: Dihapus (Soft Deleted)
+        $hapus = (clone $queryDeleted)->count();
+        $totalHapus = (clone $queryDeleted)->sum('total_pembayaran');
+        $valCardHapus = number_format($totalHapus, 0, ',', '.');
+
         // Pajak PPN & PPh
         $dataPajak = (clone $query)->where('status', '!=', 'Batal')
             ->select('ppn', 'diskon', 'potongan', 'pph', 'total_pembayaran', 'total_harga')
@@ -450,6 +478,7 @@ class PenjualanTokabeController extends Controller
             'cardPo3' => ['nominal' => $valPo3, 'count' => $countPo3],
             'cardPo4' => ['nominal' => $valPo4, 'count' => $countPo4],
             'card5' => ['nominal' => $valCard5, 'count' => $batal],
+            'cardHapus' => ['nominal' => $valCardHapus, 'count' => $hapus],
             'card6' => ['nominal' => number_format($ppnTotal, 0, ',', '.'), 'count' => $ppnTotalCount],
             'card7' => ['nominal' => number_format($pphTotal, 0, ',', '.'), 'count' => $pphTotalCount],
             'card8' => ['nominal' => number_format($ppn01, 0, ',', '.'), 'count' => $ppn01Count],

@@ -1,4 +1,4 @@
-﻿@section('head')
+@section('head')
 
 <script src="https://cdn.lordicon.com/bhenfmcm.js" defer></script>
 
@@ -217,6 +217,11 @@
         color: var(--info-text, #93C5FD);
         border-color: var(--info-border, rgb(59 130 246 / 0.35));
     }
+    .kpi-section-badge--danger {
+        background: var(--danger-subtle, rgb(239 68 68 / 0.12));
+        color: var(--danger-text, #FCA5A5);
+        border-color: var(--danger-border, rgb(239 68 68 / 0.35));
+    }
     .kpi-section-title {
         font-size: 12px;
         font-weight: 500;
@@ -256,7 +261,10 @@
         justify-content: space-between !important;
         flex-wrap: wrap !important;
         gap: 16px !important;
-        margin-bottom: 16px !important;
+        padding: 14px 20px !important;
+        margin-bottom: 0 !important;
+        background: var(--bg-surface, #0F172A) !important;
+        border-bottom: 1px solid var(--border-subtle, #1E293B) !important;
         width: 100% !important;
     }
 
@@ -486,9 +494,17 @@
     }
 
     #scroll-horizontal tbody tr.is-expanded .description-extra-container {
-        max-height: 500px;
+        max-height: 3000px;
         opacity: 1;
         transform: translateY(0);
+        overflow: visible;
+    }
+
+    /* Saat baris terbuka, tampilkan teks secara penuh ke bawah tanpa terpotong */
+    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible li {
+        white-space: normal !important;
+        word-break: break-word !important;
+        text-overflow: clip !important;
     }
 
     /* Fallback jika ada list item langsung */
@@ -646,7 +662,10 @@
         justify-content: space-between !important;
         flex-wrap: wrap !important;
         gap: 16px !important;
-        margin-top: 16px !important;
+        padding: 14px 20px !important;
+        margin-top: 0 !important;
+        background: var(--bg-surface, #0F172A) !important;
+        border-top: 1px solid var(--border-subtle, #1E293B) !important;
         width: 100% !important;
     }
 
@@ -1421,17 +1440,16 @@
           </div>
       </div>
 
-      <!-- SECTION 3: RINGKASAN PEMBATALAN & PAJAK (PPN / PPh) -->
+      <!-- SECTION 3: RINGKASAN PEMBATALAN & PENGHAPUSAN (2 Cards) -->
       <div class="kpi-section-header">
-          <span class="kpi-section-badge kpi-section-badge--info" aria-hidden="true">
-              <i class="ri-pie-chart-2-line"></i> Pembatalan & Pajak
+          <span class="kpi-section-badge kpi-section-badge--danger" aria-hidden="true">
+              <i class="ri-close-circle-line"></i> Pembatalan & Penghapusan
           </span>
-          <p class="kpi-section-title">Status Batal, Total PPN & PPh serta Rincian Kode PPN</p>
+          <p class="kpi-section-title">Status Batal & Dihapus Invoice Tokabe</p>
       </div>
-      <!-- ROW 2: 3 Cards (Invoice Dibatalkan, Total PPN, Total PPh) -->
       <div class="row g-3 mb-1">
           {{-- Card 5: Invoice Dibatalkan --}}
-          <div class="col-xl-4 col-md-6">
+          <div class="col-xl-6 col-md-6">
               <div class="kpi-card kpi-card--danger">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
@@ -1449,8 +1467,37 @@
               </div>
           </div>
 
+          {{-- Card Hapus: Invoice Dihapus --}}
+          <div class="col-xl-6 col-md-6">
+              <div class="kpi-card kpi-card--danger">
+                  <div class="kpi-card__body">
+                      <div class="kpi-card__header">
+                          <p class="kpi-card__overline" id="tokabe-card-title-hapus">Invoice Dihapus</p>
+                          <div class="kpi-card__icon" aria-hidden="true">
+                              <i class="ri-delete-bin-line"></i>
+                          </div>
+                      </div>
+                      <p class="kpi-card__value" id="tokabe-card-val-hapus">Rp {{ number_format($jumlahHapus, 0, ',', '.') }}</p>
+                      <div class="kpi-card__footer">
+                          <span class="kpi-badge" id="tokabe-card-count-hapus">{{ $hapus }}</span>
+                          <p class="kpi-card__label">Invoice Tokabe Dihapus</p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <!-- SECTION 4: RINGKASAN PAJAK (PPN / PPh) -->
+      <div class="kpi-section-header">
+          <span class="kpi-section-badge kpi-section-badge--info" aria-hidden="true">
+              <i class="ri-pie-chart-2-line"></i> Pajak (PPN & PPh)
+          </span>
+          <p class="kpi-section-title">Total PPN & PPh serta Rincian Kode PPN</p>
+      </div>
+      <!-- ROW 1: 2 Cards (Total PPN, Total PPh) -->
+      <div class="row g-3 mb-1">
           {{-- Card 6: Total PPN Tahun Ini --}}
-          <div class="col-xl-4 col-md-6">
+          <div class="col-xl-6 col-md-6">
               <div class="kpi-card kpi-card--info">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
@@ -1469,7 +1516,7 @@
           </div>
 
           {{-- Card 7: Total PPh Tahun Ini --}}
-          <div class="col-xl-4 col-md-6">
+          <div class="col-xl-6 col-md-6">
               <div class="kpi-card kpi-card--warning">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
@@ -1626,8 +1673,7 @@
                   </div>
 
                       <div class="card-body p-0">
-                          <div class="table-responsive">
-                              <table id="scroll-horizontal" class="table align-middle table-hover mb-0" aria-label="Daftar invoice Tokabe">
+                          <table id="scroll-horizontal" class="table align-middle table-hover mb-0" aria-label="Daftar invoice Tokabe">
 
                               <thead>
 
@@ -2123,8 +2169,6 @@
 
                           </table><!-- end table -->
 
-                      </div><!-- end table responsive -->
-
                   </div>
 
               </div>
@@ -2191,8 +2235,35 @@
             ordering: false,
             bSort: false,
             order: [],
-            dom: "<'dataTables_controls_top'lf>rt<'dataTables_controls_bottom'ip>",
-            pageLength: 25
+            dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
+            pageLength: 25,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, "Semua"]
+            ],
+            language: {
+                lengthMenu: "Tampilkan _MENU_ data",
+                search: "Cari:",
+                searchPlaceholder: "Nomor invoice, pelanggan...",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ invoice",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 invoice",
+                infoFiltered: "(disaring dari _MAX_ total invoice)",
+                zeroRecords: "Tidak ada invoice yang sesuai dengan pencarian",
+                paginate: {
+                    first: "Awal",
+                    last: "Akhir",
+                    next: "Berikutnya",
+                    previous: "Sebelumnya"
+                }
+            }
+        });
+
+        invoiceTable.on('draw', function() {
+            if (allExpanded) {
+                $('#scroll-horizontal tbody tr').addClass('is-expanded');
+                $('#scroll-horizontal .row-expand-indicator').attr('aria-expanded', 'true');
+            }
+            adjustInvoiceTable();
         });
 
         function adjustInvoiceTable() {
@@ -2467,7 +2538,7 @@
         const toggleBtn = document.getElementById('btn-card-custom-toggle');
         if (toggleBtn) {
             toggleBtn.classList.add('active');
-            // Jangan tambah open saat apply — panel tetap terbuka sampai user menutupnya
+            // Jangan tambah open saat apply - panel tetap terbuka sampai user menutupnya
         }
 
         fetchTokabeCardsData(params);
@@ -2475,7 +2546,7 @@
 
     function fetchTokabeCardsData(params) {
         isCardLoading = true;
-        $('.tokabe-card').css({ opacity: '0.45', transition: 'opacity 0.2s ease' });
+        $('.kpi-card, .tokabe-card').css({ opacity: '0.45', transition: 'opacity 0.2s ease' });
 
         $.ajax({
             url: "{{ route('invoice.tokabe.cards_data') }}",
@@ -2525,12 +2596,18 @@
                     if (res.cardPo4) {
                         $('#tokabe-card-po-val-4').text('Rp ' + res.cardPo4.nominal);
                         $('#tokabe-card-po-title-4').text('PO BELUM LUNAS BULAN ' + res.card4MonthName);
-                        $('#tokabe-card-po-count-4').text(res.card4.count);
+                        $('#tokabe-card-po-count-4').text(res.cardPo4.count);
                     }
 
                     // Card 5: Dibatalkan
                     $('#tokabe-card-val-5').text('Rp ' + res.card5.nominal);
                     $('#tokabe-card-count-5').text(res.card5.count);
+
+                    // Card Hapus: Dihapus
+                    if (res.cardHapus) {
+                        $('#tokabe-card-val-hapus').text('Rp ' + res.cardHapus.nominal);
+                        $('#tokabe-card-count-hapus').text(res.cardHapus.count);
+                    }
 
                     // Card 6: PPN Total
                     $('#tokabe-card-val-6').text('Rp ' + res.card6.nominal);
@@ -2561,7 +2638,7 @@
             },
             complete: function() {
                 isCardLoading = false;
-                $('.tokabe-card').css({ opacity: '1' });
+                $('.kpi-card, .tokabe-card').css({ opacity: '1' });
             }
         });
     }
