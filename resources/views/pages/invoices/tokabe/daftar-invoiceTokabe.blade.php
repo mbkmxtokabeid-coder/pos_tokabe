@@ -10,11 +10,6 @@
 
 
   <style>
-    /* ==========================================================================
-       KPI CARD — mengikuti DESIGN.md §12.4 Kartu Statistik
-       Struktur: surface + border-subtle + radius-lg + shadow-xs
-       Setiap varian hanya mengubah --kpi-accent (warna ikon & badge dot)
-       ========================================================================== */
 
     /* Base card */
     .kpi-card {
@@ -339,7 +334,8 @@
 
     #scroll-horizontal {
         width: 100% !important;
-        min-width: 1720px;
+        min-width: 1915px !important;
+        table-layout: fixed !important;
         margin-bottom: 0 !important;
         border-collapse: separate !important;
         border-spacing: 0 !important;
@@ -463,7 +459,7 @@
     #scroll-horizontal th:nth-child(5), #scroll-horizontal td:nth-child(5) { width: 165px; text-align: left !important; }
     #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 145px; min-width: 140px; text-align: center !important; }
     #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 120px; min-width: 115px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 270px; text-align: left !important; }
+    #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 270px !important; min-width: 270px !important; max-width: 270px !important; text-align: left !important; box-sizing: border-box !important; }
     #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 120px; text-align: right !important; font-variant-numeric: tabular-nums; }
     #scroll-horizontal th:nth-child(10), #scroll-horizontal td:nth-child(10) { width: 145px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; }
     #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 155px; min-width: 145px; text-align: center !important; }
@@ -636,7 +632,9 @@
 
     /* Collapsible items di deskripsi dengan animasi expand/collapse yang halus */
     .table-cell-collapsible {
-        max-width: 100%;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
         overflow: hidden;
     }
 
@@ -682,6 +680,7 @@
     #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible li {
         white-space: normal !important;
         word-break: break-word !important;
+        overflow-wrap: break-word !important;
         text-overflow: clip !important;
     }
 
@@ -2071,7 +2070,7 @@
 
                                                // Pesan Request Delete
 
-                                               $msgDeleteTkb = urlencode("Halo, saya ingin Request penghapusan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
+                                               $msgDeleteTkb = urlencode("Halo, saya ingin Request Delete untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
 
 
 
@@ -2377,7 +2376,7 @@
 
 
 
-                                                  {{-- === ADMIN: Request Hapus via WA === --}}
+                                                  {{-- === ADMIN: Request Delete via WA === --}}
 
                                                   @if($isAdminTkb)
 
@@ -2387,7 +2386,7 @@
 
                                                       <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
 
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 1)
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Delete (Owner 1)
 
                                                       </a>
 
@@ -2397,7 +2396,7 @@
 
                                                       <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
 
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 2)
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Delete (Owner 2)
 
                                                       </a>
 
@@ -2516,7 +2515,8 @@
             bSort: true,
             order: [[4, 'desc']],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 7, 12] }
+                { orderable: false, targets: [0, 3, 7, 12] },
+                { width: '270px', targets: 7 }
             ],
             dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
             pageLength: 25,
@@ -2597,8 +2597,6 @@
             const $row = $(row);
             $row.toggleClass('is-expanded', expanded);
             $row.find('.row-expand-indicator').attr('aria-expanded', expanded);
-            adjustInvoiceTable();
-            setTimeout(adjustInvoiceTable, 340);
         }
 
         invoiceTable.columns.adjust();
@@ -2616,8 +2614,6 @@
             }
 
             setInvoiceRowExpanded(this, !$(this).hasClass('is-expanded'));
-            adjustInvoiceTable();
-            setTimeout(adjustInvoiceTable, 340);
 
         });
 
@@ -2625,13 +2621,11 @@
             e.stopPropagation();
             const row = $(this).closest('tr');
             setInvoiceRowExpanded(row, !row.hasClass('is-expanded'));
-            adjustInvoiceTable();
         });
 
         $(document).on('click.invoiceRows', '#scroll-horizontal .badge-more-items', function(e) {
             e.stopPropagation();
             setInvoiceRowExpanded($(this).closest('tr'), true);
-            adjustInvoiceTable();
         });
 
 
@@ -2663,8 +2657,6 @@
                 $(this).find('i').removeClass('ri-collapse-diagonal-line').addClass('ri-expand-diagonal-line');
 
             }
-
-            adjustInvoiceTable();
 
         });
 

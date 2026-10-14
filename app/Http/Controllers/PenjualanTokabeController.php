@@ -837,7 +837,7 @@ class PenjualanTokabeController extends Controller
     public function delete($id)
     {
         if (auth()->check() && auth()->user()->role === 'Admin' && auth()->user()->role !== 'Pemilik') {
-            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat menghapus invoice secara langsung. Silakan gunakan fitur Request Hapus.');
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat menghapus invoice secara langsung. Silakan gunakan fitur Request Delete.');
             return redirect('list-invoice/tokabe');
         }
 

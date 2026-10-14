@@ -62,6 +62,15 @@ class PenjualanTokabeViewRenderTest extends TestCase
         return $inv->status !== 'Batal';
     }
 
+    /**
+     * Should the "Request Delete" button be shown for Admin?
+     * Blade: @if($isAdminTkb) ... Request Delete ...
+     */
+    private function shouldShowRequestDelete(bool $isAdmin): bool
+    {
+        return $isAdmin;
+    }
+
     // -------------------------------------------------------------------------
     // Data Providers
     // -------------------------------------------------------------------------
@@ -387,5 +396,18 @@ class PenjualanTokabeViewRenderTest extends TestCase
                 "Invoice with status='{$inv->status}' must show 'Request Batal'"
             );
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Request Delete tests for Admin
+    // -------------------------------------------------------------------------
+
+    /**
+     * Test Request Delete is shown for Admin role.
+     */
+    public function test_request_delete_shown_for_admin(): void
+    {
+        $this->assertTrue($this->shouldShowRequestDelete(true), 'Admin must see Request Delete');
+        $this->assertFalse($this->shouldShowRequestDelete(false), 'Non-Admin must not see Request Delete for Admin');
     }
 }

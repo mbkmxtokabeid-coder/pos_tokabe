@@ -189,10 +189,11 @@
                   <div class="form-group-report">
                     <label class="form-label-report">Kategori Invoice</label>
                     <select name="invoice" id="invoiceTerpilih" class="form-select">
-                      <option value="semua" selected>Semua Kategori Invoice</option>
-                      @foreach ($katInv as $id => $namaInvoice)
-                        <option value="{{ $id }}">{{ $namaInvoice }}</option>
-                      @endforeach
+                      @forelse ($katInv as $id => $namaInvoice)
+                        <option value="{{ $id }}" selected>{{ $namaInvoice }}</option>
+                      @empty
+                        <option value="5" selected>TKB Pajak</option>
+                      @endforelse
                     </select>
                   </div>
                 </div>
@@ -251,10 +252,11 @@
                   <div class="form-group-report">
                     <label class="form-label-report">Kategori Invoice</label>
                     <select class="form-select invoice" id="invoiceTerpilihCstm" name="invoice" required>
-                      <option value="semua">Semua Invoice</option>
-                      @foreach ($katInv as $id => $namaInvoice)
-                        <option value="{{ $id }}">{{ $namaInvoice }}</option>
-                      @endforeach
+                      @forelse ($katInv as $id => $namaInvoice)
+                        <option value="{{ $id }}" selected>{{ $namaInvoice }}</option>
+                      @empty
+                        <option value="5" selected>TKB Pajak</option>
+                      @endforelse
                     </select>
                   </div>
                 </div>
@@ -307,10 +309,11 @@
                   <div class="form-group-report">
                     <label class="form-label-report">Kategori Invoice</label>
                     <select class="form-select invoice" name="invoice" required>
-                      <option value="semua">Semua Invoice</option>
-                      @foreach ($katInv as $id => $namaInvoice)
-                        <option value="{{ $id }}">{{ $namaInvoice }}</option>
-                      @endforeach
+                      @forelse ($katInv as $id => $namaInvoice)
+                        <option value="{{ $id }}" selected>{{ $namaInvoice }}</option>
+                      @empty
+                        <option value="5" selected>TKB Pajak</option>
+                      @endforelse
                     </select>
                   </div>
                 </div>
@@ -363,10 +366,11 @@
                   <div class="form-group-report">
                     <label class="form-label-report">Kategori Invoice</label>
                     <select class="form-select invoice" name="invoice" required>
-                      <option value="semua">Semua Invoice</option>
-                      @foreach ($katInv as $id => $namaInvoice)
-                        <option value="{{ $id }}">{{ $namaInvoice }}</option>
-                      @endforeach
+                      @forelse ($katInv as $id => $namaInvoice)
+                        <option value="{{ $id }}" selected>{{ $namaInvoice }}</option>
+                      @empty
+                        <option value="5" selected>TKB Pajak</option>
+                      @endforelse
                     </select>
                   </div>
                 </div>
