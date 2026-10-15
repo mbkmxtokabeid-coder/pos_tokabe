@@ -1250,6 +1250,28 @@
         outline: none;
         box-shadow: var(--focus-ring, 0 0 0 3px rgba(129, 140, 248, 0.45));
     }
+
+    /* Keep request differences visible even when the compiled stylesheet is cached. */
+    .dropdown-menu a.invoice-request {
+        border-inline-start: 4px solid transparent !important;
+        padding-inline-start: 8px !important;
+        font-weight: 700 !important;
+    }
+    .dropdown-menu a.invoice-request::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        margin-inline-start: auto;
+        border-radius: 50%;
+        background: currentColor;
+    }
+    .dropdown-menu a.invoice-request--unlock { color: #facc15 !important; border-inline-start-color: #facc15 !important; }
+    .dropdown-menu a.invoice-request--settlement { color: #38bdf8 !important; border-inline-start-color: #38bdf8 !important; }
+    .dropdown-menu a.invoice-request--cancel { color: #fb923c !important; border-inline-start-color: #fb923c !important; }
+    .dropdown-menu a.invoice-request--delete { color: #f87171 !important; border-inline-start-color: #f87171 !important; }
+    .dropdown-menu a.invoice-request--owner-2::after { opacity: .35; }
+    .dropdown-menu a.invoice-request--owner-1::after { opacity: 1; }
+
 </style>
 
 @endsection
@@ -2236,7 +2258,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--unlock invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (Owner 1)
 
@@ -2246,7 +2268,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--unlock invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (Owner 2)
 
@@ -2264,7 +2286,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--settlement invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (Owner 1)
 
@@ -2274,7 +2296,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--settlement invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (Owner 2)
 
@@ -2292,7 +2314,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--cancel invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (Owner 1)
 
@@ -2302,7 +2324,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--cancel invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (Owner 2)
 
@@ -2384,7 +2406,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Delete (Owner 1)
 
@@ -2394,7 +2416,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
+                                                      <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Delete (Owner 2)
 
