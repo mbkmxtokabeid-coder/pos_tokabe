@@ -240,7 +240,7 @@ $(document).ready(function () {
                                         <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian  </label>
                                        </div>
                                        <div class="col-lg-7">
-                                        <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}" autocomplete="off">
+                                        <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}" autocomplete="off" required>
                                         @error('tgl_selesai')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -375,7 +375,7 @@ $(document).ready(function () {
                                      <label for="jenisPembayaran" class="form-label col-form-label col-form-label-md">Jenis Pembayaran</label>
                                      </div>
                                        <div class="col-lg-6">
-                                         <select class="form-select bg-light @error('jns_pem') is-invalid @enderror" id="choices-payment-type" name="jns_pem" value="{{ old('jns_pem') }}">
+                                         <select class="form-select bg-light @error('jns_pem') is-invalid @enderror" id="choices-payment-type" name="jns_pem" value="{{ old('jns_pem') }}" required>
                                            <option disabled selected value="">Payment Method</option>
                                            <option value="Cash Belum Lunas">Cash Belum Lunas</option>
                                            <option value="Transfer DP">Transfer Dp</option>

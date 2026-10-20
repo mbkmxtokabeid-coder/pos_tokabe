@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 
 class HomeTKBController extends Controller
 {
@@ -122,41 +123,38 @@ class HomeTKBController extends Controller
             rsort($availableYears);
         }
 
-        // Data Penjualan Berdasarkan Item & Pilihan Pajak
-        $dataPembelianBarang = [
-            'jenis' => [
-                'today' => $this->getPembelianByJenisBarang('today', 'jenis'),
-                'week' => $this->getPembelianByJenisBarang('week', 'jenis'),
-                'month' => $this->getPembelianByJenisBarang('month', 'jenis'),
-                'year' => $this->getPembelianByJenisBarang('year', 'jenis'),
-                'last_year' => $this->getPembelianByJenisBarang('last_year', 'jenis'),
-                'all' => $this->getPembelianByJenisBarang('all', 'jenis'),
-            ],
-            'pajak' => [
-                'today' => $this->getPembelianByJenisBarang('today', 'pajak'),
-                'week' => $this->getPembelianByJenisBarang('week', 'pajak'),
-                'month' => $this->getPembelianByJenisBarang('month', 'pajak'),
-                'year' => $this->getPembelianByJenisBarang('year', 'pajak'),
-                'last_year' => $this->getPembelianByJenisBarang('last_year', 'pajak'),
-                'all' => $this->getPembelianByJenisBarang('all', 'pajak'),
-            ],
-            'kategori' => [
-                'today' => $this->getPembelianByJenisBarang('today', 'kategori'),
-                'week' => $this->getPembelianByJenisBarang('week', 'kategori'),
-                'month' => $this->getPembelianByJenisBarang('month', 'kategori'),
-                'year' => $this->getPembelianByJenisBarang('year', 'kategori'),
-                'last_year' => $this->getPembelianByJenisBarang('last_year', 'kategori'),
-                'all' => $this->getPembelianByJenisBarang('all', 'kategori'),
-            ],
-        ];
+        // Data Penjualan Berdasarkan Item & Pilihan Pajak (Cached 60s for speed)
+        $dataPembelianBarang = Cache::remember('tkb_dashboard_pembelian_barang_' . $yearNow . '_' . $monthNow, 60, function () {
+            return [
+                'jenis' => [
+                    'today' => $this->getPembelianByJenisBarang('today', 'jenis'),
+                    'week' => $this->getPembelianByJenisBarang('week', 'jenis'),
+                    'month' => $this->getPembelianByJenisBarang('month', 'jenis'),
+                    'year' => $this->getPembelianByJenisBarang('year', 'jenis'),
+                    'last_year' => $this->getPembelianByJenisBarang('last_year', 'jenis'),
+                    'all' => $this->getPembelianByJenisBarang('all', 'jenis'),
+                ],
+                'pajak' => [
+                    'today' => $this->getPembelianByJenisBarang('today', 'pajak'),
+                    'week' => $this->getPembelianByJenisBarang('week', 'pajak'),
+                    'month' => $this->getPembelianByJenisBarang('month', 'pajak'),
+                    'year' => $this->getPembelianByJenisBarang('year', 'pajak'),
+                    'last_year' => $this->getPembelianByJenisBarang('last_year', 'pajak'),
+                    'all' => $this->getPembelianByJenisBarang('all', 'pajak'),
+                ],
+                'kategori' => [
+                    'today' => $this->getPembelianByJenisBarang('today', 'kategori'),
+                    'week' => $this->getPembelianByJenisBarang('week', 'kategori'),
+                    'month' => $this->getPembelianByJenisBarang('month', 'kategori'),
+                    'year' => $this->getPembelianByJenisBarang('year', 'kategori'),
+                    'last_year' => $this->getPembelianByJenisBarang('last_year', 'kategori'),
+                    'all' => $this->getPembelianByJenisBarang('all', 'kategori'),
+                ],
+            ];
+        });
 
         $dataPembelianInvoice = collect();
-        $purchaseTaxColumnsReady = Schema::hasTable('pembelian')
-            && Schema::hasColumn('pembelian', 'jenis_invoice')
-            && Schema::hasColumn('pembelian', 'ppn_nominal')
-            && Schema::hasColumn('pembelian', 'pph_nominal')
-            && Schema::hasColumn('pembelian', 'sisa');
-        if ($purchaseTaxColumnsReady) {
+        try {
             $dataPembelianInvoice = Pembelian::query()
                 ->join('vendor', 'pembelian.id_vendor', '=', 'vendor.id')
                 ->where('pembelian.status', '<>', 'Batal')
@@ -175,10 +173,10 @@ class HomeTKBController extends Controller
                     'total_ppn' => (float) $row->total_ppn,
                     'total_pph' => (float) $row->total_pph,
                 ])->values();
-        }
+        } catch (\Throwable $e) {}
 
         $daftarTagihanVendor = collect();
-        if (Schema::hasTable('pembelian') && Schema::hasTable('vendor')) {
+        try {
             $daftarTagihanVendor = Pembelian::query()
                 ->join('vendor', 'pembelian.id_vendor', '=', 'vendor.id')
                 ->where('pembelian.status', '<>', 'Batal')
@@ -193,7 +191,7 @@ class HomeTKBController extends Controller
                     'terbayar' => (float) ($item->terbayar ?? ($item->total_pembelian - $item->sisa_tagihan)),
                     'sisa_tagihan' => (float) $item->sisa_tagihan,
                 ])->values();
-        }
+        } catch (\Throwable $e) {}
 
         return view('pages.welcomeTKB', compact('jumlahPerBulan', 'jumlahPerTahun', 'dateArray','dateArrayLastYear', 'monthArray','monthArrayLastYear', 'totalHarianArray','totalHarianArrayLastYear', 'totalBulananArray','totalBulananArrayLastYear', 'hourArray', 'totalJamArray', 'weekArray', 'totalMingguanArray', 'jumlahPerHari', 'jumlahPerMinggu', 'datasInWeek', 'percentageInWeek', 'percentageNotPaidWeek', 'percentageCanceledWeek', 'datasInMonth', 'percentageInMonth', 'percentageNotPaidMonth', 'percentageCanceledMonth', 'datasInYear', 'percentageInYear', 'percentageNotPaidYear', 'percentageCanceledYear', 'datasInLastYear', 'percentageInLastYear', 'percentageNotPaidLastYear', 'percentageCanceledLastYear', 'jumlahBBPerBulan', 'jumlahBBPerTahun', 'dataPembelianBarang', 'dataPembelianInvoice', 'daftarTagihanVendor', 'availableYears'));
     }
@@ -599,9 +597,12 @@ class HomeTKBController extends Controller
                     'totalPerjam' => [],
                 ];
             }
-        } catch (\PDOException $e) {
-            dd($e->getMessage());
-            return 'Error';
+        } catch (\Exception $e) {
+            \Log::error('Error in getPerjam: ' . $e->getMessage());
+            return [
+                'jamPenjualan' => [],
+                'totalPerjam' => [],
+            ];
         }
     }
         
@@ -806,9 +807,12 @@ class HomeTKBController extends Controller
                     'totalBulanan' => [],
                 ];
             }
-        } catch (\PDOException $e) {
-            dd($e->getMessage());
-            return 'Error';
+        } catch (\Exception $e) {
+            \Log::error('Error in getPerbulan: ' . $e->getMessage());
+            return [
+                'bulanPenjualan' => [],
+                'totalBulanan' => [],
+            ];
         }
     }
     
@@ -850,9 +854,12 @@ class HomeTKBController extends Controller
                 'totalBulananLastYear' => [],
             ];
         }
-    } catch (\PDOException $e) {
-        dd($e->getMessage());
-        return 'Error';
+    } catch (\Exception $e) {
+        \Log::error('Error in getPerbulanLastYear: ' . $e->getMessage());
+        return [
+            'bulanPenjualanLastYear' => [],
+            'totalBulananLastYear' => [],
+        ];
     }
 }
 

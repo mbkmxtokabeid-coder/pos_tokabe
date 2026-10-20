@@ -11,7 +11,7 @@ class ProfileRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,9 +24,8 @@ class ProfileRequest extends FormRequest
         return [
             'namaKaryawan' => 'required|min:2',
             'email' => 'required|email|min:2',
-            'password' => 'required|min:5',
+            'password' => 'nullable|min:5',
             'no_telp' => 'required|regex:/^[0-9\+\s]+$/|min:5',
-
         ];
     }
 

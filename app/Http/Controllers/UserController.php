@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\RedirectController;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class UserController extends Controller
@@ -69,7 +70,7 @@ class UserController extends Controller
 
   function edit($id)
   {
-    $user = User::find($id);
+    $user = User::findOrFail($id);
     $roles = ['Pemilik', 'Admin'];
     return view('pages.user.edit-user', compact('user', 'roles'));
   }
@@ -80,7 +81,7 @@ class UserController extends Controller
       'role' => 'required|in:Pemilik,Admin',
     ]);
 
-    $user = User::find($id);
+    $user = User::findOrFail($id);
     if ($request->re_password != $request->password) {
       Alert::error('Password tidak sama');
       return redirect()->back();
@@ -105,14 +106,32 @@ class UserController extends Controller
 
   function updateProfile(Request $request, $id)
   {
-    $user = User::find($id);
-    $user->update([
-      'nama' => $request->namaKaryawan,
-      'email' => $request->email,
-      'password' => Hash::make($request->password),
-      'nomor_telepon' => $request->no_telp,
-      'status' => 'Aktif',
+    $authUser = Auth::user();
+    if (!$authUser || ($authUser->id != $id && $authUser->role !== 'Pemilik')) {
+      Alert::error('Akses Ditolak', 'Anda tidak memiliki hak untuk mengubah profil ini.');
+      return redirect('/profile');
+    }
+
+    $request->validate([
+      'namaKaryawan' => 'required|string|max:255',
+      'email'        => 'required|email|max:255|unique:users,email,' . $id,
+      'no_telp'      => 'nullable|string|max:30',
+      'password'     => 'nullable|string|min:6',
     ]);
+
+    $user = User::findOrFail($id);
+    $data = [
+      'nama'          => $request->namaKaryawan,
+      'email'         => $request->email,
+      'nomor_telepon' => $request->no_telp ?? $user->nomor_telepon ?? '',
+      'status'        => 'Aktif',
+    ];
+
+    if ($request->filled('password')) {
+      $data['password'] = Hash::make($request->password);
+    }
+
+    $user->update($data);
     Alert::success('Profile berhasil di update');
     return redirect('/profile');
   }

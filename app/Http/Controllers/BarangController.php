@@ -81,7 +81,7 @@ class BarangController extends Controller
 
     public function destroy($id)
     {
-        $barang = Barang::find($id);
+        $barang = Barang::findOrFail($id);
         $barang->delete();
         Alert::success('Barang Berhasil dihapus');
         return redirect('listBarang');
@@ -89,7 +89,7 @@ class BarangController extends Controller
 
     public function edit($id)
     {
-        $barang = Barang::find($id);
+        $barang = Barang::findOrFail($id);
         $kategori = KategoriBarang::where('id', $barang->kategori_id)->value('nama_kategori');
         
         if ($barang->stok < 0) {
@@ -100,7 +100,7 @@ class BarangController extends Controller
 
     public function update(Request $request, $id)
     {
-        $barang = Barang::find($id);
+        $barang = Barang::findOrFail($id);
         if ($request->stok < 0) {
             Alert::error('Stok tidak boleh dibawah 0');
             return redirect()->back();

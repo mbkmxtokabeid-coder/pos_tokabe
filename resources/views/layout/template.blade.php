@@ -66,8 +66,52 @@
 {{-- HEAD CSS  --}}
 @yield('head')
 
+<link rel="preconnect" href="https://code.jquery.com" crossorigin>
+<link rel="preconnect" href="https://cdn.datatables.net" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{asset('libs/sweetalert2/sweetalert2.min.js')}}"></script>
+
+<!-- Speculation Rules: Instant page transitions on link hover -->
+<script type="speculationrules">
+{
+  "prefetch": [
+    {
+      "source": "list",
+      "urls": [
+        "/welcomeTKB",
+        "/list-invoice/tokabe",
+        "/addInvoiceTokabe",
+        "/daftar-spb",
+        "/daftar-spj",
+        "/pembelian",
+        "/items",
+        "/daftar-pelanggan",
+        "/daftar-laporan"
+      ],
+      "eagerness": "moderate"
+    }
+  ]
+}
+</script>
+<script>
+    // Universal hover-prefetch fallback for instant navigation
+    document.addEventListener('DOMContentLoaded', function () {
+        var prefetched = new Set();
+        document.addEventListener('mouseover', function (e) {
+            var a = e.target.closest('a');
+            if (!a || !a.href || a.target === '_blank' || a.hasAttribute('download')) return;
+            if (a.origin === window.location.origin && a.pathname !== window.location.pathname && !prefetched.has(a.href)) {
+                prefetched.add(a.href);
+                var link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = a.href;
+                document.head.appendChild(link);
+            }
+        }, { passive: true });
+    });
+</script>
   
   <style>
       /* Dark Mode Select, Input, and Option High-Contrast Fix */

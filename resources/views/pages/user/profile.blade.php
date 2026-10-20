@@ -393,16 +393,15 @@
 
                                 {{-- Password --}}
                                 <div class="col-md-6">
-                                    <label class="form-label-profile" for="password-input">Password <span class="text-danger">*</span></label>
+                                    <label class="form-label-profile" for="password-input">Password <span class="text-muted" style="font-size: 11px; font-weight: normal;">(Kosongkan jika tidak diubah)</span></label>
                                     <div class="auth-pass-inputgroup">
                                         <input 
                                             type="password" 
                                             class="form-control password-input" 
                                             id="password-input" 
                                             name="password" 
-                                            placeholder="Masukkan password akun" 
-                                            value="{{ old('password') }}" 
-                                            required 
+                                            placeholder="Ketik password baru (opsional)" 
+                                            value="" 
                                             readonly
                                         >
                                         <button class="password-addon-btn password-addon" type="button" id="password-addon" title="Lihat/Sembunyikan Password">

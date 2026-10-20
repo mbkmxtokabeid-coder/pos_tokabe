@@ -268,6 +268,10 @@ class PembelianController extends Controller
 
     public function unlock($id)
     {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menyetujui unlock pembelian.');
+        }
+
         $pembelian = Pembelian::find($id);
         if (!$pembelian) {
             return redirect()->back()->with('error', 'Data pembelian tidak ditemukan.');
@@ -283,6 +287,10 @@ class PembelianController extends Controller
 
     public function lock($id)
     {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat me-lock pembelian.');
+        }
+
         $pembelian = Pembelian::find($id);
         if (!$pembelian) {
             return redirect()->back()->with('error', 'Data pembelian tidak ditemukan.');
@@ -321,6 +329,10 @@ class PembelianController extends Controller
 
     public function lunas($id)
     {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat melunasi transaksi pembelian.');
+        }
+
         DB::transaction(function () use ($id) {
             $pembelian = Pembelian::lockForUpdate()->findOrFail($id);
             $sisa = $pembelian->sisa;

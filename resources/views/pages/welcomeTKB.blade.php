@@ -709,28 +709,17 @@ body,
                                         <!-- Kolom Kiri: Hero & Bar Chart Tren Pendapatan (8 Kolom) -->
                                         <div class="col-xl-8 col-lg-7 border-end-xl" style="border-color: var(--border-subtle) !important;">
                                             <div class="row gy-3 align-items-center mb-3">
-                                                @if (auth()->user()->role === 'Pemilik')
-                                                    <div class="col-md-5">
-                                                        <p class="stat-overline mb-1">
-                                                            PENDAPATAN AKUMULASI (S/D {{ strtoupper(\Carbon\Carbon::now()->locale('id')->isoFormat('DD MMM YYYY')) }})
-                                                        </p>
-                                                        <h3 class="fw-bold mb-0 tabular-nums text-white" style="font-size: 30px;" id="hero-pendapatan-akumulasi">Rp {{$jumlahPerTahun}}</h3>
+                                                <div class="col-md-5">
+                                                    <p class="stat-overline mb-1">
+                                                        PENDAPATAN AKUMULASI (S/D {{ strtoupper(\Carbon\Carbon::now()->locale('id')->isoFormat('DD MMM YYYY')) }})
+                                                    </p>
+                                                    <h3 class="fw-bold mb-0 tabular-nums text-white" style="font-size: 30px;" id="hero-pendapatan-akumulasi">Rp {{$jumlahPerTahun}}</h3>
+                                                </div>
+                                                <div class="col-md-7">
+                                                    <div class="p-3 rounded-3 border tabular-nums sub-panel" id="harga">
+                                                        Memuat rincian transaksi...
                                                     </div>
-                                                    <div class="col-md-7">
-                                                        <div class="p-3 rounded-3 border tabular-nums sub-panel" id="harga">
-                                                            Memuat rincian transaksi...
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    <div class="col-md-6">
-                                                        <p class="stat-overline mb-1">Hutang Belum Lunas (Tahun Ini)</p>
-                                                        <h4 class="fs-22 fw-bold mb-0 tabular-nums" style="color: var(--warning);">Rp {{$jumlahBBPerTahun}}</h4>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <p class="stat-overline mb-1">Hutang Belum Lunas (Bulan Ini)</p>
-                                                        <h4 class="fs-22 fw-bold mb-0 tabular-nums" style="color: var(--danger);">Rp {{$jumlahBBPerBulan}}</h4>
-                                                    </div>
-                                                @endif
+                                                </div>
                                             </div>
 
                                             <div class="mb-2 d-flex align-items-center justify-content-between">

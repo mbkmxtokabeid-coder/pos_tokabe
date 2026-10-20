@@ -84,22 +84,22 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/list-invoice/tokabe/cards-data', [PenjualanTokabeController::class, 'getCardsData'])->name('invoice.tokabe.cards_data');
             Route::get('/addInvoiceTokabe', [PenjualanTokabeController::class, 'addInvoice'])->name('add.inv.tkb');
             Route::post('/addInvoiceTokabe', [PenjualanTokabeController::class, 'storeInvoiceTokabe'])->name('storeInvoice.Tokabe');
-            Route::delete('/deleteInvoiceTokabe/{id}', [PenjualanTokabeController::class, 'delete'])->name('delete.invoiceTokabe');
+            Route::delete('/deleteInvoiceTokabe/{id}', [PenjualanTokabeController::class, 'delete'])->middleware('role:Pemilik')->name('delete.invoiceTokabe');
             Route::get('editInvoiceTokabe/{id}/edit', [PenjualanTokabeController::class, 'editInvoice'])->name('edit.inv.tkb');
             Route::put('update-InvoiceTokabe/{id}', [PenjualanTokabeController::class, 'updateInvoice'])->name('update-invoiceTokabe');
             Route::get('/ubah-status/{status}/{id}', [PenjualanTokabeController::class, 'ubahStatus'])->name('ubahStatus.tkb');
             Route::get('/cetakTKB/{id}', [PenjualanTokabeController::class, 'cetakInvoiceTKB'])->name('cetak.inv.tkb');
             Route::get('/get-invoice-number', [PenjualanTokabeController::class, 'getUpdatedInvoiceNumber']);
 
-            // TOKABE APPROVAL & PELUNASAN
-            Route::post('/ubah-status-unlock-tokabe/{id}', [PenjualanTokabeController::class, 'unlock'])->name('tokabe.unlock');
-            Route::get('/ubah-status-lock-tokabe/{id}', [PenjualanTokabeController::class, 'lock'])->name('tokabe.lock');
+            // TOKABE APPROVAL & PELUNASAN (HANYA PEMILIK)
+            Route::post('/ubah-status-unlock-tokabe/{id}', [PenjualanTokabeController::class, 'unlock'])->middleware('role:Pemilik')->name('tokabe.unlock');
+            Route::get('/ubah-status-lock-tokabe/{id}', [PenjualanTokabeController::class, 'lock'])->middleware('role:Pemilik')->name('tokabe.lock');
             Route::get('/tokabe-approval/{id}', [PenjualanTokabeController::class, 'approvalPage'])->middleware('role:Pemilik')->name('tokabe.approval.page');
             Route::get('/tokabe-pelunasan/{id}', [PenjualanTokabeController::class, 'pelunasanPage'])->middleware('role:Pemilik')->name('tokabe.pelunasan.page');
             Route::get('/tokabe-batal/{id}', [PenjualanTokabeController::class, 'batalPage'])->middleware('role:Pemilik')->name('tokabe.batal.page');
             Route::get('/tokabe-delete/{id}', [PenjualanTokabeController::class, 'deletePage'])->middleware('role:Pemilik')->name('tokabe.delete.page');
-            Route::post('/ubah-status-batal-tokabe/{id}', [PenjualanTokabeController::class, 'storeStatusBatal'])->name('tokabe.status.batal');
-            Route::post('/ubah-status-lunas-tokabe/{id}', [PenjualanTokabeController::class, 'statusLunas'])->name('tokabe.status.lunas');
+            Route::post('/ubah-status-batal-tokabe/{id}', [PenjualanTokabeController::class, 'storeStatusBatal'])->middleware('role:Pemilik')->name('tokabe.status.batal');
+            Route::post('/ubah-status-lunas-tokabe/{id}', [PenjualanTokabeController::class, 'statusLunas'])->middleware('role:Pemilik')->name('tokabe.status.lunas');
 
             Route::get('/getInvoices/{id}', [CustomerController::class, 'getInvoices']);
 
@@ -120,10 +120,10 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/pembelian/{id}/edit', [PembelianController::class, 'edit'])->name('pembelian.edit');
             Route::put('/pembelian/{id}', [PembelianController::class, 'update'])->name('pembelian.update');
             Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy'])->name('pembelian.destroy');
-            Route::get('/pembelian/{id}/lunas', [PembelianController::class, 'lunas'])->name('pembelian.lunas');
-            // APPROVAL PEMBELIAN (LOCK / UNLOCK)
-            Route::post('/ubah-status-unlock-pembelian/{id}', [PembelianController::class, 'unlock'])->name('pembelian.unlock');
-            Route::get('/ubah-status-lock-pembelian/{id}', [PembelianController::class, 'lock'])->name('pembelian.lock');
+            Route::get('/pembelian/{id}/lunas', [PembelianController::class, 'lunas'])->middleware('role:Pemilik')->name('pembelian.lunas');
+            // APPROVAL PEMBELIAN (LOCK / UNLOCK - HANYA PEMILIK)
+            Route::post('/ubah-status-unlock-pembelian/{id}', [PembelianController::class, 'unlock'])->middleware('role:Pemilik')->name('pembelian.unlock');
+            Route::get('/ubah-status-lock-pembelian/{id}', [PembelianController::class, 'lock'])->middleware('role:Pemilik')->name('pembelian.lock');
             Route::get('/pembelian-approval/{id}', [PembelianController::class, 'approvalPage'])->middleware('role:Pemilik')->name('pembelian.approval.page');
             Route::post('/pembelian/vendor', [PembelianController::class, 'storeVendor'])->name('pembelian.vendor.store');
             Route::put('/pembelian/vendor/{id}', [PembelianController::class, 'updateVendor'])->name('pembelian.vendor.update');
@@ -147,7 +147,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('listBarang', [BarangController::class, 'index'])->name('listBarang');
             Route::get('addBarang', [BarangController::class, 'create']);
             Route::post('barang', [BarangController::class, 'store'])->name('barang.store');
-            Route::delete('deleteBarang/{id}', [BarangController::class, 'destroy']);
+            Route::delete('deleteBarang/{id}', [BarangController::class, 'destroy'])->name('barang.destroy');
+            Route::delete('invoice/deleteBarang/{id}', [BarangController::class, 'destroy']);
             Route::get('/edit-stok/{id}', [BarangController::class, 'edit']);
             Route::put('/update-stok/{id}', [BarangController::class, 'update']);
                                     

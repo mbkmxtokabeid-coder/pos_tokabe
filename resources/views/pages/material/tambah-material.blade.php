@@ -32,7 +32,7 @@
         <div class="col-xxl-12">
           <div class="card">
             {{-- Start Isi Form --}}
-            <form action="{{route('material.store')}}" method="POST" enctype="multipart/form-data">
+            <form action="{{ Route::has('material.store') ? route('material.store') : '#' }}" method="POST" enctype="multipart/form-data">
               @csrf
               <div class="card-body p-4">
                 <div class="row">

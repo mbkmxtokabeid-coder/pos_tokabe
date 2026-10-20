@@ -104,7 +104,7 @@ class SpbController extends Controller
 
     public function cetakSPB($id)
     {
-        $spb = Spb::where('id', $id)->first();
+        $spb = Spb::findOrFail($id);
         $brg_spb = BarangSpb::where('spb', $id)->get();
         $tanggal = $spb->created_at;
         $barangs = [];
@@ -129,7 +129,7 @@ class SpbController extends Controller
     public function editSPB($id)
     {
         $namaPerusahaan = collect([(object)['id' => 2, 'nama_perusahaan' => 'Total Karya Berkah']]);
-        $spb = Spb::where('id', $id)->first();
+        $spb = Spb::findOrFail($id);
         $customer = PenjualanTokabe::pluck('customer');
         $perusahaan = PenjualanTokabe::pluck('perusahaan');
         $kategori_brg = KategoriBarang::all();
@@ -167,7 +167,7 @@ class SpbController extends Controller
             return redirect('edit-spb');
         }
 
-        $spb = Spb::find($id);
+        $spb = Spb::findOrFail($id);
         $item = count($request->barang_id);
 
         $spb->nama_spb = $request->namaSpb;
@@ -199,10 +199,10 @@ class SpbController extends Controller
 
     public function destroySPB($id)
     {
-        Spb::where('id', $id)->delete();
-        $barang_spb = BarangSpb::where('spb', $id);
+        $spb = Spb::findOrFail($id);
+        $spb->delete();
+        BarangSpb::where('spb', $id)->delete();
 
-        $barang_spb->delete();
         Alert::success('Berhasil', 'Data berhasil dihapus');
         return redirect('daftar-spb');
     }

@@ -11,10 +11,13 @@ use App\Models\PenjualanTokabe;
 use App\Models\Barang;
 use App\Models\PenjualanJasaTokabe;
 use App\Models\Rekening;
+use App\Models\Material;
 use Carbon\Carbon;
 use DateTimezone;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class PenjualanTokabeController extends Controller
@@ -39,100 +42,96 @@ class PenjualanTokabeController extends Controller
         $rekenings = Rekening::all()->keyBy('id');
 
         // =========================================================================
-        // 1. KONSOLIDASI CARD NON PO (Jenis Pembayaran != 'PO' atau NULL)
+        // 1-3. KONSOLIDASI STATISTIK KARTU (Cached 30s for fast page load)
         // =========================================================================
-        $nonPoStats = DB::table('penjualan_tokabe')
-            ->whereNull('deleted_at')
-            ->where(function($q) {
-                $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-            })
-            ->selectRaw("
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? THEN 1 END) as jlh_invoice,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_tahun,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as total_lunas,
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as lunas,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN dp ELSE 0 END), 0) as tot_dp_tahun,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_tahun,
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan,
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas_month
-            ", [
-                $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow,
-                $yearNow, $monthNow, $yearNow, $monthNow
-            ])
-            ->first();
+        $cardStats = Cache::remember('tkb_invoice_card_stats_' . $yearNow . '_' . $monthNow, 30, function () use ($yearNow, $monthNow) {
+            $nonPoStats = DB::table('penjualan_tokabe')
+                ->whereNull('deleted_at')
+                ->where(function($q) {
+                    $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
+                })
+                ->selectRaw("
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? THEN 1 END) as jlh_invoice,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_tahun,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as total_lunas,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as lunas,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN dp ELSE 0 END), 0) as tot_dp_tahun,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_tahun,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas_month
+                ", [
+                    $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow,
+                    $yearNow, $monthNow, $yearNow, $monthNow
+                ])
+                ->first();
 
-        $jlhInvoice = $nonPoStats->jlh_invoice ?? 0;
-        $totalPerTahun = $nonPoStats->total_per_tahun ?? 0;
-        $jumlahPerTahun = $totalPerTahun;
-        $lunas = $nonPoStats->lunas ?? 0;
-        $totalLunasThn = ($nonPoStats->total_lunas ?? 0) + ($nonPoStats->tot_dp_tahun ?? 0);
-        $belumLunas = $nonPoStats->belum_lunas ?? 0;
-        $jumlahBBPerTahun = $nonPoStats->jumlah_bb_per_tahun ?? 0;
-        $belumLunasMonth = $nonPoStats->belum_lunas_month ?? 0;
-        $jumlahBBPerBulan = $nonPoStats->jumlah_bb_per_bulan ?? 0;
+            $poStats = DB::table('penjualan_tokabe')
+                ->whereNull('deleted_at')
+                ->where('jenis_pembayaran', 'PO')
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po,
+                    COUNT(CASE WHEN status <> 'Batal' THEN 1 END) as count_all_inv_po,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_lunas,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as count_all_settled_po,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_blm_lunas,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as count_all_outstanding_po,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan_po,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as blm_lunas_po
+                ", [
+                    $yearNow, $yearNow, $yearNow, $yearNow,
+                    $yearNow, $monthNow, $yearNow, $monthNow
+                ])
+                ->first();
 
-        // =========================================================================
-        // 2. KONSOLIDASI CARD PO (Purchase Order - jenis_pembayaran == 'PO')
-        // =========================================================================
-        $poStats = DB::table('penjualan_tokabe')
-            ->whereNull('deleted_at')
-            ->where('jenis_pembayaran', 'PO')
-            ->selectRaw("
-                COALESCE(SUM(CASE WHEN status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po,
-                COUNT(CASE WHEN status <> 'Batal' THEN 1 END) as count_all_inv_po,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_lunas,
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as count_all_settled_po,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_blm_lunas,
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as count_all_outstanding_po,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan_po,
-                COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as blm_lunas_po
-            ", [
-                $yearNow, $yearNow, $yearNow, $yearNow,
-                $yearNow, $monthNow, $yearNow, $monthNow
-            ])
-            ->first();
+            $generalStats = DB::table('penjualan_tokabe')
+                ->whereNull('deleted_at')
+                ->selectRaw("
+                    COUNT(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN 1 END) as batal,
+                    COALESCE(SUM(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as jumlah_batal,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_bulan,
+                    COALESCE(SUM(total_pembayaran), 0) as jumlah_invoice
+                ", [$yearNow, $yearNow, $yearNow, $monthNow])
+                ->first();
 
-        $jumlahPO = $poStats->jumlah_po ?? 0;
-        $countAllInvPO = $poStats->count_all_inv_po ?? 0;
-        $jumlahPOLunas = $poStats->jumlah_po_lunas ?? 0;
-        $countAllSettledPO = $poStats->count_all_settled_po ?? 0;
-        $jumlahPOBlmLunas = $poStats->jumlah_po_blm_lunas ?? 0;
-        $countAllOutstandingPO = $poStats->count_all_outstanding_po ?? 0;
-        $jumlahBBPerBulanPO = $poStats->jumlah_bb_per_bulan_po ?? 0;
-        $blmLunasPO = $poStats->blm_lunas_po ?? 0;
+            $deletedStats = DB::table('penjualan_tokabe')
+                ->whereNotNull('deleted_at')
+                ->whereYear('tgl_penjualan', $yearNow)
+                ->selectRaw("
+                    COUNT(*) as hapus,
+                    COALESCE(SUM(total_pembayaran), 0) as jumlah_hapus
+                ")
+                ->first();
 
-        // =========================================================================
-        // 3. KONSOLIDASI BATAL & UMUM
-        // =========================================================================
-        $generalStats = DB::table('penjualan_tokabe')
-            ->whereNull('deleted_at')
-            ->selectRaw("
-                COUNT(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN 1 END) as batal,
-                COALESCE(SUM(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as jumlah_batal,
-                COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_bulan,
-                COALESCE(SUM(total_pembayaran), 0) as jumlah_invoice
-            ", [$yearNow, $yearNow, $yearNow, $monthNow])
-            ->first();
+            return [
+                'jlhInvoice' => $nonPoStats->jlh_invoice ?? 0,
+                'totalPerTahun' => $nonPoStats->total_per_tahun ?? 0,
+                'jumlahPerTahun' => $nonPoStats->total_per_tahun ?? 0,
+                'lunas' => $nonPoStats->lunas ?? 0,
+                'totalLunasThn' => ($nonPoStats->total_lunas ?? 0) + ($nonPoStats->tot_dp_tahun ?? 0),
+                'belumLunas' => $nonPoStats->belum_lunas ?? 0,
+                'jumlahBBPerTahun' => $nonPoStats->jumlah_bb_per_tahun ?? 0,
+                'belumLunasMonth' => $nonPoStats->belum_lunas_month ?? 0,
+                'jumlahBBPerBulan' => $nonPoStats->jumlah_bb_per_bulan ?? 0,
+                'jumlahPO' => $poStats->jumlah_po ?? 0,
+                'countAllInvPO' => $poStats->count_all_inv_po ?? 0,
+                'jumlahPOLunas' => $poStats->jumlah_po_lunas ?? 0,
+                'countAllSettledPO' => $poStats->count_all_settled_po ?? 0,
+                'jumlahPOBlmLunas' => $poStats->jumlah_po_blm_lunas ?? 0,
+                'countAllOutstandingPO' => $poStats->count_all_outstanding_po ?? 0,
+                'jumlahBBPerBulanPO' => $poStats->jumlah_bb_per_bulan_po ?? 0,
+                'blmLunasPO' => $poStats->blm_lunas_po ?? 0,
+                'batal' => $generalStats->batal ?? 0,
+                'jumlahBatal' => $generalStats->jumlah_batal ?? 0,
+                'totalPerBulan' => $generalStats->total_per_bulan ?? 0,
+                'jumlahPerBulan' => $generalStats->total_per_bulan ?? 0,
+                'jumlahInvoice' => $generalStats->jumlah_invoice ?? 0,
+                'hapus' => $deletedStats->hapus ?? 0,
+                'jumlahHapus' => $deletedStats->jumlah_hapus ?? 0,
+            ];
+        });
 
-        $batal = $generalStats->batal ?? 0;
-        $jumlahBatal = $generalStats->jumlah_batal ?? 0;
-        $totalPerBulan = $generalStats->total_per_bulan ?? 0;
-        $jumlahPerBulan = $totalPerBulan;
-        $jumlahInvoice = $generalStats->jumlah_invoice ?? 0;
-
-        // KONSOLIDASI DIHAPUS (Soft Deleted) TAHUN INI
-        $deletedStats = DB::table('penjualan_tokabe')
-            ->whereNotNull('deleted_at')
-            ->whereYear('tgl_penjualan', $yearNow)
-            ->selectRaw("
-                COUNT(*) as hapus,
-                COALESCE(SUM(total_pembayaran), 0) as jumlah_hapus
-            ")
-            ->first();
-
-        $hapus = $deletedStats->hapus ?? 0;
-        $jumlahHapus = $deletedStats->jumlah_hapus ?? 0;
+        extract($cardStats);
 
         // =========================================================================
         // 4. DATA INVOICE TOKABE (Eager load user & penjualanBarang cegah N+1)
@@ -574,7 +573,23 @@ class PenjualanTokabeController extends Controller
     }
 
     public function storeInvoiceTokabe(Request $request)
-{
+    {
+        $request->validate([
+            'pelanggan'   => ['required', 'string', 'max:255'],
+            'tlp'         => ['required', 'string', 'max:50'],
+            'tgl_jual'    => ['required', 'string'],
+            'jam'         => ['required', 'string'],
+            'tgl_selesai' => ['required', 'string'],
+            'jns_pem'     => ['required', 'string', 'max:50'],
+        ], [
+            'pelanggan.required'   => 'Nama pelanggan wajib diisi.',
+            'tlp.required'         => 'Nomor telepon wajib diisi.',
+            'tgl_jual.required'    => 'Tanggal penjualan wajib dipilih.',
+            'jam.required'         => 'Jam penjualan wajib diisi.',
+            'tgl_selesai.required' => 'Target penyelesaian wajib dipilih.',
+            'jns_pem.required'     => 'Jenis pembayaran wajib dipilih.',
+        ]);
+
         if ($request->has('item_id')) {
             $request->validate([
                 'item_id' => ['required', 'array', 'min:1'],
@@ -583,33 +598,33 @@ class PenjualanTokabeController extends Controller
         }
 
         // --- 1. VALIDASI & FILTERING STOK MULTI-MATERIAL ---
-    if (!empty($request->barang_id)) {
-        foreach ($request->barang_id as $key => $value) {
-            $barangObj = Barang::find($value);
-            // Jika is_material_required == 1 (ON), berarti barang Non-Material (tidak pakai material)
-            if ($barangObj && $barangObj->is_material_required == 1) {
-                continue;
-            }
+        if (!empty($request->barang_id)) {
+            foreach ($request->barang_id as $key => $value) {
+                $barangObj = Barang::find($value);
+                // Jika is_material_required == 1 (ON), berarti barang Non-Material (tidak pakai material)
+                if ($barangObj && $barangObj->is_material_required == 1) {
+                    continue;
+                }
 
-            // Jika is_material_required == 0 (OFF), barang memakai material -> cek stoknya
-            if (isset($request->material_id[$key]) && is_array($request->material_id[$key])) {
-                foreach ($request->material_id[$key] as $matIndex => $matId) {
-                    if (!empty($matId)) {
-                        $material = null;
-                        $qtyMat = $request->material_qty[$key][$matIndex] ?? 0;
-                        
-                        if ($material && $material->stok < $qtyMat) {
-                            return response()->json([
-                                'status' => 'error', 
-                                'message' => "Stok material '{$material->jenis_material}' tidak mencukupi. Sisa: {$material->stok}"
-                            ], 400);
+                // Jika is_material_required == 0 (OFF), barang memakai material -> cek stoknya
+                if (isset($request->material_id[$key]) && is_array($request->material_id[$key])) {
+                    foreach ($request->material_id[$key] as $matIndex => $matId) {
+                        if (!empty($matId)) {
+                            $material = Material::find($matId);
+                            $qtyMat = $request->material_qty[$key][$matIndex] ?? 0;
+                            
+                            if ($material && $material->stok < $qtyMat) {
+                                return response()->json([
+                                    'status' => 'error', 
+                                    'message' => "Stok material '{$material->jenis_material}' tidak mencukupi. Sisa: {$material->stok}"
+                                ], 400);
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    // --- END VALIDASI ---
+        // --- END VALIDASI ---
 
     $invoice = is_numeric($request->inv)
         ? Invoice::find($request->inv)
@@ -713,7 +728,11 @@ class PenjualanTokabeController extends Controller
                     $matPanjangs = [];
                     $matLebars = [];
                 } else {
-                    }
+                    $matIds = $request->material_id[$key] ?? [];
+                    $matQtys = $request->material_qty[$key] ?? [];
+                    $matPanjangs = $request->material_panjang[$key] ?? [];
+                    $matLebars = $request->material_lebar[$key] ?? [];
+                }
 
                 $data_brg = [
                     'deskripsi_item' => $request->deskripsi_item[$key] ?? '',
@@ -739,9 +758,9 @@ class PenjualanTokabeController extends Controller
                     $barang->decrement('stok', $request->qty[$key] ?? 0);
                     if (!empty($matIds)) {
                         foreach (array_values($matIds) as $mIndex => $mId) {
-                            $material = null;
+                            $material = Material::find($mId);
                             $mQty = array_values($matQtys)[$mIndex] ?? 0;
-                            if ($material) $material->decrement('stok', $mQty);
+                            if ($material && $mQty > 0) $material->decrement('stok', $mQty);
                         }
                     }
                 }
@@ -757,9 +776,9 @@ class PenjualanTokabeController extends Controller
         $penjualan->customer = $request->pelanggan;
         $penjualan->perusahaan = $request->perusahaan;
         $penjualan->no_telepon = $request->tlp;
-        $penjualan->admin = $request->adm;
-        $penjualan->order_by = $request->order;
-        $penjualan->nama_sales = $request->sales;
+        $penjualan->admin = $request->adm ?: (Auth::id() ?: 1);
+        $penjualan->order_by = $request->order ?: 'Langsung';
+        $penjualan->nama_sales = $request->sales ?: '-';
         $penjualan->tgl_selesai = $request->tgl_selesai;
         $penjualan->jumlah_item = $item;
         $penjualan->dp = $dp;
@@ -787,7 +806,11 @@ class PenjualanTokabeController extends Controller
                     $matPanjangs = [];
                     $matLebars = [];
                 } else {
-                    }
+                    $matIds = $request->material_id[$key] ?? [];
+                    $matQtys = $request->material_qty[$key] ?? [];
+                    $matPanjangs = $request->material_panjang[$key] ?? [];
+                    $matLebars = $request->material_lebar[$key] ?? [];
+                }
                 
                 $penjualan_brg = [
                     'barang_id' => $barang->id,
@@ -804,13 +827,31 @@ class PenjualanTokabeController extends Controller
                 ];
                 PenjualanJasaTokabe::create($penjualan_brg);
                 $barang->decrement('stok', $request->qty[$key] ?? 0);
+                if (!empty($matIds)) {
+                    foreach (array_values($matIds) as $mIndex => $mId) {
+                        $material = Material::find($mId);
+                        $mQty = array_values($matQtys)[$mIndex] ?? 0;
+                        if ($material && $mQty > 0) {
+                            $material->decrement('stok', $mQty);
+                        }
+                    }
+                }
             }
         }
         $this->saveCatalogInvoiceItems($request, $penjualan);
     }
 
+    $this->clearTokabeCaches();
     return response()->json(['status' => 'success', 'message' => 'Data Sudah Berhasil Disimpan']);
 }
+
+    private function clearTokabeCaches(): void
+    {
+        $y = date('Y');
+        $m = date('n');
+        Cache::forget("tkb_invoice_card_stats_{$y}_{$m}");
+        Cache::forget("tkb_dashboard_pembelian_barang_{$y}_{$m}");
+    }
 
     private function saveCatalogInvoiceItems(Request $request, PenjualanTokabe $penjualan): void
     {
@@ -858,18 +899,25 @@ class PenjualanTokabeController extends Controller
                     $barangObj->stok += $barang->qty;
                     $barangObj->save();
                 }
+                if (!empty($barang->material_id) && !empty($barang->material_qty)) {
+                    $mIds = json_decode($barang->material_id, true) ?: [];
+                    $mQtys = json_decode($barang->material_qty, true) ?: [];
+                    foreach ($mIds as $mIdx => $mId) {
+                        $matObj = Material::find($mId);
+                        $qtyToRestore = $mQtys[$mIdx] ?? 0;
+                        if ($matObj && $qtyToRestore > 0) {
+                            $matObj->increment('stok', $qtyToRestore);
+                        }
+                    }
+                }
             }
         }
 
-        // Tandai status sebagai Dihapus jika statusnya belum Batal
-        if ($penjualan->status !== 'Batal') {
-            $penjualan->status = 'Dihapus';
-            $penjualan->save();
-        }
 
         // Menghapus penjualan dan barang penjualan terkait
         $penjualan->penjualanBarang()->delete();
         $penjualan->delete();
+        $this->clearTokabeCaches();
         Alert::success('Data Berhasil dihapus');
         return redirect('list-invoice/tokabe');
     }
@@ -877,8 +925,12 @@ class PenjualanTokabeController extends Controller
     public function editInvoice($id)
     {
         $inv = PenjualanTokabe::find($id);
-        $invoice = Invoice::find($inv->invoice);
-        $admin_now = User::find($inv->admin);
+        if (!$inv) {
+            Alert::error('Error', 'Data invoice tidak ditemukan.');
+            return redirect()->route('list_invoice_tokabe');
+        }
+        $invoice = Invoice::find($inv->invoice) ?? Invoice::first();
+        $admin_now = User::find($inv->admin) ?? Auth::user();
         $admin = User::whereIn('role', ['Admin', 'Pemilik'])->get();
         $order = Order::all();
         $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
@@ -982,6 +1034,17 @@ class PenjualanTokabeController extends Controller
                     $barangObj->stok += $barang->qty;
                     $barangObj->save();
                 }
+                if (!empty($barang->material_id) && !empty($barang->material_qty)) {
+                    $mIds = json_decode($barang->material_id, true) ?: [];
+                    $mQtys = json_decode($barang->material_qty, true) ?: [];
+                    foreach ($mIds as $mIdx => $mId) {
+                        $matObj = Material::find($mId);
+                        $qtyToRestore = $mQtys[$mIdx] ?? 0;
+                        if ($matObj && $qtyToRestore > 0) {
+                            $matObj->increment('stok', $qtyToRestore);
+                        }
+                    }
+                }
             }
         }
         
@@ -1069,7 +1132,11 @@ class PenjualanTokabeController extends Controller
                     $matPanjangs = [];
                     $matLebars = [];
                 } else {
-                    }
+                    $matIds = $request->material_id[$key] ?? [];
+                    $matQtys = $request->material_qty[$key] ?? [];
+                    $matPanjangs = $request->material_panjang[$key] ?? [];
+                    $matLebars = $request->material_lebar[$key] ?? [];
+                }
                 
                 $itemData = new PenjualanJasaTokabe();
                 $itemData->barang_id = $value;
@@ -1079,6 +1146,10 @@ class PenjualanTokabeController extends Controller
                 $itemData->satuan = $request->satuan[$key];
                 $itemData->harga = intval(str_replace(',', '', $hrg));
                 $itemData->jumlah_harga = intval(str_replace(',', '', $request->jlh_hrg[$key] ?? '0'));
+                $itemData->material_id = !empty($matIds) ? json_encode(array_values($matIds)) : null;
+                $itemData->material_qty = !empty($matQtys) ? json_encode(array_values($matQtys)) : null;
+                $itemData->material_panjang = !empty($matPanjangs) ? json_encode(array_values($matPanjangs)) : null;
+                $itemData->material_lebar = !empty($matLebars) ? json_encode(array_values($matLebars)) : null;
                 
                 $itemData->save();
 
@@ -1091,9 +1162,9 @@ class PenjualanTokabeController extends Controller
                 
                 if (!empty($matIds)) {
                     foreach (array_values($matIds) as $mIndex => $mId) {
-                        $material = null;
+                        $material = Material::find($mId);
                         $mQty = array_values($matQtys)[$mIndex] ?? 0;
-                        if ($material) {
+                        if ($material && $mQty > 0) {
                             $material->decrement('stok', $mQty);
                         }
                     }
@@ -1174,6 +1245,10 @@ class PenjualanTokabeController extends Controller
     
     public function unlock($id)
     {
+        if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat menyetujui unlock invoice.');
+            return redirect('list-invoice/tokabe');
+        }
         $inv = PenjualanTokabe::find($id);
         if (!$inv) {
             Alert::error('Data tidak ditemukan');
@@ -1188,6 +1263,10 @@ class PenjualanTokabeController extends Controller
 
     public function lock($id)
     {
+        if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat me-lock invoice.');
+            return redirect('list-invoice/tokabe');
+        }
         $inv = PenjualanTokabe::find($id);
         if (!$inv) {
             Alert::error('Data tidak ditemukan');
@@ -1253,6 +1332,10 @@ class PenjualanTokabeController extends Controller
 
     public function statusLunas($id)
     {
+        if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat menyetujui pelunasan invoice.');
+            return redirect('list-invoice/tokabe');
+        }
         $inv = PenjualanTokabe::find($id);
         if (!$inv) {
             Alert::error('Data tidak ditemukan');
@@ -1271,6 +1354,10 @@ class PenjualanTokabeController extends Controller
 
     public function storeStatusBatal(Request $request, $id)
     {
+        if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat membatalkan invoice.');
+            return redirect('list-invoice/tokabe');
+        }
         $invoice = PenjualanTokabe::findOrFail($id);
         if ($invoice->status !== 'Batal') {
             $penjBarang = PenjualanJasaTokabe::where('penjualan_id', $invoice->id)->get();
@@ -1279,6 +1366,17 @@ class PenjualanTokabeController extends Controller
                 if ($barangObj) {
                     $barangObj->stok += $barang->qty;
                     $barangObj->save();
+                }
+                if (!empty($barang->material_id) && !empty($barang->material_qty)) {
+                    $mIds = json_decode($barang->material_id, true) ?: [];
+                    $mQtys = json_decode($barang->material_qty, true) ?: [];
+                    foreach ($mIds as $mIdx => $mId) {
+                        $matObj = Material::find($mId);
+                        $qtyToRestore = $mQtys[$mIdx] ?? 0;
+                        if ($matObj && $qtyToRestore > 0) {
+                            $matObj->increment('stok', $qtyToRestore);
+                        }
+                    }
                 }
             }
         }
@@ -1294,10 +1392,10 @@ class PenjualanTokabeController extends Controller
         if (!in_array($type, ['asli', 'copy'])) {
             $type = 'asli';
         }
-        $penjualan = PenjualanTokabe::where('id', $id)->first();
-        $invoice = Invoice::where('id', $penjualan->invoice)->first();
+        $penjualan = PenjualanTokabe::findOrFail($id);
+        $invoice = Invoice::find($penjualan->invoice) ?? Invoice::first();
         $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
-        $admin_now = User::where('id', $penjualan->admin)->first();
+        $admin_now = User::find($penjualan->admin) ?? (Auth::user() ?? User::first());
         $barang = [];
         $hargaMod = [];
         $jumlahHarga = [];

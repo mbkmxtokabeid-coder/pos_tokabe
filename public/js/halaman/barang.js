@@ -13,7 +13,7 @@ $(document).on('click', '.hapus-btn', function (e) {
     }
 
     // Update form action
-    $('#deleteForm').attr('action', '/invoice/deleteBarang/' + barang_id);
+    $('#deleteForm').attr('action', '/deleteBarang/' + barang_id);
     console.log("Form Action: " + $('#deleteForm').attr('action')); // Debugging untuk cek apakah action sudah benar
 
     $('#deleteModal').modal('show');

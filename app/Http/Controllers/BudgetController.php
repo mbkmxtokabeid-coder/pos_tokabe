@@ -25,12 +25,24 @@ class BudgetController extends Controller
     }
     function store(Request $request)
     {
+        $request->validate([
+            'nama_anggaran' => 'required|string|max:191',
+            'kategori'      => 'required|exists:kategori_barang,id',
+            'anggaran'      => 'required',
+            'tanggal'       => 'required|date',
+        ], [
+            'nama_anggaran.required' => 'Nama anggaran wajib diisi.',
+            'kategori.required'      => 'Kategori wajib dipilih.',
+            'anggaran.required'      => 'Nominal anggaran wajib diisi.',
+            'tanggal.required'       => 'Tanggal alokasi wajib diisi.',
+        ]);
+
         $anggaran = intval(str_replace(',', '', $request->anggaran));
         Budget::create([
             'nama_budget' => $request->nama_anggaran,
             'kategori_id' => $request->kategori,
-            'anggaran' => $anggaran,
-            'tanggal' => $request->tanggal,
+            'anggaran'    => $anggaran,
+            'tanggal'     => $request->tanggal,
         ]);
         Alert::success('Anggaran Berhasil Ditambah');
         return redirect(route('budget.list'));
@@ -38,26 +50,39 @@ class BudgetController extends Controller
 
     function edit($id)
     {
-        $budget = Budget::find($id);
+        $budget = Budget::findOrFail($id);
         $kategori = KategoriBarang::pluck('nama_kategori', 'id');
         return view('pages.anggaran.edit-anggaran', compact('budget', 'kategori'));
     }
+
     function update(Request $request, $id)
     {
-        $data = Budget::find($id);
+        $data = Budget::findOrFail($id);
+        $request->validate([
+            'nama_anggaran' => 'required|string|max:191',
+            'kategori'      => 'required|exists:kategori_barang,id',
+            'anggaran'      => 'required',
+            'tanggal'       => 'required|date',
+        ], [
+            'nama_anggaran.required' => 'Nama anggaran wajib diisi.',
+            'kategori.required'      => 'Kategori wajib dipilih.',
+            'anggaran.required'      => 'Nominal anggaran wajib diisi.',
+            'tanggal.required'       => 'Tanggal alokasi wajib diisi.',
+        ]);
+
         $anggaran = intval(str_replace(',', '', $request->anggaran));
         $data->update([
             'nama_budget' => $request->nama_anggaran,
             'kategori_id' => $request->kategori,
-            'anggaran' => $anggaran,
-            'tanggal' => $request->tanggal,
+            'anggaran'    => $anggaran,
+            'tanggal'     => $request->tanggal,
         ]);
         Alert::success('Anggaran Berhasil Diubah');
         return redirect(route('budget.list'));
     }
     function delete($id)
     {
-        $budget = Budget::find($id);
+        $budget = Budget::findOrFail($id);
         $budget->delete();
         Alert::success('Budget Berhasil dihapus');
         return redirect(route('budget.list'));

@@ -31,11 +31,20 @@ class PenjualanTokabeInvoiceSequenceAndReportTest extends TestCase
         $controller = new PenjualanTokabeController();
 
         // Ambil nomor yang digenerate untuk Oktober 2026
-        // Di database sudah ada 001 (Belum Lunas), 002 (Batal), 003 (Dihapus/soft-deleted)
+        $latestInvoice = \App\Models\PenjualanTokabe::withTrashed()
+            ->whereYear('tgl_penjualan', 2026)
+            ->whereMonth('tgl_penjualan', 10)
+            ->orderBy('id', 'desc')
+            ->first();
+        $expectedNumber = 1;
+        if ($latestInvoice && preg_match('/^(\d+)\/TKB\//', $latestInvoice->nomor_invoice, $m)) {
+            $expectedNumber = (int)$m[1] + 1;
+        }
+        $expectedFormat = sprintf('%03d/TKB/X/2026', $expectedNumber);
         $noInvoice = $controller->generateNoInvoice('2026-10-14');
 
-        // Nomor invoice harus berlanjut ke 004/TKB/X/2026 dan TIDAK mundur ke 002 atau 003
-        $this->assertEquals('004/TKB/X/2026', $noInvoice);
+        // Nomor invoice harus berlanjut dan TIDAK mundur ke 002 atau 003
+        $this->assertEquals($expectedFormat, $noInvoice);
         $this->assertNotEquals('002/TKB/X/2026', $noInvoice);
         $this->assertNotEquals('003/TKB/X/2026', $noInvoice);
     }

@@ -27,7 +27,7 @@
               <h4 class="mb-3">Apakah ingin menghapus data?</h4>
               <div class="hstack gap-2 justify-content-center">
                   <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
-                  <form id="deleteForm" action="/invoice/deleteBarang/" method="POST">
+                  <form id="deleteForm" action="/deleteBarang/" method="POST">
                     @csrf
                     @method('delete')
 
@@ -230,32 +230,4 @@
 
 <script src="{{asset('js/pages/datatables.init.js')}}"></script>
 <script src="{{asset('js/halaman/barang.js')}}"></script>
-<script>
-  
-                  Toast.fire({
-                      icon: 'success',
-                      title: response.message
-                  });
-              } else {
-                  alert(response.message || 'Gagal memperbarui status material');
-                  $switch.prop('checked', !isRequired);
-              }
-          },
-          error: function(xhr, status, error) {
-              var errorMsg = 'Gagal memperbarui status material';
-              if (xhr.responseJSON && xhr.responseJSON.message) {
-                  errorMsg += ': ' + xhr.responseJSON.message;
-              } else if (xhr.status === 404) {
-                  errorMsg += ' (URL route tidak ditemukan - 404)';
-              } else if (xhr.status === 419) {
-                  errorMsg += ' (Sesi telah kedaluwarsa, silakan refresh halaman - 419)';
-              } else if (xhr.status === 500) {
-                  errorMsg += ' (Terjadi kesalahan server - 500)';
-              }
-              alert(errorMsg);
-              $switch.prop('checked', !isRequired);
-          }
-      });
-  });
-</script>
 @endsection
