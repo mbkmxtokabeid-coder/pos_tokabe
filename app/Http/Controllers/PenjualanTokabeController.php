@@ -103,18 +103,6 @@ class PenjualanTokabeController extends Controller
                 ", [$yearNow, $yearNow, $yearNow, $monthNow])
                 ->first();
 
-            $deletedStats = DB::table('penjualan_tokabe')
-                ->whereNotNull('deleted_at')
-                ->where(function($q) {
-                    $q->where('is_custom', 0)->orWhereNull('is_custom');
-                })
-                ->whereYear('tgl_penjualan', $yearNow)
-                ->selectRaw("
-                    COUNT(*) as hapus,
-                    COALESCE(SUM(total_pembayaran), 0) as jumlah_hapus
-                ")
-                ->first();
-
             return [
                 'jlhInvoice' => $nonPoStats->jlh_invoice ?? 0,
                 'totalPerTahun' => $nonPoStats->total_per_tahun ?? 0,
@@ -138,8 +126,6 @@ class PenjualanTokabeController extends Controller
                 'totalPerBulan' => $generalStats->total_per_bulan ?? 0,
                 'jumlahPerBulan' => $generalStats->total_per_bulan ?? 0,
                 'jumlahInvoice' => $generalStats->jumlah_invoice ?? 0,
-                'hapus' => $deletedStats->hapus ?? 0,
-                'jumlahHapus' => $deletedStats->jumlah_hapus ?? 0,
             ];
         });
 
@@ -256,7 +242,6 @@ class PenjualanTokabeController extends Controller
             'jumlahPerBulan', 'jumlahPerTahun', 'belumLunasMonth',
             'jumlahPO', 'countAllInvPO', 'jumlahPOLunas', 'countAllSettledPO', 
             'jumlahPOBlmLunas', 'countAllOutstandingPO', 'jumlahBBPerBulanPO', 'blmLunasPO',
-            'hapus', 'jumlahHapus',
             'ppnTotal', 'ppnTotalCount', 'ppn01', 'ppn01Count', 'ppn02', 'ppn02Count',
             'ppn03', 'ppn03Count', 'ppn04', 'ppn04Count', 'pphTotal', 'pphTotalCount', 'availableYears'
         ));
@@ -281,9 +266,6 @@ class PenjualanTokabeController extends Controller
         $card4Query = PenjualanTokabe::query()->where(function($q) {
             $q->where('is_custom', 0)->orWhereNull('is_custom');
         });
-        $queryDeleted = PenjualanTokabe::onlyTrashed()->where(function($q) {
-            $q->where('is_custom', 0)->orWhereNull('is_custom');
-        });
 
         $periodLabel = '';
         $card4MonthName = '';
@@ -291,7 +273,6 @@ class PenjualanTokabeController extends Controller
         if ($timeframe === 'today') {
             $today = $now->toDateString();
             $query->whereDate('tgl_penjualan', $today);
-            $queryDeleted->whereDate('tgl_penjualan', $today);
             $periodLabel = 'HARI INI';
             
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
@@ -300,21 +281,18 @@ class PenjualanTokabeController extends Controller
             $startOfWeek = $now->copy()->startOfWeek()->format('Y-m-d 00:00:00');
             $endOfWeek = $now->copy()->endOfWeek()->format('Y-m-d 23:59:59');
             $query->whereBetween('tgl_penjualan', [$startOfWeek, $endOfWeek]);
-            $queryDeleted->whereBetween('tgl_penjualan', [$startOfWeek, $endOfWeek]);
             $periodLabel = 'MINGGU INI';
 
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
             $card4MonthName = strtoupper($now->translatedFormat('F Y'));
         } elseif ($timeframe === 'month') {
             $query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
-            $queryDeleted->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
             $periodLabel = 'BULAN ' . strtoupper($now->translatedFormat('F Y'));
 
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
             $card4MonthName = strtoupper($now->translatedFormat('F Y'));
         } elseif ($timeframe === 'year') {
             $query->whereYear('tgl_penjualan', $yearNow);
-            $queryDeleted->whereYear('tgl_penjualan', $yearNow);
             $periodLabel = 'TAHUN ' . $yearNow;
 
             $card4Query->whereYear('tgl_penjualan', $yearNow)->whereMonth('tgl_penjualan', $monthNow);
@@ -322,7 +300,6 @@ class PenjualanTokabeController extends Controller
         } elseif ($timeframe === 'last_year') {
             $lastYear = $yearNow - 1;
             $query->whereYear('tgl_penjualan', $lastYear);
-            $queryDeleted->whereYear('tgl_penjualan', $lastYear);
             $periodLabel = 'TAHUN ' . $lastYear;
 
             $card4Query->whereYear('tgl_penjualan', $lastYear)->whereMonth('tgl_penjualan', 12);
@@ -331,14 +308,12 @@ class PenjualanTokabeController extends Controller
             if ($mode === 'date' && $date) {
                 $parsedDate = Carbon::parse($date);
                 $query->whereDate('tgl_penjualan', $parsedDate->toDateString());
-                $queryDeleted->whereDate('tgl_penjualan', $parsedDate->toDateString());
                 $periodLabel = 'TANGGAL ' . $parsedDate->format('d/m/Y');
 
                 $card4Query->whereYear('tgl_penjualan', $parsedDate->year)->whereMonth('tgl_penjualan', $parsedDate->month);
                 $card4MonthName = strtoupper($parsedDate->translatedFormat('F Y'));
             } elseif ($mode === 'month' && $month && $year) {
                 $query->whereYear('tgl_penjualan', $year)->whereMonth('tgl_penjualan', $month);
-                $queryDeleted->whereYear('tgl_penjualan', $year)->whereMonth('tgl_penjualan', $month);
                 $parsedDate = Carbon::createFromDate($year, $month, 1);
                 $periodLabel = 'BULAN ' . strtoupper($parsedDate->translatedFormat('F Y'));
 
@@ -346,7 +321,6 @@ class PenjualanTokabeController extends Controller
                 $card4MonthName = strtoupper($parsedDate->translatedFormat('F Y'));
             } elseif ($mode === 'year' && $year) {
                 $query->whereYear('tgl_penjualan', $year);
-                $queryDeleted->whereYear('tgl_penjualan', $year);
                 $periodLabel = 'TAHUN ' . $year;
 
                 $card4Month = ($year == $yearNow) ? $monthNow : 12;
@@ -432,10 +406,6 @@ class PenjualanTokabeController extends Controller
         $totalBatal = (clone $dataBatal)->sum('total_pembayaran');
         $valCard5 = number_format($totalBatal, 0, ',', '.');
 
-        // Card Hapus: Dihapus (Soft Deleted)
-        $hapus = (clone $queryDeleted)->count();
-        $totalHapus = (clone $queryDeleted)->sum('total_pembayaran');
-        $valCardHapus = number_format($totalHapus, 0, ',', '.');
 
         // Pajak PPN & PPh
         $dataPajak = (clone $query)->where('status', '!=', 'Batal')
@@ -508,7 +478,7 @@ class PenjualanTokabeController extends Controller
             'cardPo3' => ['nominal' => $valPo3, 'count' => $countPo3],
             'cardPo4' => ['nominal' => $valPo4, 'count' => $countPo4],
             'card5' => ['nominal' => $valCard5, 'count' => $batal],
-            'cardHapus' => ['nominal' => $valCardHapus, 'count' => $hapus],
+            'cardHapus' => ['nominal' => '0', 'count' => 0],
             'card6' => ['nominal' => number_format($ppnTotal, 0, ',', '.'), 'count' => $ppnTotalCount],
             'card7' => ['nominal' => number_format($pphTotal, 0, ',', '.'), 'count' => $pphTotalCount],
             'card8' => ['nominal' => number_format($ppn01, 0, ',', '.'), 'count' => $ppn01Count],
@@ -1101,35 +1071,87 @@ class PenjualanTokabeController extends Controller
 
     public function storeInvoiceTokabe(Request $request)
     {
-        $request->validate([
+        $rules = [
             'pelanggan'   => ['required', 'string', 'max:255'],
             'tlp'         => ['required', 'string', 'max:50'],
+            'adm'         => ['required'],
+            'order'       => ['required', 'string'],
             'tgl_jual'    => ['required', 'string'],
             'jam'         => ['required', 'string'],
             'tgl_selesai' => ['required', 'string'],
             'jns_pem'     => ['required', 'string', 'max:50'],
-        ], [
+        ];
+
+        $messages = [
             'pelanggan.required'   => 'Nama pelanggan wajib diisi.',
             'tlp.required'         => 'Nomor telepon wajib diisi.',
+            'adm.required'         => 'Nama admin wajib dipilih.',
+            'order.required'       => 'Order dari wajib dipilih.',
             'tgl_jual.required'    => 'Tanggal penjualan wajib dipilih.',
             'jam.required'         => 'Jam penjualan wajib diisi.',
             'tgl_selesai.required' => 'Target penyelesaian wajib dipilih.',
             'jns_pem.required'     => 'Jenis pembayaran wajib dipilih.',
-        ]);
+        ];
+
+        if (strtolower((string)$request->order) === 'sales') {
+            $rules['sales'] = ['required', 'string', 'max:255'];
+            $messages['sales.required'] = 'Nama sales wajib diisi jika order dari Sales.';
+        }
 
         if ($request->filled('is_custom') || $request->filled('nomor_invoice_custom')) {
-            $request->validate([
-                'nomor_invoice_custom' => ['required', 'string', 'max:255'],
-            ], [
-                'nomor_invoice_custom.required' => 'Nomor invoice custom wajib diisi.',
-            ]);
+            $rules['nomor_invoice_custom'] = ['required', 'string', 'max:255'];
+            $messages['nomor_invoice_custom.required'] = 'Nomor invoice custom wajib diisi.';
         }
 
         if ($request->has('item_id')) {
-            $request->validate([
-                'item_id' => ['required', 'array', 'min:1'],
-                'item_id.*' => ['required', 'integer', 'exists:items,id'],
-            ]);
+            $rules['item_id'] = ['required', 'array', 'min:1'];
+            $rules['item_id.*'] = ['required', 'integer', 'exists:items,id'];
+            $rules['satuan'] = ['required', 'array', 'min:1'];
+            $rules['satuan.*'] = ['required', 'string'];
+            $rules['hrg'] = ['required', 'array', 'min:1'];
+            $rules['hrg.*'] = ['required'];
+            $rules['qty'] = ['required', 'array', 'min:1'];
+            $rules['qty.*'] = ['required', 'numeric', 'min:1'];
+
+            $messages['item_id.required'] = 'Minimal harus ada 1 item.';
+            $messages['item_id.min'] = 'Minimal harus ada 1 item.';
+            $messages['item_id.*.required'] = 'Pilihan item wajib dipilih.';
+            $messages['item_id.*.exists'] = 'Item yang dipilih tidak valid.';
+            $messages['satuan.*.required'] = 'Satuan item wajib dipilih.';
+            $messages['hrg.*.required'] = 'Harga item wajib diisi.';
+            $messages['qty.*.required'] = 'Quantity item wajib diisi.';
+            $messages['qty.*.min'] = 'Quantity minimal 1.';
+
+            if ($request->has('deskripsi_item')) {
+                $rules['deskripsi_item'] = ['required', 'array', 'min:1'];
+                $rules['deskripsi_item.*'] = ['required', 'string'];
+                $messages['deskripsi_item.*.required'] = 'Deskripsi item wajib diisi.';
+            }
+        }
+
+        $request->validate($rules, $messages);
+
+        if ($request->has('hrg') && is_array($request->hrg)) {
+            foreach ($request->hrg as $idx => $hrgVal) {
+                $cleanHrg = intval(preg_replace('/[^0-9]/', '', (string)$hrgVal));
+                if ($cleanHrg <= 0) {
+                    $rowNum = $idx + 1;
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Harga item baris #{$rowNum} wajib diisi dan lebih dari 0."
+                    ], 422);
+                }
+            }
+        }
+
+        if ($request->jns_pem === 'Transfer DP') {
+            $dpCheck = intval(preg_replace('/[^0-9]/', '', $request->dp ?? '0'));
+            if ($dpCheck <= 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Nominal DP wajib diisi untuk jenis pembayaran Transfer DP.'
+                ], 422);
+            }
         }
 
         // --- 1. VALIDASI & FILTERING STOK MULTI-MATERIAL ---
@@ -1398,13 +1420,27 @@ class PenjualanTokabeController extends Controller
     return response()->json(['status' => 'success', 'message' => 'Data Sudah Berhasil Disimpan']);
 }
 
-    private function clearTokabeCaches(): void
+    private function clearTokabeCaches($invoiceDate = null): void
     {
-        $y = date('Y');
-        $m = date('n');
+        $now = Carbon::now();
+        $y = $now->year;
+        $m = $now->month;
         Cache::forget("tkb_invoice_card_stats_{$y}_{$m}");
         Cache::forget("tkb_custom_invoice_card_stats_{$y}_{$m}");
         Cache::forget("tkb_dashboard_pembelian_barang_{$y}_{$m}");
+
+        if ($invoiceDate) {
+            try {
+                $d = Carbon::parse($invoiceDate);
+                $dy = $d->year;
+                $dm = $d->month;
+                Cache::forget("tkb_invoice_card_stats_{$dy}_{$dm}");
+                Cache::forget("tkb_custom_invoice_card_stats_{$dy}_{$dm}");
+                Cache::forget("tkb_dashboard_pembelian_barang_{$dy}_{$dm}");
+            } catch (\Exception $e) {
+                // ignore invalid date parse
+            }
+        }
     }
 
     private function saveCatalogInvoiceItems(Request $request, PenjualanTokabe $penjualan): void
@@ -1701,6 +1737,7 @@ class PenjualanTokabeController extends Controller
         $penjualan->approval = 'Lock';
         $penjualan->approved_at = null;
         $penjualan->save();
+        $this->clearTokabeCaches($penjualan->tgl_penjualan);
         
         Alert::success('Data Invoice Berhasil diUpdate');
         if ($penjualan->is_custom == 1) {
@@ -1749,12 +1786,14 @@ class PenjualanTokabeController extends Controller
             }
             $invoice->status = 'Batal';
             $invoice->save();
+            $this->clearTokabeCaches($invoice->tgl_penjualan);
 
             return back()->with(['batal' => 'Invoice telah dibatalkan']);
         } else {
             $invoice->status = 'Lunas';
             $invoice->sisa_pembayaran = 0;
             $invoice->save();
+            $this->clearTokabeCaches($invoice->tgl_penjualan);
             return back()->with(['lunas' => 'Invoice sudah Lunas']);
         }
     }
@@ -1773,6 +1812,7 @@ class PenjualanTokabeController extends Controller
         $inv->approval = 'Unlock';
         $inv->approved_at = now();
         $inv->save();
+        $this->clearTokabeCaches($inv->tgl_penjualan);
         Alert::success('Invoice Tokabe berhasil di-Unlock');
         if ($inv->is_custom == 1) {
             return redirect()->route('list_invoice_tokabe_custom');
@@ -1794,6 +1834,7 @@ class PenjualanTokabeController extends Controller
         $inv->approval = 'Lock';
         $inv->approved_at = null;
         $inv->save();
+        $this->clearTokabeCaches($inv->tgl_penjualan);
         Alert::success('Invoice Tokabe berhasil di-Lock');
         return redirect()->back();
     }
@@ -1860,6 +1901,7 @@ class PenjualanTokabeController extends Controller
         $inv->status = 'Lunas';
         $inv->sisa_pembayaran = 0;
         $inv->save();
+        $this->clearTokabeCaches($inv->tgl_penjualan);
         Alert::success('Invoice Tokabe Sudah Lunas');
         if ($inv->is_custom == 1) {
             return redirect()->route('list_invoice_tokabe_custom');
@@ -1898,6 +1940,7 @@ class PenjualanTokabeController extends Controller
         $invoice->status = 'Batal';
         $invoice->alasan_batal = $request->alasan_batal;
         $invoice->save();
+        $this->clearTokabeCaches($invoice->tgl_penjualan);
         if ($invoice->is_custom == 1) {
             return redirect()->route('list_invoice_tokabe_custom')->with('batal', 'Invoice Tokabe berhasil dibatalkan.');
         }

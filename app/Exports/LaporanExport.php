@@ -36,8 +36,8 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
     public function headings(): array
     {
         return [
-            // Disesuaikan menjadi 12 kolom
-            ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
+            // Disesuaikan menjadi 13 kolom
+            ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
             [
                 'No',
                 'Nomor Invoice',
@@ -49,6 +49,7 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
                 'Jumlah Item',         // Kolom Baru
                 'Total Harga',
                 'Status',
+                'Alasan Batal',
                 'Potongan/Diskon/PPN',
                 'Grand Total',
             ]
@@ -151,6 +152,7 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
                 $jumlahGabungan,       // Ditampilkan di Excel (Wrap Text)
                 $penjualan->total_harga,
                 $penjualan->status,
+                ($penjualan->status == 'Batal' && !empty($penjualan->alasan_batal)) ? $penjualan->alasan_batal : '-',
                 $penjualan->lain,
                 $penjualan->total_pembayaran,
             ];
@@ -163,9 +165,9 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-                // Merge and center the title sampai kolom L (12 Kolom)
-                $event->sheet->getDelegate()->mergeCells('A1:L1');
-                $event->sheet->getDelegate()->getStyle('A1:L1')->applyFromArray([
+                // Merge and center the title sampai kolom M (13 Kolom)
+                $event->sheet->getDelegate()->mergeCells('A1:M1');
+                $event->sheet->getDelegate()->getStyle('A1:M1')->applyFromArray([
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
                         'vertical' => Alignment::VERTICAL_CENTER,
@@ -180,11 +182,11 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
                 $event->sheet->getDelegate()->setCellValue('A1', 'LAPORAN PENJUALAN ' . $perusahaanTitle . ' ');
                 
                 // HEADING
-                $heading = 'A2:L2';
+                $heading = 'A2:M2';
                 $event->sheet->getDelegate()->getStyle($heading)->getFont()->setBold(true);
                 
                 // Apply border to all cells in the table
-                $lastColumn = $event->sheet->getDelegate()->getHighestColumn(); // Seharusnya menjadi 'L'
+                $lastColumn = $event->sheet->getDelegate()->getHighestColumn(); // Seharusnya menjadi 'M'
                 $lastRow = $event->sheet->getDelegate()->getHighestRow();
                 $range = 'A2:' . $lastColumn . $lastRow;
                 
@@ -194,19 +196,19 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
 
                 $event->sheet->getDelegate()->getStyle($range)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                 
-                // Calculate and apply total in column L (Grand Total sekarang di L)
-                $totalRange = 'L' . ($lastRow + 1);
-                $event->sheet->getDelegate()->setCellValue($totalRange, '=SUM(L3:L' . $lastRow . ')');
-                $columnL = 'L3:L' . $lastRow;
+                // Calculate and apply total in column M (Grand Total sekarang di M)
+                $totalRange = 'M' . ($lastRow + 1);
+                $event->sheet->getDelegate()->setCellValue($totalRange, '=SUM(M3:M' . $lastRow . ')');
+                $columnM = 'M3:M' . $lastRow;
                 $columnI = 'I3:I' . $lastRow; // Total harga sekarang ada di I
                 
-                // Geser kata 'Jumlah' ke kolom K
-                $event->sheet->getDelegate()->setCellValue('K' . ($lastRow + 1), 'Jumlah');
-                $event->sheet->getDelegate()->getStyle('K' . ($lastRow + 1))->getFont()->setBold(true);
+                // Geser kata 'Jumlah' ke kolom L
+                $event->sheet->getDelegate()->setCellValue('L' . ($lastRow + 1), 'Jumlah');
+                $event->sheet->getDelegate()->getStyle('L' . ($lastRow + 1))->getFont()->setBold(true);
                 $event->sheet->getDelegate()->getStyle($totalRange)->getFont()->setBold(true);
 
                 // Formatting Rupiah
-                $event->sheet->getDelegate()->getStyle($columnL)->getNumberFormat()->setFormatCode('Rp#,##0.00');
+                $event->sheet->getDelegate()->getStyle($columnM)->getNumberFormat()->setFormatCode('Rp#,##0.00');
                 $event->sheet->getDelegate()->getStyle($columnI)->getNumberFormat()->setFormatCode('Rp#,##0.00');
                 $event->sheet->getDelegate()->getStyle($totalRange)->getNumberFormat()->setFormatCode('Rp#,##0.00');
 
@@ -276,8 +278,8 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
                     $text = $data['text'];
                     $underline = $data['underline'];
 
-                    // Menggeser posisi tanda tangan dari kolom I ke kolom J agar sejajar kanan tabel (12 kolom)
-                    $event->sheet->getDelegate()->getStyle('J' . $row)->applyFromArray([
+                    // Menggeser posisi tanda tangan dari kolom J ke kolom K agar sejajar kanan tabel (13 kolom)
+                    $event->sheet->getDelegate()->getStyle('K' . $row)->applyFromArray([
                         'alignment' => [
                             'horizontal' => Alignment::HORIZONTAL_CENTER,
                         ],
@@ -287,7 +289,7 @@ class LaporanExport implements FromArray, ShouldAutoSize, WithHeadings, WithEven
                             'underline' => $underline ? Font::UNDERLINE_SINGLE : Font::UNDERLINE_NONE,
                         ],
                     ]);
-                    $event->sheet->getDelegate()->setCellValue('J' . $row, $text);
+                    $event->sheet->getDelegate()->setCellValue('K' . $row, $text);
                 }
             },
         ];

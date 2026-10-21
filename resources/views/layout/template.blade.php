@@ -62,6 +62,7 @@
 <!-- App Css-->
 <link href="{{asset('css/app.min.css')}}" rel="stylesheet" type="text/css" />
 <link href="{{asset('libs/flatpickr/flatpickr.min.css')}}" rel="stylesheet" type="text/css" />
+<link href="{{asset('libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css" />
 
 {{-- HEAD CSS  --}}
 @yield('head')
@@ -71,7 +72,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="{{asset('libs/sweetalert2/sweetalert2.min.js')}}"></script>
+<script src="{{asset('libs/sweetalert2/sweetalert2.all.min.js')}}"></script>
 
 <!-- Speculation Rules: Instant page transitions on link hover -->
 <script type="speculationrules">
@@ -145,11 +146,24 @@
       /* SWEETALERT2 DARK THEME — DESIGN.md §15.3 & §4.1                          */
       /* ========================================================================= */
       .swal2-container {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
           z-index: 100000 !important;
           background-color: rgba(0, 0, 0, 0.7) !important;
           backdrop-filter: blur(2px) !important;
+          overflow-y: auto !important;
       }
       .swal2-popup {
+          margin: auto !important;
+          position: relative !important;
           background-color: #161B22 !important;
           background: #161B22 !important;
           color: #F8F9FA !important;
@@ -237,6 +251,21 @@
       .swal2-icon.swal2-info {
           border-color: #6366F1 !important;
           color: #6366F1 !important;
+      }
+      .swal2-textarea,
+      .swal2-input {
+          background-color: #0F172A !important;
+          color: #F8F9FA !important;
+          border: 1px solid #334155 !important;
+          border-radius: 8px !important;
+          font-size: 14px !important;
+          box-shadow: none !important;
+      }
+      .swal2-textarea:focus,
+      .swal2-input:focus {
+          border-color: #6366F1 !important;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+          outline: none !important;
       }
       .swal2-toast {
           background-color: #1E293B !important;

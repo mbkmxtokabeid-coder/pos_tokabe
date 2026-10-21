@@ -26,17 +26,12 @@ class InvoiceRequest extends FormRequest
             'kode' => 'required',
             'tgl_jual' => 'required',
             'pelanggan' => 'required|min:2',
-            'perusahaan' => 'required|min:2',
-            'tlp' => 'required|regex:/^[0-9\+\s-]+$/|min:2',
+            'perusahaan' => 'nullable',
+            'tlp' => 'required|min:2',
             'adm' => 'required',
             'order' => 'required',
             'tgl_selesai' => 'required',
             'jns_pem' => 'required',
-            'barang_id[]' => 'required',
-            'deskripsi_item[]' => 'required',
-            'satuan[]' => 'required',
-            'hrg[]' => 'required',
-            'qty[]' => 'required',
         ];
         
     }

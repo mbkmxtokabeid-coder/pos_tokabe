@@ -347,6 +347,7 @@ class LaporanController extends Controller
                 'penjualan_tokabe.no_telepon',
                 'penjualan_tokabe.deleted_at',
                 'penjualan_tokabe.status',
+                'penjualan_tokabe.alasan_batal',
                 'penjualan_jasa_tokabe.deskripsi_item',
                 'penjualan_jasa_tokabe.qty',
                 'penjualan_jasa_tokabe.harga',

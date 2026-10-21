@@ -67,6 +67,7 @@
            <th scope="col">NOMOR HP</th>
            <th scope="col">DESKRIPSI</th>
            <th scope="col">STATUS</th>
+           <th scope="col">ALASAN BATAL</th>
            <th scope="col">QTY</th>
            <th scope="col">HARGA</th>
            <th scope="col">GRAND TOTAL</th>
@@ -83,12 +84,14 @@
           <td>{{$jual->no_telepon ?? '-'}}</td>
           <td>{{ $jual->jenis_barang }} {{$jual->deskripsi_item}}</td>
           <td>{{$jual->status}}</td>
+          <td>{{ ($jual->status == 'Batal' && !empty($jual->alasan_batal)) ? $jual->alasan_batal : '-' }}</td>
           <td>{{$jual->qty}}</td>
           <td>{{$jual->formatted_harga_barang}}</td>
           <td>{{$jual->formatted_total_harga}}</td>
          </tr>
         @endforeach
         <tr>
+          <td></td>
           <td></td>
           <td></td>
           <td></td>

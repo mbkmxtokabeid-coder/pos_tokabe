@@ -227,15 +227,23 @@
     }
 
     /* Atur SweetAlert menjadi lebih besar dan muncul di tengah */
+    .swal2-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 100000 !important;
+    }
 
     .swal2-popup {
-
-        width: 500px;
-
-        background-color: rgba(0, 0, 0, 0.7);
-
-        color: white;
-
+        margin: auto !important;
+        max-width: 500px;
     }
 
     
@@ -1322,7 +1330,6 @@
     .dropdown-menu a.invoice-request--unlock { color: #facc15 !important; border-inline-start-color: #facc15 !important; }
     .dropdown-menu a.invoice-request--settlement { color: #38bdf8 !important; border-inline-start-color: #38bdf8 !important; }
     .dropdown-menu a.invoice-request--cancel { color: #fb923c !important; border-inline-start-color: #fb923c !important; }
-    .dropdown-menu a.invoice-request--delete { color: #f87171 !important; border-inline-start-color: #f87171 !important; }
     .dropdown-menu a.invoice-request--owner-2::after { opacity: .35; }
     .dropdown-menu a.invoice-request--owner-1::after { opacity: 1; }
 
@@ -1693,16 +1700,16 @@
           </div>
       </div>
 
-      <!-- SECTION 3: RINGKASAN PEMBATALAN & PENGHAPUSAN (2 Cards) -->
+      <!-- SECTION 3: RINGKASAN PEMBATALAN -->
       <div class="kpi-section-header">
           <span class="kpi-section-badge kpi-section-badge--danger" aria-hidden="true">
-              <i class="ri-close-circle-line"></i> Pembatalan & Penghapusan
+              <i class="ri-close-circle-line"></i> Pembatalan
           </span>
-          <p class="kpi-section-title">Status Batal & Dihapus Invoice Tokabe</p>
+          <p class="kpi-section-title">Status Batal Invoice Tokabe</p>
       </div>
       <div class="row g-3 mb-1">
           {{-- Card 5: Invoice Dibatalkan --}}
-          <div class="col-xl-6 col-md-6">
+          <div class="col-12">
               <div class="kpi-card kpi-card--danger">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
@@ -1715,25 +1722,6 @@
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-5">{{ $batal }}</span>
                           <p class="kpi-card__label">Invoice Tokabe Dibatalkan</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card Hapus: Invoice Dihapus --}}
-          <div class="col-xl-6 col-md-6">
-              <div class="kpi-card kpi-card--danger">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-hapus">Invoice Dihapus</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-delete-bin-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-hapus">Rp {{ number_format($jumlahHapus, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-count-hapus">{{ $hapus }}</span>
-                          <p class="kpi-card__label">Invoice Tokabe Dihapus</p>
                       </div>
                   </div>
               </div>
@@ -1925,7 +1913,7 @@
                               <i class="ri-checkbox-circle-fill text-success"></i> Lunas ({{ $penjualan->where('status', 'Lunas')->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Belum Lunas')">
-                              <i class="ri-time-fill text-danger"></i> Belum Lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
+                              <i class="ri-time-fill text-warning"></i> Belum Lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Batal')">
                               <i class="ri-close-circle-fill text-danger"></i> Batal ({{ $penjualan->where('status', 'Batal')->count() }})
@@ -1957,6 +1945,8 @@
                                       <th scope="col">Tanggal Penjualan</th>
 
                                       <th scope="col">Status</th>
+
+                                      <th scope="col">Alasan Batal</th>
 
                                       <th scope="col">Approval</th>
 
@@ -2012,15 +2002,27 @@
                                         @endif</td>                                      {{-- Badge Status (DESIGN.md §14.1) --}}
                                       <td data-order="{{ $inv->status }}" data-search="{{ $inv->status }}" class="text-center">
                                           @if ($inv->status == 'Lunas')
-                                              <span class="badge badge--success">Lunas</span>
+                                              <span class="badge badge--success badge-status--lunas">Lunas</span>
                                           @elseif($inv->status == 'Belum Lunas')
-                                              <span class="badge badge--danger">Belum Lunas</span>
+                                              <span class="badge badge--warning badge-status--belum-lunas">Belum Lunas</span>
                                           @elseif($inv->status == 'Batal')
-                                              <span class="badge badge--danger">Batal</span>
+                                              <span class="badge badge--danger badge-status--batal">Batal</span>
                                           @elseif($inv->status == 'Hapus')
-                                              <span class="badge badge--danger">Hapus</span>
+                                              <span class="badge badge--neutral badge-status--hapus">Hapus</span>
                                           @else
                                               <span class="badge badge--neutral">{{$inv->status}}</span>
+                                          @endif
+                                      </td>
+
+                                      {{-- Kolom Alasan Batal --}}
+                                      <td>
+                                          @if ($inv->status == 'Batal' && !empty($inv->alasan_batal))
+                                              <span class="badge badge--subtle text-danger" title="{{ $inv->alasan_batal }}" style="max-width: 180px; display: inline-flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; font-weight: 500; font-size: 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 4px 8px;">
+                                                  <i class="ri-error-warning-line me-1" style="font-size: 13px;"></i>
+                                                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $inv->alasan_batal }}</span>
+                                              </span>
+                                          @else
+                                              <span class="text-muted">-</span>
                                           @endif
                                       </td>
 
@@ -2142,12 +2144,6 @@
                                                // Pesan Request Batal
 
                                                $msgBatalTkb = urlencode("Halo, saya ingin Request pembatalan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman pembatalan invoice:\n" . url("/tokabe-batal/{$inv->id}"));
-
-                                               // Pesan Request Delete
-
-                                               $msgDeleteTkb = urlencode("Halo, saya ingin Request Delete untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
-
-
 
                                               // Format Nomor HP Customer
 
@@ -2451,62 +2447,6 @@
 
 
 
-                                                  {{-- === ADMIN: Request Delete via WA === --}}
-
-                                                  @if($isAdminTkb)
-
-                                                  <li style="height:1px;margin:4px 0;background:var(--border-subtle,#1E293B);"></li>
-
-                                                  <li>
-
-                                                      <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Delete (Owner 1)
-
-                                                      </a>
-
-                                                  </li>
-
-                                                  <li>
-
-                                                      <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgDeleteTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Delete (Owner 2)
-
-                                                      </a>
-
-                                                  </li>
-
-                                                  @endif
-
-
-
-                                                  {{-- === OWNER: Hapus langsung === --}}
-
-                                                  @if($isOwnerTkb)
-
-                                                  <li style="height:1px;margin:4px 0;background:var(--border-subtle,#1E293B);"></li>
-
-                                                  <li>
-
-                                                      <form action="{{ route('delete.invoiceTokabe',['id'=> $inv->id]) }}" method="POST" id="deleteInv{{ $inv->id }}">
-
-                                                          @csrf
-
-                                                          @method('delete')
-
-                                                          <button class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);" type="button" onclick="showConfirmation('{{ $inv->nomor_invoice }}', '{{ $inv->id }}')">
-
-                                                              <i class="ri-delete-bin-line" style="font-size:16px;flex-shrink:0;"></i>Hapus
-
-                                                          </button>
-
-                                                      </form>
-
-                                                  </li>
-
-                                                  @endif
-
                                               </ul>
 
                                           </div>
@@ -2614,8 +2554,8 @@
             bSort: true,
             order: [[4, 'desc']],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 7, 12] },
-                { width: '270px', targets: 7 }
+                { orderable: false, targets: [0, 3, 8, 13] },
+                { width: '270px', targets: 8 }
             ],
             dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
             pageLength: 25,
@@ -2765,41 +2705,7 @@
 
 
 
-    function showConfirmation(invoice, invId) {
 
-        Swal.fire({
-
-            html: '<lord-icon src="https://cdn.lordicon.com/tdrtiskw.json" trigger="loop" colors="primary:#eee966,secondary:#c71f16" state="hover-2" style="width:200px;height:200px"></lord-icon>' +
-
-                  '<p>Apakah Anda ingin menghapus invoice ' + invoice + '?</p>',
-
-            showCancelButton: true,
-
-            confirmButtonColor: '#c71f16',
-
-            cancelButtonColor: '#eee966',
-
-            cancelButtonText: 'Batal',
-
-            confirmButtonText: 'Hapus',
-
-            customClass: {
-
-                popup: 'swal2-popup' 
-
-            }
-
-        }).then((result) => {
-
-            if (result.isConfirmed) {
-
-                document.getElementById('deleteInv' + invId).submit();
-
-            }
-
-        });
-
-    }
 
 
 
@@ -2814,6 +2720,10 @@
             input: 'textarea',
 
             inputPlaceholder: 'Tulis alasan batal di sini...',
+
+            position: 'center',
+
+            target: 'body',
 
             showCancelButton: true,
 
@@ -3015,11 +2925,7 @@
                     $('#tokabe-card-val-5').text('Rp ' + res.card5.nominal);
                     $('#tokabe-card-count-5').text(res.card5.count);
 
-                    // Card Hapus: Dihapus
-                    if (res.cardHapus) {
-                        $('#tokabe-card-val-hapus').text('Rp ' + res.cardHapus.nominal);
-                        $('#tokabe-card-count-hapus').text(res.cardHapus.count);
-                    }
+
 
                     // Card 6: PPN Total
                     $('#tokabe-card-val-6').text('Rp ' + res.card6.nominal);

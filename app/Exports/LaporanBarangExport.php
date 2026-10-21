@@ -32,7 +32,7 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
     public function headings(): array
     {
         return [
-            ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
+            ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
             [
                 'No',
                 'Nomor Invoice',
@@ -42,6 +42,7 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
                 'Nomor HP',
                 'Deskripsi',
                 'Status',
+                'Alasan Batal',
                 'Qty',
                 'Harga',
                 'Grand Total',
@@ -80,6 +81,7 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
                 $penjualan->no_telepon ?? '-',
                 $deskripsi,
                 $penjualan->status,
+                ($penjualan->status == 'Batal' && !empty($penjualan->alasan_batal)) ? $penjualan->alasan_batal : '-',
                 $qty,
                 $hargaBarang,
                 $jumlah_harga,
@@ -93,8 +95,8 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 // Merge and center the title
-                $event->sheet->getDelegate()->mergeCells('A1:K1');
-                $event->sheet->getDelegate()->getStyle('A1:K1')->applyFromArray([
+                $event->sheet->getDelegate()->mergeCells('A1:L1');
+                $event->sheet->getDelegate()->getStyle('A1:L1')->applyFromArray([
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
                         'vertical' => Alignment::VERTICAL_CENTER,
@@ -107,19 +109,19 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
 
                 $event->sheet->getDelegate()->setCellValue('A1', 'LAPORAN PENJUALAN BARANG IKHTIAR BERKAH');
                 // HEADING
-                $heading = 'A2:K2';
+                $heading = 'A2:L2';
                 $event->sheet->getDelegate()->getStyle($heading)->getFont()->setBold(true);
                 // Apply border to all cells in the table
                 $lastColumn = $event->sheet->getDelegate()->getHighestColumn();
                 $lastRow = $event->sheet->getDelegate()->getHighestRow();
                 $range = 'A2:' . $lastColumn . $lastRow;
                 $event->sheet->getDelegate()->getStyle($range)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                // Calculate and apply total in column K
-                $totalRange = 'K' . ($lastRow + 1);
-                $event->sheet->getDelegate()->setCellValue($totalRange, '=SUM(K3:K' . $lastRow . ')');
+                // Calculate and apply total in column L
+                $totalRange = 'L' . ($lastRow + 1);
+                $event->sheet->getDelegate()->setCellValue($totalRange, '=SUM(L3:L' . $lastRow . ')');
+                $columnL = 'L3:L' . $lastRow;
                 $columnK = 'K3:K' . $lastRow;
-                $columnJ = 'J3:J' . $lastRow;
-                $event->sheet->getDelegate()->setCellValue('J' . ($lastRow + 1), 'Jumlah');
+                $event->sheet->getDelegate()->setCellValue('K' . ($lastRow + 1), 'Jumlah');
 
                 $footerDataKiri = [
                     [
@@ -190,7 +192,7 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
                     $underline = $data['underline'];
 
 
-                    $event->sheet->getDelegate()->getStyle('F' . $row)->applyFromArray([
+                    $event->sheet->getDelegate()->getStyle('G' . $row)->applyFromArray([
                         'alignment' => [
                             'horizontal' => Alignment::HORIZONTAL_CENTER,
                         ],
@@ -200,13 +202,12 @@ class LaporanBarangExport implements FromArray, ShouldAutoSize, WithHeadings, Wi
                             'underline' => $underline ? Font::UNDERLINE_SINGLE : Font::UNDERLINE_NONE,
                         ],
                     ]);
-                    $event->sheet->getDelegate()->setCellValue('F' . $row, $text);
+                    $event->sheet->getDelegate()->setCellValue('G' . $row, $text);
                 }
 
-                $event->sheet->getDelegate()->getStyle('I' . ($lastRow + 1))->getFont()->setBold(true);
+                $event->sheet->getDelegate()->getStyle('K' . ($lastRow + 1))->getFont()->setBold(true);
                 $event->sheet->getDelegate()->getStyle($totalRange)->getFont()->setBold(true);
-                $event->sheet->getDelegate()->getStyle($columnJ)->getNumberFormat()->setFormatCode('Rp#,##0.00;[Red]-Rp#,##0.00');
-                $event->sheet->getDelegate()->getStyle($columnI)->getNumberFormat()->setFormatCode('Rp#,##0.00;[Red]-Rp#,##0.00');
+                $event->sheet->getDelegate()->getStyle($columnK)->getNumberFormat()->setFormatCode('Rp#,##0.00;[Red]-Rp#,##0.00');
                 $event->sheet->getDelegate()->getStyle($totalRange)->getNumberFormat()->setFormatCode('Rp#,##0.00;[Red]-Rp#,##0.00');
             },
         ];

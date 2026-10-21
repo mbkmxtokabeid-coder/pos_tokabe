@@ -15,6 +15,200 @@ $(document).ready(function () {
     $("#invoice_form").submit(function (e) {
     e.preventDefault();
 
+    var formElem = this;
+    if (formElem.checkValidity && !formElem.checkValidity()) {
+        formElem.reportValidity();
+        return false;
+    }
+
+    // Validasi Nomor Invoice Custom
+    if (!$.trim($('#noInvoiceCustom').val())) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Nomor Invoice (Custom) wajib diisi.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#noInvoiceCustom').focus(); });
+        return false;
+    }
+
+    // Validasi Customer & Telepon
+    if (!$.trim($('#customer').val())) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Nama Customer wajib diisi.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#customer').focus(); });
+        return false;
+    }
+
+    if (!$.trim($('#phone-number').val())) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Nomor Telepon wajib diisi.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#phone-number').focus(); });
+        return false;
+    }
+
+    if (!$('#choices-admin').val()) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Nama Admin wajib dipilih.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#choices-admin').focus(); });
+        return false;
+    }
+
+    if (!$('#choices-orderBy').val()) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Order Dari wajib dipilih.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#choices-orderBy').focus(); });
+        return false;
+    }
+
+    // Validasi Sales jika Order Dari Sales
+    var orderVal = ($('#choices-orderBy').val() || '').toLowerCase();
+    if (orderVal === 'sales') {
+        var salesVal = $.trim($('#colFormLabelNamaSales').val());
+        if (!salesVal) {
+            Swal.fire({
+                icon: "warning",
+                title: "Data Belum Lengkap",
+                text: "Nama Sales wajib diisi karena Order Dari Sales dipilih.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() {
+                $('#colFormLabelNamaSales').focus();
+            });
+            return false;
+        }
+    }
+
+    if (!$.trim($('#dateInput').val())) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Target Penyelesaian wajib dipilih.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#dateInput').focus(); });
+        return false;
+    }
+
+    // Validasi baris item
+    var rows = $('#newlink tr.product');
+    if (rows.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Data Belum Lengkap",
+            text: "Minimal harus ada 1 baris item.",
+            confirmButtonColor: "#6366F1",
+        });
+        return false;
+    }
+
+    var itemValid = true;
+    rows.each(function(index) {
+        var rowNum = index + 1;
+        var itemSelect = $(this).find('select[name^="item_id"]');
+        var descInput = $(this).find('textarea[name^="deskripsi_item"]');
+        var satuanSelect = $(this).find('select[name^="satuan"]');
+        var hrgInput = $(this).find('input[name^="hrg"]');
+        var qtyInput = $(this).find('input[name^="qty"]');
+
+        if (!itemSelect.val()) {
+            Swal.fire({
+                icon: "warning",
+                title: "Item Belum Dipilih",
+                text: "Baris #" + rowNum + ": Silakan pilih item terlebih dahulu.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() { itemSelect.focus(); });
+            itemValid = false;
+            return false;
+        }
+
+        if (!$.trim(descInput.val())) {
+            Swal.fire({
+                icon: "warning",
+                title: "Deskripsi Kosong",
+                text: "Baris #" + rowNum + ": Deskripsi item wajib diisi.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() { descInput.focus(); });
+            itemValid = false;
+            return false;
+        }
+
+        if (!satuanSelect.val()) {
+            Swal.fire({
+                icon: "warning",
+                title: "Satuan Kosong",
+                text: "Baris #" + rowNum + ": Satuan item wajib dipilih.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() { satuanSelect.focus(); });
+            itemValid = false;
+            return false;
+        }
+
+        var hrgNum = parseInt((hrgInput.val() || '').replace(/[^0-9]/g, '')) || 0;
+        if (hrgNum <= 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Harga Tidak Valid",
+                text: "Baris #" + rowNum + ": Harga item wajib diisi dan lebih dari 0.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() { hrgInput.focus(); });
+            itemValid = false;
+            return false;
+        }
+
+        var qtyNum = parseInt(qtyInput.val()) || 0;
+        if (qtyNum < 1) {
+            Swal.fire({
+                icon: "warning",
+                title: "Quantity Tidak Valid",
+                text: "Baris #" + rowNum + ": Quantity item minimal 1.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() { qtyInput.focus(); });
+            itemValid = false;
+            return false;
+        }
+    });
+
+    if (!itemValid) return false;
+
+    // Validasi Jenis Pembayaran
+    var jnsPem = $('#choices-payment-type').val();
+    if (!jnsPem) {
+        Swal.fire({
+            icon: "warning",
+            title: "Jenis Pembayaran Kosong",
+            text: "Jenis Pembayaran wajib dipilih.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#choices-payment-type').focus(); });
+        return false;
+    }
+
+    // Validasi DP jika Transfer DP
+    if (jnsPem === 'Transfer DP') {
+        var dpVal = parseInt(($('#input-dp').val() || '').replace(/[^0-9]/g, '')) || 0;
+        if (dpVal <= 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "DP Wajib Diisi",
+                text: "Nominal DP wajib diisi untuk jenis pembayaran Transfer DP.",
+                confirmButtonColor: "#6366F1",
+            }).then(function() {
+                $('#input-dp').focus();
+            });
+            return false;
+        }
+    }
+
     // Temporarily enable inputs so serialize captures values
     $('#input-ppn, #input-pph').prop('disabled', false);
     var formData = $(this).serialize();
@@ -51,10 +245,15 @@ $(document).ready(function () {
         $("#loading-spinner").hide();
         $('#loading-overlay').hide();
 
-        // Tangkap pesan error dari server JSON response (400 Bad Request)
+        // Tangkap pesan error dari server JSON response
         var msg = "Terjadi kesalahan! Data belum lengkap.";
-        if (xhr.responseJSON && xhr.responseJSON.message) {
-            msg = xhr.responseJSON.message;
+        if (xhr.responseJSON) {
+            if (xhr.responseJSON.errors) {
+                var firstKey = Object.keys(xhr.responseJSON.errors)[0];
+                msg = xhr.responseJSON.errors[firstKey][0];
+            } else if (xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            }
         }
 
         Swal.fire({
@@ -161,9 +360,9 @@ $(document).ready(function () {
                                   <div class="col-xxl-7">
                                    {{-- <div class="card no-border border-0"> --}}
                                     <div class="row mb-3">
-                                      <label for="customer" class="col-lg-5 col-form-label col-form-label-md">Nama Customer</label>
+                                      <label for="customer" class="col-lg-5 col-form-label col-form-label-md">Nama Customer <span class="text-danger">*</span></label>
                                       <div class="col-lg-7">
-                                          <input type="text" class="form-control form-control-md @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama Customer" value="{{ old('pelanggan') }}" list="customerList">
+                                          <input type="text" class="form-control form-control-md @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama Customer" value="{{ old('pelanggan') }}" list="customerList" required>
                                           <datalist id="customerList">
                                               @foreach ($kontak as $data)
                                                   <option value="{{ $data->customer }}" data-company="{{ $data->perusahaan }}" data-phone="{{ $data->no_telepon }}">{{ $data->customer }}</option>
@@ -177,10 +376,10 @@ $(document).ready(function () {
 
                                   <div class="row mb-3" style="margin-top: -10px;">
                                       <div class="col-lg-5">
-                                          <label for="contactNumber" class="form-label col-form-label col-form-label-md">Nomor Telepon</label>
+                                          <label for="phone-number" class="form-label col-form-label col-form-label-md">Nomor Telepon <span class="text-danger">*</span></label>
                                       </div>
                                       <div class="col-lg-7">
-                                          <input type="text" class="form-control @error('tlp') is-invalid @enderror" id="phone-number" name="tlp" placeholder="08xxxxxxxx" value="{{ old('tlp') }}">
+                                          <input type="text" class="form-control @error('tlp') is-invalid @enderror" id="phone-number" name="tlp" placeholder="08xxxxxxxx" value="{{ old('tlp') }}" required>
                                           @error('tlp')
                                               <div class="invalid-feedback">{{ $message }}</div>
                                           @enderror
@@ -190,7 +389,7 @@ $(document).ready(function () {
                                       {{-- Start Admin --}}
                                       <div class="row mb-3">
                                        <div class="col-lg-5">
-                                        <label for="choices-admin" class="form-label col-form-label col-form-label-md">Nama Admin</label>
+                                        <label for="choices-admin" class="form-label col-form-label col-form-label-md">Nama Admin <span class="text-danger">*</span></label>
                                        </div>
                                        {{-- test --}}
 
@@ -212,7 +411,7 @@ $(document).ready(function () {
                                       {{-- Start Order By --}}
                                       <div class="row mb-3">
                                        <div class="col-lg-5">
-                                          <label for="choices-orderBy" class="form-label col-form-label col-form-label-md">Order Dari</label>
+                                          <label for="choices-orderBy" class="form-label col-form-label col-form-label-md">Order Dari <span class="text-danger">*</span></label>
                                        </div>
                                        <div class="col-lg-7">
                                         <select class="form-select @error('order') is-invalid @enderror"  id="choices-orderBy" name="order" required>
@@ -231,7 +430,7 @@ $(document).ready(function () {
                                         <div id="divSales"style="display: none; margin-bottom: -5px;">
                                           <div class="row mb-3">
                                             <div class="col-lg-5">
-                                              <label for="colFormLabelNamaSales" class="col-form-label col-form-label-md">Nama Sales</label>
+                                              <label for="colFormLabelNamaSales" class="col-form-label col-form-label-md">Nama Sales <span class="text-danger">*</span></label>
                                             </div>
                                             <div class="col-lg-7" style="margin-top: -10px;">
                                                 <input type="text" class="form-control form-control-md mt-2 @error('sales') is-invalid @enderror" id="colFormLabelNamaSales" placeholder="Nama Sales" name="sales" value="{{ old('sales') }}">
@@ -245,7 +444,7 @@ $(document).ready(function () {
                                       {{-- Start Date --}}
                                       <div class="row mb-3">
                                        <div class="col-lg-5">
-                                        <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian  </label>
+                                        <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian <span class="text-danger">*</span></label>
                                        </div>
                                        <div class="col-lg-7">
                                         <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}" autocomplete="off" required>
@@ -264,7 +463,7 @@ $(document).ready(function () {
 
                                  
                                  <div id="template-options-barang" style="display: none;">
-                                    <option selected disabled>Pilih Item</option>
+                                    <option value="" selected disabled>Pilih Item</option>
                                      @foreach ($jenisBarang as $jns)
                                          <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}">{{$jns->nama_item}}</option>
                                      @endforeach
@@ -277,15 +476,15 @@ $(document).ready(function () {
                                    <tr class="table-active">
                                     <th scope="col" style="width: 50px;">#</th>
                                     <!-- Menambahkan min-width: 500px pada TH agar kolom tidak dipress pada layar laptop -->
-                                    <th scope="col" style="min-width: 500px;">Item</th>
-                                     <th scope="col" style="min-width: 110px; width: 110px;">Satuan</th>
+                                    <th scope="col" style="min-width: 500px;">Item <span class="text-danger">*</span></th>
+                                     <th scope="col" style="min-width: 110px; width: 110px;">Satuan <span class="text-danger">*</span></th>
                                     <th scope="col" style="width: 120px;">
-                                     <div class="d-flex currency-select input-light align-items-center">Harga
+                                     <div class="d-flex currency-select input-light align-items-center">Harga <span class="text-danger me-1">*</span>
                                       <select class="form-select border-0 bg-light" data-choices data-choices-search-false id="choices-payment-currency" onchange="otherPayment()">
                                       <option value="Rp">(Rp)</option>
                                       </select>
                                      </div></th>
-                                    <th scope="col" style="width: 120px;">Quantity</th>
+                                    <th scope="col" style="width: 120px;">Quantity <span class="text-danger">*</span></th>
                                     <th scope="col" class="text-center" style="width: 150px;">Jumlah Harga</th>
                                     <th scope="col" class="text-end" style="width: 105px;"></th>
                                    </tr>
@@ -299,7 +498,7 @@ $(document).ready(function () {
 
                                         <!-- INDEX [0] DITAMBAHKAN SECARA EKSPLISIT -->
                                         <select class="form-select @error('item_id.0') is-invalid @enderror" id="productName-1" name="item_id[0]" required>
-                                            <option selected disabled>Pilih Item</option>
+                                            <option value="" selected disabled>Pilih Item</option>
                                              @foreach ($jenisBarang as $jns)
                                              <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}" {{old('item_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->nama_item}}</option>
                                              @endforeach
@@ -309,7 +508,7 @@ $(document).ready(function () {
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                       </div>
-                                       <textarea class="form-control bg-light border-0 @error('deskripsi_item.0') is-invalid @enderror" id="productDetails-1" name="deskripsi_item[0]" rows="2" placeholder="Deskripsi Item"></textarea>
+                                       <textarea class="form-control bg-light border-0 @error('deskripsi_item.0') is-invalid @enderror" id="productDetails-1" name="deskripsi_item[0]" rows="2" placeholder="Deskripsi Item" required></textarea>
                                        @error('deskripsi_item.0')
                                        <div class="invalid-feedback">{{ $message }}</div>
                                        @enderror
@@ -346,7 +545,7 @@ $(document).ready(function () {
                                      </td>
                                      <td>
                                       <div class="input-step">
-                                       <input type="number" class="text-center @error('qty.0') is-invalid @enderror" id="product-qty-1" value="1" name="qty[0]" onchange="autoCalc(this)">
+                                       <input type="number" class="text-center @error('qty.0') is-invalid @enderror" id="product-qty-1" value="1" min="1" name="qty[0]" onchange="autoCalc(this)" required>
                                        @error('qty.0')
                                        <div class="invalid-feedback">{{ $message }}</div>
                                        @enderror
@@ -380,7 +579,7 @@ $(document).ready(function () {
                                  <div class="col-lg-8">
                                    <div class="row">
                                      <div class="col-lg-4">
-                                     <label for="jenisPembayaran" class="form-label col-form-label col-form-label-md">Jenis Pembayaran</label>
+                                     <label for="jenisPembayaran" class="form-label col-form-label col-form-label-md">Jenis Pembayaran <span class="text-danger">*</span></label>
                                      </div>
                                        <div class="col-lg-6">
                                          <select class="form-select bg-light @error('jns_pem') is-invalid @enderror" id="choices-payment-type" name="jns_pem" value="{{ old('jns_pem') }}" required>
@@ -427,7 +626,7 @@ $(document).ready(function () {
                                    {{-- Input untuk Dp --}}
                                    <div class="row mb-1"  >
                                      <div class="col-lg-4" id="div-label" style="display: none" >
-                                       <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp</label>
+                                       <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp <span class="text-danger">*</span></label>
                                      </div>
                                        <div class="col-lg-6" id="dp" style="display: none;">
                                          <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }' class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ old('dp') }}">
@@ -786,12 +985,12 @@ $(document).ready(function () {
             <th scope="row" class="product-id">${count + 1}</th>
             <td class="text-start">
                 <div class="mb-2">
-                    <select class="form-select" name="item_id[${count}]" id="productName-${count + 1}">
+                    <select class="form-select" name="item_id[${count}]" id="productName-${count + 1}" required>
                         ${itemOptions}
                     </select>
                     <small class="form-text text-muted item-tax-type" id="item-tax-type-${count + 1}"></small>
                 </div>
-                <textarea class="form-control bg-light border-0" id="productDetails-${count + 1}" name="deskripsi_item[${count}]" rows="2" placeholder="Deskripsi Item"></textarea>
+                <textarea class="form-control bg-light border-0" id="productDetails-${count + 1}" name="deskripsi_item[${count}]" rows="2" placeholder="Deskripsi Item" required></textarea>
                 
                 
             </td>
@@ -816,7 +1015,7 @@ $(document).ready(function () {
             </td>
             <td>
                 <div class="input-step">
-                    <input type="number" class="text-center" id="product-qty-${count + 1}" value="1" name="qty[${count}]" onchange="autoCalc(this)">
+                    <input type="number" class="text-center" id="product-qty-${count + 1}" value="1" min="1" name="qty[${count}]" onchange="autoCalc(this)" required>
                 </div>
             </td>
             <td class="text-end">

@@ -10795,11 +10795,30 @@ span.flatpickr-weekday {
 .invoice-request--unlock { color: #fbbf24 !important; border-inline-start-color: #fbbf24 !important; }
 .invoice-request--settlement { color: #10B981 !important; border-inline-start-color: #10B981 !important; }
 .invoice-request--cancel { color: #EF4444 !important; border-inline-start-color: #EF4444 !important; }
-.invoice-request--delete { color: #f87171 !important; border-inline-start-color: #f87171 !important; }
 .invoice-request--owner-1::after { opacity: 1; }
 .invoice-request--owner-2::after { opacity: 0.35; }
 .invoice-request:hover::after,
 .invoice-request:focus-visible::after { opacity: 1; }
+
+/* SweetAlert2 Global Centered Modal Fix */
+.swal2-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 100000 !important;
+  overflow-y: auto !important;
+}
+.swal2-popup {
+  margin: auto !important;
+  position: relative !important;
+}
 
 /* Badge Jenis Pembayaran — Warna Khusus Masing-Masing Jenis (DESIGN.md §14.1) */
 .badge-payment--cash-lunas {
@@ -10827,3 +10846,21 @@ span.flatpickr-weekday {
   background-color: rgba(99, 102, 241, 0.15) !important;
   border: 1px solid rgba(99, 102, 241, 0.35) !important;
 }
+
+/* Badge Status Invoice (Lunas = Hijau, Belum Lunas = Kuning/Amber, Batal = Merah) */
+.badge-status--lunas {
+  color: #34D399 !important;
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+.badge-status--belum-lunas {
+  color: #FBBF24 !important;
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+.badge-status--batal {
+  color: #F87171 !important;
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+

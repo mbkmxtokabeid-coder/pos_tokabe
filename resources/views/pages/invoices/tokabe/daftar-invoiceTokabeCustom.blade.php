@@ -1379,7 +1379,7 @@
                               <i class="ri-checkbox-circle-fill text-success"></i> Lunas ({{ $penjualan->where('status', 'Lunas')->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterCustomTableStatus('Belum Lunas')">
-                              <i class="ri-time-fill text-danger"></i> Belum Lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
+                              <i class="ri-time-fill text-warning"></i> Belum Lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterCustomTableStatus('Batal')">
                               <i class="ri-close-circle-fill text-danger"></i> Batal ({{ $penjualan->where('status', 'Batal')->count() }})
@@ -1417,6 +1417,7 @@
                                       <th scope="col">No. Telepon</th>
                                       <th scope="col">Tanggal Penjualan</th>
                                       <th scope="col" class="text-center">Status</th>
+                                      <th scope="col">Alasan Batal</th>
                                       <th scope="col" class="text-center">Approval</th>
                                       <th scope="col">Deskripsi / Item</th>
                                       <th scope="col" class="text-end">Panjar (DP)</th>
@@ -1471,13 +1472,25 @@
                                           <!-- Status Pembayaran: DESIGN.md §14.1 -->
                                           <td data-order="{{ $inv->status }}" data-search="{{ $inv->status }}" class="text-center">
                                               @if ($inv->status == 'Lunas')
-                                                  <span class="badge badge--success">Lunas</span>
+                                                  <span class="badge badge--success badge-status--lunas">Lunas</span>
                                               @elseif($inv->status == 'Belum Lunas')
-                                                  <span class="badge badge--danger">Belum Lunas</span>
+                                                  <span class="badge badge--warning badge-status--belum-lunas">Belum Lunas</span>
                                               @elseif($inv->status == 'Batal')
-                                                  <span class="badge badge--danger">Batal</span>
+                                                  <span class="badge badge--danger badge-status--batal">Batal</span>
                                               @else
-                                                  <span class="badge badge--danger">{{ $inv->status }}</span>
+                                                  <span class="badge badge--neutral">{{ $inv->status }}</span>
+                                              @endif
+                                          </td>
+
+                                          <!-- Alasan Batal -->
+                                          <td>
+                                              @if ($inv->status == 'Batal' && !empty($inv->alasan_batal))
+                                                  <span class="badge badge--subtle text-danger" title="{{ $inv->alasan_batal }}" style="max-width: 180px; display: inline-flex; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; font-weight: 500; font-size: 12px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; padding: 4px 8px;">
+                                                      <i class="ri-error-warning-line me-1" style="font-size: 13px;"></i>
+                                                      <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $inv->alasan_batal }}</span>
+                                                  </span>
+                                              @else
+                                                  <span class="text-muted">-</span>
                                               @endif
                                           </td>
 
@@ -1770,8 +1783,8 @@
                 bSort: true,
                 order: [[4, 'desc']], // Urutkan tanggal penjualan descending
                 columnDefs: [
-                    { orderable: false, targets: [0, 7, 12] },
-                    { width: '260px', targets: 7 }
+                    { orderable: false, targets: [0, 8, 13] },
+                    { width: '260px', targets: 8 }
                 ],
                 dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
                 pageLength: 25,
@@ -2018,6 +2031,8 @@
             text: "Masukkan alasan pembatalan untuk invoice " + nomorInvoice,
             input: 'textarea',
             inputPlaceholder: 'Tulis alasan batal di sini...',
+            position: 'center',
+            target: 'body',
             showCancelButton: true,
             confirmButtonText: 'Proses Batal',
             cancelButtonText: 'Kembali',

@@ -63,6 +63,7 @@
            <th scope="col">JUMLAH ITEM</th>
            <th scope="col">TOTAL</th>
            <th scope="col">STATUS</th>
+           <th scope="col">ALASAN BATAL</th>
            <th scope="col">POTONGAN/DISKON/PPN</th>
            <th scope="col">GRAND TOTAL</th>
           </tr>
@@ -110,6 +111,7 @@
           
           <td>{{$jual->formatted_total_harga}}</td>
           <td>{{$jual->status}}</td>
+          <td>{{ ($jual->status == 'Batal' && !empty($jual->alasan_batal)) ? $jual->alasan_batal : '-' }}</td>
           <td>{{$jual->lain}}</td>
           <td>{{$jual->formatted_total_pembayaran}}</td>
          </tr>
@@ -117,8 +119,8 @@
         
         <!-- Baris Footer / Jumlah -->
         <tr>
-          <!-- Menggunakan colspan="10" agar tulisan Jumlah sejajar dengan kolom sebelum Grand Total -->
-          <td colspan="10" class="text-right text-bold" style="font-weight: bold;">Jumlah :</td>
+          <!-- Menggunakan colspan="11" agar tulisan Jumlah sejajar dengan kolom sebelum Grand Total -->
+          <td colspan="11" class="text-right text-bold" style="font-weight: bold;">Jumlah :</td>
           <td colspan="2" class="text-bold" style="font-weight: bold;">{{$formatGrandTotal}}</td>
          </tr>
         </tbody>
