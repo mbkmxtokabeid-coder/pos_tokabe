@@ -110,7 +110,7 @@
         @endif
 
         <div class="mt-4 text-center">
-            <a href="{{ route('list_invoice_tokabe') }}" class="text-sm text-gray-600 underline hover:text-blue-500">Kembali ke Daftar Invoice</a>
+            <a href="{{ $invoice->is_custom == 1 ? route('list_invoice_tokabe_custom') : route('list_invoice_tokabe') }}" class="text-sm text-gray-600 underline hover:text-blue-500">Kembali ke Daftar Invoice</a>
         </div>
     </div>
 </div>

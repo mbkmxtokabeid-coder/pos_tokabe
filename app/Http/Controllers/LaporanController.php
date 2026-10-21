@@ -26,7 +26,10 @@ class LaporanController extends Controller
         Carbon::setLocale('id');
         $perusahaan = collect([2 => 'Total Karya Berkah']);
         $katInv = Invoice::where('perusahaan_id', 2)->pluck('nama_invoice', 'id');
-        $distinctPenjualan = PenjualanTokabe::withTrashed()->distinct()->pluck('tgl_penjualan');
+        $distinctPenjualan = PenjualanTokabe::withTrashed()
+            ->where(function($q) { $q->where('is_custom', 0)->orWhereNull('is_custom'); })
+            ->distinct()
+            ->pluck('tgl_penjualan');
         $namaBulan = [];
         $daftarTahun = [];
 
@@ -137,7 +140,7 @@ class LaporanController extends Controller
             }
         }
 
-        $query = PenjualanTokabe::withTrashed();
+        $query = PenjualanTokabe::withTrashed()->where(function($q) { $q->where('is_custom', 0)->orWhereNull('is_custom'); });
         if (is_null($tglAkhir)) {
             $query->whereDate('tgl_penjualan', $tglMulai);
             $tglMulaiFormat = Carbon::parse($tglMulai)->isoFormat('DD MMMM YYYY');
@@ -182,7 +185,9 @@ class LaporanController extends Controller
         $invoice = Invoice::find($request->invoice); // Mengambil data invoice berdasarkan ID
         $namaInvoice = $invoice ? $invoice->nama_invoice : 'Semua Invoice';
 
-        $query = PenjualanTokabe::withTrashed()->orderByDesc('created_at');
+        $query = PenjualanTokabe::withTrashed()
+            ->where(function($q) { $q->where('is_custom', 0)->orWhereNull('is_custom'); })
+            ->orderByDesc('created_at');
         if ($request->invoice != 'semua' && !empty($request->invoice)) {
             $query->where('invoice', $request->invoice);
         }
@@ -244,6 +249,7 @@ class LaporanController extends Controller
 
         $tahun = $request->input('tahun', date('Y'));
         $query = PenjualanTokabe::withTrashed()
+            ->where(function($q) { $q->where('is_custom', 0)->orWhereNull('is_custom'); })
             ->whereMonth('tgl_penjualan', $bulan)
             ->whereYear('tgl_penjualan', $tahun);
         if ($request->invoice != 'semua' && !empty($request->invoice)) {
@@ -278,7 +284,9 @@ class LaporanController extends Controller
         $tahun = $request->tahun;
         $namaPerusahaan = 'Total Karya Berkah';
 
-        $query = PenjualanTokabe::withTrashed()->whereYear('tgl_penjualan', $tahun);
+        $query = PenjualanTokabe::withTrashed()
+            ->where(function($q) { $q->where('is_custom', 0)->orWhereNull('is_custom'); })
+            ->whereYear('tgl_penjualan', $tahun);
         if ($request->invoice != 'semua' && !empty($request->invoice)) {
             $query->where('invoice', $request->invoice);
         }
@@ -327,6 +335,7 @@ class LaporanController extends Controller
         }
 
         $query = DB::table('penjualan_tokabe')
+            ->where(function($q) { $q->where('penjualan_tokabe.is_custom', 0)->orWhereNull('penjualan_tokabe.is_custom'); })
             ->join('penjualan_jasa_tokabe', 'penjualan_tokabe.id', '=', 'penjualan_jasa_tokabe.penjualan_id')
             ->leftJoin('barang', 'penjualan_jasa_tokabe.barang_id', '=', 'barang.id')
             ->leftJoin('items', 'penjualan_jasa_tokabe.item_id', '=', 'items.id')

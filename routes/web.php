@@ -6,6 +6,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\HomeTKBController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\LaporanCustomController;
 use App\Http\Controllers\PenjualanTokabeController;
 use App\Http\Controllers\SpbController;
 use App\Http\Controllers\SpjController;
@@ -82,8 +83,12 @@ Route::group(['middleware' => ['auth']], function () {
             // TOKABE
             Route::get('/list-invoice/tokabe', [PenjualanTokabeController::class, 'listInvoiceTokabe'])->name('list_invoice_tokabe');
             Route::get('/list-invoice/tokabe/cards-data', [PenjualanTokabeController::class, 'getCardsData'])->name('invoice.tokabe.cards_data');
+            Route::get('/list-invoice/custom', [PenjualanTokabeController::class, 'listInvoiceTokabeCustom'])->name('list_invoice_tokabe_custom');
+            Route::get('/list-invoice/custom/cards-data', [PenjualanTokabeController::class, 'getCustomCardsData'])->name('invoice.tokabe.custom.cards_data');
             Route::get('/addInvoiceTokabe', [PenjualanTokabeController::class, 'addInvoice'])->name('add.inv.tkb');
             Route::post('/addInvoiceTokabe', [PenjualanTokabeController::class, 'storeInvoiceTokabe'])->name('storeInvoice.Tokabe');
+            Route::get('/addInvoiceTokabeCustom', [PenjualanTokabeController::class, 'addInvoiceCustom'])->name('add.inv.tkb.custom');
+            Route::post('/addInvoiceTokabeCustom', [PenjualanTokabeController::class, 'storeInvoiceTokabe'])->name('storeInvoice.Tokabe.custom');
             Route::delete('/deleteInvoiceTokabe/{id}', [PenjualanTokabeController::class, 'delete'])->middleware('role:Pemilik')->name('delete.invoiceTokabe');
             Route::get('editInvoiceTokabe/{id}/edit', [PenjualanTokabeController::class, 'editInvoice'])->name('edit.inv.tkb');
             Route::put('update-InvoiceTokabe/{id}', [PenjualanTokabeController::class, 'updateInvoice'])->name('update-invoiceTokabe');
@@ -177,6 +182,13 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/invoice/laporan-export-month', [LaporanController::class, 'exportByMonth']);
             Route::post('/invoice/laporan-export-year', [LaporanController::class, 'exportByYear']);
             Route::get('/invoice/getInvoices/{id}', [CustomerController::class, 'getInvoices']);
+
+            // ROUTE LAPORAN KHUSUS INVOICE CUSTOM
+            Route::get('/daftar-laporan/custom', [LaporanCustomController::class, 'index'])->name('laporan.custom');
+            Route::post('/laporan-custom/export-status', [LaporanCustomController::class, 'exportByInvoice'])->name('laporan.custom.export_status');
+            Route::post('/laporan-custom/export-date', [LaporanCustomController::class, 'exportByDate'])->name('laporan.custom.export_date');
+            Route::post('/laporan-custom/export-month', [LaporanCustomController::class, 'exportByMonth'])->name('laporan.custom.export_month');
+            Route::post('/laporan-custom/export-year', [LaporanCustomController::class, 'exportByYear'])->name('laporan.custom.export_year');
 
 
             // ROUTE TOKABE DASHBOARD

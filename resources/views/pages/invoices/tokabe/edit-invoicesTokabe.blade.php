@@ -489,7 +489,7 @@
                                <!--end row-->
                                <div class="hstack gap-2 justify-content-start d-print-none mt-4">
                                  <button type="submit" id="update" class="btn btn-info"><i class="ri-printer-line align-bottom me-1"></i>Update</button>
-                                 <a href="{{route('list_invoice_tokabe')}}" class="btn btn-secondary btn-cancel-tokabe"><i class="ri-close-line align-bottom me-1"></i>Batal</a>
+                                 <a href="{{ $inv->is_custom == 1 ? route('list_invoice_tokabe_custom') : route('list_invoice_tokabe') }}" class="btn btn-secondary btn-cancel-tokabe"><i class="ri-close-line align-bottom me-1"></i>Batal</a>
                                </div>
                              </div>
                             </form>

@@ -82,13 +82,16 @@
       "urls": [
         "/welcomeTKB",
         "/list-invoice/tokabe",
+        "/list-invoice/custom",
         "/addInvoiceTokabe",
+        "/addInvoiceTokabeCustom",
         "/daftar-spb",
         "/daftar-spj",
         "/pembelian",
         "/items",
         "/daftar-pelanggan",
-        "/daftar-laporan"
+        "/daftar-laporan",
+        "/daftar-laporan/custom"
       ],
       "eagerness": "moderate"
     }
@@ -1124,9 +1127,16 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link menu-link {{ Request::is('list_invoice*') ? 'active' : '' }}" href="{{ route('list_invoice_tokabe') }}">
+                        <a class="nav-link menu-link {{ (Request::is('list-invoice/tokabe*') || Request::is('list_invoice*') || Request::is('addInvoiceTokabe')) && !Request::is('*custom*') ? 'active' : '' }}" href="{{ route('list_invoice_tokabe') }}">
                             <span class="icon-box"><i class="las la-file-invoice-dollar menu-icon"></i></span>
                             <span class="menu-text" data-key="t-invoices">Invoice Keluar</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link menu-link {{ Request::is('list-invoice/custom*') || Request::is('addInvoiceTokabeCustom*') ? 'active' : '' }}" href="{{ route('list_invoice_tokabe_custom') }}">
+                            <span class="icon-box"><i class="las la-file-signature menu-icon"></i></span>
+                            <span class="menu-text" data-key="t-invoices-custom">Invoice Keluar Custom</span>
                         </a>
                     </li>
 
@@ -1175,8 +1185,14 @@
                         <div class="collapse menu-dropdown {{ Request::is('*laporan*') || Request::is('daftar.pelanggan*') ? 'show' : '' }}" id="sidebarLaporan">
                             <ul class="nav nav-sm flex-column sub-menu-list">
                                 <li class="nav-item">
-                                    <a class="nav-link menu-link {{ Request::is('daftar-laporan*') ? 'active' : '' }}" href="{{ url('/daftar-laporan') }}">
+                                    <a class="nav-link menu-link {{ Request::is('daftar-laporan') ? 'active' : '' }}" href="{{ url('/daftar-laporan') }}">
                                         <i class="ri-file-chart-line sub-menu-icon"></i> <span class="menu-text">Laporan Penjualan</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link menu-link {{ Request::is('daftar-laporan/custom*') ? 'active' : '' }}" href="{{ route('laporan.custom') }}">
+                                        <i class="ri-file-list-3-line sub-menu-icon"></i> <span class="menu-text">Laporan Invoice Custom</span>
+                                        <span class="badge" style="background: rgba(124, 58, 237, 0.2); color: #C084FC; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: auto;">CUSTOM</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">

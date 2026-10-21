@@ -245,6 +245,32 @@
        Mengikuti DESIGN.md §13 (Tabel & Data), §18 (Motion & Animasi)
        ========================================================================== */
 
+    /* Quick Filter Tab Pill */
+    .filter-tab-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary, #94A3B8);
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 150ms ease;
+    }
+    .filter-tab-pill:hover {
+        color: #F1F5F9;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .filter-tab-pill.active {
+        color: #F1F5F9;
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.45);
+        font-weight: 600;
+    }
+
     #scroll-horizontal_wrapper {
         width: 100%;
     }
@@ -582,6 +608,34 @@
     }
 
     /* Netral: gray — Draf, Default */
+
+/* Badge Jenis Pembayaran — Warna Khusus Masing-Masing Jenis (DESIGN.md §14.1) */
+.badge-payment--cash-lunas {
+  color: #34D399 !important;
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+.badge-payment--transfer-lunas {
+  color: #22D3EE !important;
+  background-color: rgba(6, 182, 212, 0.15) !important;
+  border: 1px solid rgba(6, 182, 212, 0.35) !important;
+}
+.badge-payment--cash-belum-lunas {
+  color: #FB923C !important;
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  border: 1px solid rgba(249, 115, 22, 0.35) !important;
+}
+.badge-payment--transfer-dp {
+  color: #C084FC !important;
+  background-color: rgba(168, 85, 247, 0.15) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+}
+.badge-payment--po {
+  color: #818CF8 !important;
+  background-color: rgba(99, 102, 241, 0.15) !important;
+  border: 1px solid rgba(99, 102, 241, 0.35) !important;
+}
+
     .badge--neutral {
         color: var(--text-secondary, #CBD5E1) !important;
         background-color: var(--bg-surface-2, #1E293B) !important;
@@ -1861,37 +1915,28 @@
 
               <div class="card" style="background:var(--bg-surface,#0F172A);border:1px solid var(--border-subtle,#1E293B);border-radius:var(--radius-lg,12px);box-shadow:var(--shadow-xs,0 1px 2px rgb(0 0 0/0.5));">
 
-                  <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2" style="padding:var(--space-4,16px) var(--space-5,20px);border-bottom:1px solid var(--border-subtle,#1E293B);background:var(--bg-surface-2,#1E293B);border-radius:var(--radius-lg,12px) var(--radius-lg,12px) 0 0;">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <h5 class="card-title mb-0" style="font-size:15px;font-weight:600;color:var(--text-primary,#F1F5F9);">Daftar Invoice Tokabe</h5>
-                        <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;font-size:12px;font-weight:500;border-radius:9999px;background:var(--info-subtle,rgb(59 130 246/0.12));color:var(--info-text,#93C5FD);border:1px solid var(--info-border,rgb(59 130 246/0.35));"><i class="ri-information-line"></i>Klik baris untuk melihat rincian lengkap</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        {{-- Tombol Sort/Urutkan Invoice --}}
-                        <div class="dropdown">
-                            <button type="button" id="dropdownSortInvoice" data-bs-toggle="dropdown" aria-expanded="false" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;font-size:13px;font-weight:500;background:var(--bg-surface,#0F172A);color:var(--text-primary,#F1F5F9);border:1px solid var(--border-default,#334155);border-radius:8px;cursor:pointer;transition:all .15s ease;">
-                                <i class="ri-sort-desc" style="color:var(--brand,#818CF8);font-size:15px;"></i>
-                                <span id="text-current-sort">Urutkan: Tanggal Terbaru</span>
-                                <i class="ri-arrow-down-s-line" style="font-size:14px;color:var(--text-tertiary,#94A3B8);"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="dropdownSortInvoice" style="background:var(--bg-surface,#0F172A);border:1px solid var(--border-subtle,#1E293B);border-radius:10px;padding:6px;min-width:230px;z-index:1050;">
-                                <li><button type="button" class="dropdown-item sort-action-btn active" data-col="4" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-calendar-line" style="color:var(--brand,#818CF8);"></i> Tanggal Terbaru</button></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="4" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-calendar-line" style="color:var(--text-tertiary,#94A3B8);"></i> Tanggal Terlama</button></li>
-                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="9" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-money-dollar-circle-line" style="color:var(--success,#10B981);"></i> Total Tertinggi</button></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="9" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-money-dollar-circle-line" style="color:var(--text-tertiary,#94A3B8);"></i> Total Terendah</button></li>
-                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="1" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-hashtag" style="color:var(--brand,#818CF8);"></i> Nomor Invoice (A-Z)</button></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="1" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-hashtag" style="color:var(--text-tertiary,#94A3B8);"></i> Nomor Invoice (Z-A)</button></li>
-                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="2" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-user-line" style="color:var(--brand,#818CF8);"></i> Pelanggan (A-Z)</button></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="2" data-dir="desc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-user-line" style="color:var(--text-tertiary,#94A3B8);"></i> Pelanggan (Z-A)</button></li>
-                                <li><hr class="dropdown-divider" style="margin:4px 0;border-color:var(--border-subtle,#1E293B);"></li>
-                                <li><button type="button" class="dropdown-item sort-action-btn" data-col="5" data-dir="asc" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:13px;color:var(--text-primary,#F1F5F9);"><i class="ri-checkbox-circle-line" style="color:var(--warning-text,#FCD34D);"></i> Status Pembayaran</button></li>
-                            </ul>
-                        </div>
-                        <button type="button" id="btn-toggle-all-rows" style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;font-size:13px;font-weight:500;background:var(--brand-subtle,rgb(99 102 241/0.12));color:var(--brand,#6366F1);border:1px solid rgb(99 102 241/0.3);border-radius:8px;cursor:pointer;"><i class="ri-expand-diagonal-line"></i><span id="text-toggle-all-rows">Buka Semua Rincian</span></button>
-                    </div>
+                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3 p-3" style="background: transparent; border-bottom: 1px solid var(--border-subtle, #1E293B);">
+                      <!-- Quick Status Filters -->
+                      <div class="d-flex flex-wrap align-items-center gap-2">
+                          <button type="button" class="filter-tab-pill active" onclick="filterTableStatus(this, '')">
+                              <i class="ri-apps-line"></i> Semua ({{ $penjualan->count() }})
+                          </button>
+                          <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Lunas')">
+                              <i class="ri-checkbox-circle-fill text-success"></i> Lunas ({{ $penjualan->where('status', 'Lunas')->count() }})
+                          </button>
+                          <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Belum Lunas')">
+                              <i class="ri-time-fill text-danger"></i> Belum Lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
+                          </button>
+                          <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Batal')">
+                              <i class="ri-close-circle-fill text-danger"></i> Batal ({{ $penjualan->where('status', 'Batal')->count() }})
+                          </button>
+                      </div>
+
+                      <div class="d-flex align-items-center gap-2">
+                          <button type="button" id="btn-toggle-all-rows" class="btn btn-sm" style="background: rgba(99, 102, 241, 0.15); color: #C7D2FE; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px;">
+                              <i class="ri-expand-diagonal-line me-1"></i><span id="text-toggle-all-rows">Buka Semua Rincian</span>
+                          </button>
+                      </div>
                   </div>
 
                       <div class="card-body p-0">
@@ -1965,11 +2010,11 @@
                                             <br><span style="font-size:11px;color:var(--text-tertiary,#94A3B8);">Diperbarui: {{ $inv->formatted_tgl_update }}</span>
 
                                         @endif</td>                                      {{-- Badge Status (DESIGN.md §14.1) --}}
-                                      <td data-order="{{ $inv->status }}" class="text-center">
+                                      <td data-order="{{ $inv->status }}" data-search="{{ $inv->status }}" class="text-center">
                                           @if ($inv->status == 'Lunas')
                                               <span class="badge badge--success">Lunas</span>
                                           @elseif($inv->status == 'Belum Lunas')
-                                              <span class="badge badge--warning">Belum Lunas</span>
+                                              <span class="badge badge--danger">Belum Lunas</span>
                                           @elseif($inv->status == 'Batal')
                                               <span class="badge badge--danger">Batal</span>
                                           @elseif($inv->status == 'Hapus')
@@ -2044,10 +2089,18 @@
 
                                       <td data-order="{{ (float)($inv->total_pembayaran ?? 0) }}" style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums; color:#FFFFFF;">Rp {{$inv->formatted_total_pembayaran}}</td>                                      {{-- Badge Tipe Pembayaran (DESIGN.md §14.1) --}}
                                       <td class="text-center">
-                                          @if ($inv->jenis_pembayaran == 'Cash Lunas' || $inv->jenis_pembayaran == 'Transfer Lunas' || $inv->jenis_pembayaran == 'Cash')
-                                              <span class="badge badge--info">{{$inv->jenis_pembayaran}}</span>
+                                          @if ($inv->jenis_pembayaran == 'Cash Lunas' || $inv->jenis_pembayaran == 'Cash')
+                                              <span class="badge badge-payment--cash-lunas">{{ $inv->jenis_pembayaran }}</span>
+                                          @elseif ($inv->jenis_pembayaran == 'Transfer Lunas')
+                                              <span class="badge badge-payment--transfer-lunas">{{ $inv->jenis_pembayaran }}</span>
+                                          @elseif ($inv->jenis_pembayaran == 'Cash Belum Lunas')
+                                              <span class="badge badge-payment--cash-belum-lunas">{{ $inv->jenis_pembayaran }}</span>
+                                          @elseif ($inv->jenis_pembayaran == 'Transfer DP')
+                                              <span class="badge badge-payment--transfer-dp">{{ $inv->jenis_pembayaran }}</span>
+                                          @elseif ($inv->jenis_pembayaran == 'PO')
+                                              <span class="badge badge-payment--po">{{ $inv->jenis_pembayaran }}</span>
                                           @else
-                                              <span class="badge badge--warning">{{$inv->jenis_pembayaran}}</span>
+                                              <span class="badge badge--neutral">{{ $inv->jenis_pembayaran }}</span>
                                           @endif
                                       </td>
 
@@ -2528,9 +2581,33 @@
 
 <script>
 
+    let invoiceTable = null;
+
+    // Quick Status Filter Tabs
+    function filterTableStatus(btnOrStatus, maybeStatus) {
+        let btn, status;
+        if (typeof btnOrStatus === 'string') {
+            status = btnOrStatus;
+            btn = (typeof event !== 'undefined' && event && event.currentTarget) ? event.currentTarget : null;
+        } else {
+            btn = btnOrStatus;
+            status = maybeStatus;
+        }
+        $('.filter-tab-pill').removeClass('active');
+        if (btn) $(btn).addClass('active');
+
+        if (invoiceTable) {
+            if (status) {
+                invoiceTable.column(5).search('^' + status + '$', true, false).draw();
+            } else {
+                invoiceTable.column(5).search('').draw();
+            }
+        }
+    }
+
     $(document).ready(function() {
 
-        const invoiceTable = $('#scroll-horizontal').DataTable({
+        invoiceTable = $('#scroll-horizontal').DataTable({
             autoWidth: false,
             scrollX: false,
             ordering: true,

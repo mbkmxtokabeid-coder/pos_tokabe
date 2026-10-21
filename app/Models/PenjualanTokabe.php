@@ -40,6 +40,7 @@ class PenjualanTokabe extends Model
         'approval',
         'approved_at',
         'alasan_batal',
+        'is_custom',
     ];
 
     public function invoice()
