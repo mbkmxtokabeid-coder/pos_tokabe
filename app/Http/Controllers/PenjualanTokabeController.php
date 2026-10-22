@@ -1031,25 +1031,26 @@ class PenjualanTokabeController extends Controller
         // Konversi bulan ke angka Romawi
         $romawiBulan = $this->convertToRoman((int)$month);
 
-        // Ambil invoice terakhir di bulan dan tahun yang sama (termasuk yang dibatalkan maupun dihapus/soft-deleted)
+        // Ambil invoice Tokabe reguler terakhir di bulan dan tahun yang sama
+        // Hanya mencari nomor dengan format standar: {angka 1-4 digit}/TKB/{romawiBulan}/{year}
+        // dan mengabaikan invoice custom agar urutan nomor standar tidak terganggu
         $lastInvoice = PenjualanTokabe::withTrashed()
-            ->where(function ($q) use ($year, $month, $romawiBulan) {
-                $q->where(function ($sub) use ($year, $month) {
-                    $sub->whereYear('tgl_penjualan', $year)
-                        ->whereMonth('tgl_penjualan', $month);
-                })->orWhere('nomor_invoice', 'LIKE', "%/TKB/{$romawiBulan}/{$year}");
+            ->where(function ($q) {
+                $q->where('is_custom', 0)->orWhereNull('is_custom');
             })
+            ->where('nomor_invoice', 'REGEXP', "^[0-9]{1,4}/TKB/{$romawiBulan}/{$year}$")
             ->orderByRaw("CAST(SUBSTRING_INDEX(nomor_invoice, '/', 1) AS UNSIGNED) DESC")
-            ->pluck('nomor_invoice')
-            ->first();
+            ->value('nomor_invoice');
 
         $last_number = $lastInvoice ? ((int) explode('/', $lastInvoice)[0]) : 0;
 
-        // Nomor urut berikutnya
-        $next_unique_number = sprintf('%03d', $last_number + 1);
+        // Cari nomor urut berikutnya yang belum pernah dipakai (termasuk invoice yang dihapus/soft-deleted)
+        do {
+            $last_number++;
+            $candidateNumber = sprintf('%03d', $last_number) . "/TKB/{$romawiBulan}/{$year}";
+        } while (PenjualanTokabe::withTrashed()->where('nomor_invoice', $candidateNumber)->exists());
 
-        // Format nomor invoice baru
-        return "{$next_unique_number}/TKB/{$romawiBulan}/{$year}";
+        return $candidateNumber;
     }
 
     private function convertToRoman($number)
@@ -1467,8 +1468,58 @@ class PenjualanTokabeController extends Controller
 
     public function delete($id)
     {
-        Alert::error('Akses Ditolak', 'Fitur hapus invoice telah dinonaktifkan. Silakan gunakan fitur Batalkan Invoice.');
-        return redirect()->route('list_invoice_tokabe');
+        if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat menghapus invoice.');
+            return redirect()->back();
+        }
+
+        $invoice = PenjualanTokabe::findOrFail($id);
+        $isCustom = ($invoice->is_custom == 1);
+        $nomorInvoice = $invoice->nomor_invoice;
+
+        // 1. Kembalikan stok barang & material jika invoice belum pernah dibatalkan
+        if ($invoice->status !== 'Batal') {
+            $penjBarang = PenjualanJasaTokabe::where('penjualan_id', $invoice->id)->get();
+            foreach ($penjBarang as $item) {
+                if ($item->barang_id) {
+                    $barangObj = Barang::find($item->barang_id);
+                    if ($barangObj) {
+                        $barangObj->stok += $item->qty;
+                        $barangObj->save();
+                    }
+                }
+                if (!empty($item->material_id) && !empty($item->material_qty)) {
+                    $mIds = json_decode($item->material_id, true) ?: [];
+                    $mQtys = json_decode($item->material_qty, true) ?: [];
+                    foreach ($mIds as $mIdx => $mId) {
+                        $matObj = Material::find($mId);
+                        $qtyToRestore = $mQtys[$mIdx] ?? 0;
+                        if ($matObj && $qtyToRestore > 0) {
+                            $matObj->increment('stok', $qtyToRestore);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Hapus line items terkait
+        PenjualanJasaTokabe::where('penjualan_id', $invoice->id)->delete();
+
+        // 3. Hapus SPK jika ada yang terhubung dengan nomor invoice ini
+        DB::table('spk')->where('nomor_invoice', $nomorInvoice)->delete();
+
+        // 4. Hapus header invoice
+        $invoice->delete();
+
+        // 5. Bersihkan cache statistik & laporan
+        $this->clearTokabeCaches($invoice->tgl_penjualan);
+
+        Alert::success('Berhasil Dihapus', "Invoice #{$nomorInvoice} berhasil dihapus dari sistem.");
+
+        if ($isCustom) {
+            return redirect()->route('list_invoice_tokabe_custom')->with('success', "Invoice #{$nomorInvoice} berhasil dihapus.");
+        }
+        return redirect()->route('list_invoice_tokabe')->with('success', "Invoice #{$nomorInvoice} berhasil dihapus.");
     }
 
     public function editInvoice($id)
@@ -1879,8 +1930,20 @@ class PenjualanTokabeController extends Controller
 
     public function deletePage($id)
     {
-        Alert::error('Akses Ditolak', 'Fitur hapus invoice telah dinonaktifkan. Silakan gunakan fitur Batalkan Invoice.');
-        return redirect()->route('list_invoice_tokabe');
+        if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik yang dapat mengakses halaman konfirmasi penghapusan invoice.');
+            return redirect()->back();
+        }
+
+        $invoice = PenjualanTokabe::findOrFail($id);
+        $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
+        $invoice->formatted_total_pembayaran = number_format($invoice->total_pembayaran, 0, ',', '.');
+        $invoice->formatted_sisa_pembayaran = number_format($invoice->sisa_pembayaran, 0, ',', '.');
+        $barang = [];
+        foreach ($penjualan_barang as $item) {
+            $barang[] = $this->productForInvoiceLine($item);
+        }
+        return view('pages.invoices.tokabe.delete', compact('invoice', 'penjualan_barang', 'barang'));
     }
 
     public function statusLunas($id)

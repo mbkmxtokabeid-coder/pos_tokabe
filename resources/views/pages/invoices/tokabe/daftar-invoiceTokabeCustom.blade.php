@@ -617,24 +617,54 @@
         content: "" !important;
     }
 
-    /* Lebar Kolom Definitif — Mencegah Text-Wrap Cacat */
-    #scroll-horizontal-custom th:nth-child(1), #scroll-horizontal-custom td:nth-child(1) { width: 50px; text-align: center !important; }
-    #scroll-horizontal-custom th:nth-child(2), #scroll-horizontal-custom td:nth-child(2) { width: 200px; text-align: left !important; }
-    #scroll-horizontal-custom th:nth-child(3), #scroll-horizontal-custom td:nth-child(3) { width: 230px; text-align: left !important; }
-    #scroll-horizontal-custom th:nth-child(4), #scroll-horizontal-custom td:nth-child(4) { width: 150px; text-align: left !important; white-space: nowrap !important; }
+    /* Lebar Kolom Definitif (14 Kolom Lengkap Sesuai DESIGN.md §13) */
+    #scroll-horizontal-custom th:nth-child(1), #scroll-horizontal-custom td:nth-child(1) { width: 45px; text-align: center !important; }
+    #scroll-horizontal-custom th:nth-child(2), #scroll-horizontal-custom td:nth-child(2) { width: 190px; text-align: left !important; }
+    #scroll-horizontal-custom th:nth-child(3), #scroll-horizontal-custom td:nth-child(3) { width: 220px; text-align: left !important; }
+    #scroll-horizontal-custom th:nth-child(4), #scroll-horizontal-custom td:nth-child(4) { width: 140px; text-align: left !important; white-space: nowrap !important; }
     #scroll-horizontal-custom th:nth-child(5), #scroll-horizontal-custom td:nth-child(5) { width: 165px; text-align: left !important; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(6), #scroll-horizontal-custom td:nth-child(6) { width: 140px; min-width: 140px; text-align: center !important; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(7), #scroll-horizontal-custom td:nth-child(7) { width: 120px; min-width: 115px; text-align: center !important; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(8), #scroll-horizontal-custom td:nth-child(8) { width: 260px !important; min-width: 260px !important; max-width: 260px !important; text-align: left !important; box-sizing: border-box !important; }
-    #scroll-horizontal-custom th:nth-child(9), #scroll-horizontal-custom td:nth-child(9) { width: 120px; text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(10), #scroll-horizontal-custom td:nth-child(10) { width: 155px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(11), #scroll-horizontal-custom td:nth-child(11) { width: 155px; min-width: 145px; text-align: center !important; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(12), #scroll-horizontal-custom td:nth-child(12) { width: 130px; text-align: left !important; }
-    #scroll-horizontal-custom th:nth-child(13), #scroll-horizontal-custom td:nth-child(13) { width: 75px; text-align: center !important; }
+    #scroll-horizontal-custom th:nth-child(6), #scroll-horizontal-custom td:nth-child(6) { width: 140px; min-width: 135px; text-align: center !important; white-space: nowrap !important; }
+    #scroll-horizontal-custom th:nth-child(7), #scroll-horizontal-custom td:nth-child(7) { width: 130px; text-align: left !important; }
+    #scroll-horizontal-custom th:nth-child(8), #scroll-horizontal-custom td:nth-child(8) { width: 105px !important; min-width: 105px !important; max-width: 105px !important; text-align: center !important; white-space: nowrap !important; }
+    #scroll-horizontal-custom th:nth-child(9), #scroll-horizontal-custom td:nth-child(9) { width: 260px !important; min-width: 260px !important; max-width: 260px !important; text-align: left !important; box-sizing: border-box !important; }
+    #scroll-horizontal-custom th:nth-child(10), #scroll-horizontal-custom td:nth-child(10) { width: 130px; text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap !important; }
+    #scroll-horizontal-custom th:nth-child(11), #scroll-horizontal-custom td:nth-child(11) { width: 155px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap !important; }
+    #scroll-horizontal-custom th:nth-child(12), #scroll-horizontal-custom td:nth-child(12) { width: 150px; min-width: 140px; text-align: center !important; white-space: nowrap !important; }
+    #scroll-horizontal-custom th:nth-child(13), #scroll-horizontal-custom td:nth-child(13) { width: 130px; text-align: left !important; }
+
+    /* Kolom Aksi Sticky di Kanan — Akses Cepat Tanpa Perlu Scroll Horizontal */
+    #scroll-horizontal-custom th:nth-child(14),
+    #scroll-horizontal-custom td:nth-child(14) {
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+        text-align: center !important;
+        position: sticky !important;
+        right: 0 !important;
+        background: #121722 !important;
+        box-shadow: -4px 0 10px rgba(0, 0, 0, 0.45) !important;
+        z-index: 10 !important;
+    }
+    #scroll-horizontal-custom thead th:nth-child(14) {
+        z-index: 25 !important;
+        background: var(--bg-surface-2, #1E293B) !important;
+    }
+    #scroll-horizontal-custom tbody tr:hover td:nth-child(14) {
+        background: #1b2332 !important;
+    }
+    #scroll-horizontal-custom tbody tr.is-expanded td:nth-child(14) {
+        background: #161c28 !important;
+    }
+
+    /* Stacking Context Dropdown agar Selalu di Atas Sticky Baris Lainnya */
+    #scroll-horizontal-custom tbody td:nth-child(14):has(.show),
+    #scroll-horizontal-custom tbody td:nth-child(14):focus-within {
+        z-index: 1050 !important;
+    }
 
     #scroll-horizontal-custom thead th:nth-child(6),
-    #scroll-horizontal-custom thead th:nth-child(7),
-    #scroll-horizontal-custom thead th:nth-child(11) {
+    #scroll-horizontal-custom thead th:nth-child(8),
+    #scroll-horizontal-custom thead th:nth-child(12) {
         text-align: center !important;
         padding-left: 20px !important;
         padding-right: 28px !important;
@@ -658,7 +688,7 @@
     #scroll-horizontal-custom tbody td:nth-child(2),
     #scroll-horizontal-custom tbody td:nth-child(3),
     #scroll-horizontal-custom tbody td:nth-child(4),
-    #scroll-horizontal-custom tbody td:nth-child(12) {
+    #scroll-horizontal-custom tbody td:nth-child(13) {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -726,10 +756,50 @@
         cursor: pointer;
         transition: all 120ms ease;
     }
-    .btn-table-action:hover {
-        background: rgba(139, 92, 246, 0.2);
-        border-color: rgba(139, 92, 246, 0.4);
+    .btn-table-action:hover,
+    .btn-table-action[aria-expanded="true"] {
+        background: rgba(139, 92, 246, 0.25);
+        border-color: rgba(139, 92, 246, 0.45);
         color: #DDD6FE;
+    }
+
+    /* Dropdown Menu Stying Sesuai DESIGN.md */
+    .dropdown-menu {
+        background: var(--bg-surface-2, #181D26) !important;
+        border: 1px solid var(--border-default, #2D3748) !important;
+        border-radius: var(--radius-lg, 12px) !important;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+        padding: 6px !important;
+        min-width: 235px !important;
+        z-index: 1060 !important;
+    }
+    .dropdown-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-height: 36px !important;
+        padding: 8px 12px !important;
+        border-radius: var(--radius-sm, 6px) !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        color: var(--text-primary, #F1F5F9) !important;
+        background: transparent !important;
+        transition: background-color var(--dur-fast, 120ms) var(--ease-standard), color var(--dur-fast, 120ms) var(--ease-standard), transform var(--dur-instant, 80ms) var(--ease-standard) !important;
+    }
+    .dropdown-item:hover,
+    .dropdown-item:focus {
+        background-color: var(--bg-hover, rgba(255, 255, 255, 0.08)) !important;
+        color: #ffffff !important;
+        transform: translateX(2px);
+    }
+    .dropdown-item:active {
+        transform: scale(0.98);
+    }
+    .dropdown-item.text-danger:hover,
+    .dropdown-item--danger:hover {
+        background-color: var(--danger-subtle, rgba(239, 68, 68, 0.15)) !important;
+        color: var(--danger, #EF4444) !important;
     }
 
     /* ==========================================================================
@@ -1589,6 +1659,9 @@
                                                // Pesan Request Batal
                                                $msgBatalTkb = urlencode("Halo, saya ingin Request pembatalan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman pembatalan invoice:\n" . url("/tokabe-batal/{$inv->id}"));
 
+                                               // Pesan Request Hapus
+                                               $msgHapusTkb = urlencode("Halo, saya ingin meminta persetujuan untuk MENGHAPUS invoice custom *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman konfirmasi hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
+
                                               // Format Nomor HP Customer
                                               $no_hp_cust = $inv->no_telepon ?? '';
                                               $no_hp_cust = preg_replace('/[^0-9]/', '', $no_hp_cust);
@@ -1664,6 +1737,8 @@
                                                       </a>
                                                   </li>
 
+                                                  <li style="height:1px;margin:4px 0;background:var(--border-subtle,#1E293B);"></li>
+
                                                   {{-- === OWNER: Lock langsung jika sudah Unlock === --}}
                                                   @if($isOwnerTkb && $inv->approval === 'Unlock')
                                                   <li>
@@ -1715,6 +1790,20 @@
                                                   </li>
                                                   @endif
 
+                                                   {{-- === ADMIN: Request Hapus via WA === --}}
+                                                   @if($isAdminTkb)
+                                                   <li>
+                                                       <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgHapusTkb }}" target="_blank">
+                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 1)
+                                                       </a>
+                                                   </li>
+                                                   <li>
+                                                       <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgHapusTkb }}" target="_blank">
+                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 2)
+                                                       </a>
+                                                   </li>
+                                                   @endif
+
                                                   {{-- === OWNER: Pelunasan langsung === --}}
                                                   @if($isOwnerTkb && $inv->status == 'Belum Lunas')
                                                   <li>
@@ -1745,6 +1834,15 @@
                                                       </form>
                                                   </li>
                                                   @endif
+
+                                                   {{-- === OWNER: Hapus Invoice langsung === --}}
+                                                   @if($isOwnerTkb)
+                                                   <li>
+                                                       <a class="dropdown-item text-danger" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);" href="{{ route('tokabe.delete.page', $inv->id) }}">
+                                                           <i class="ri-delete-bin-line" style="font-size:16px;color:var(--danger,#EF4444);flex-shrink:0;"></i>Hapus Invoice
+                                                       </a>
+                                                   </li>
+                                                   @endif
                                               </ul>
                                           </div>
                                           </td>
@@ -1783,8 +1881,9 @@
                 bSort: true,
                 order: [[4, 'desc']], // Urutkan tanggal penjualan descending
                 columnDefs: [
-                    { orderable: false, targets: [0, 8, 13] },
-                    { width: '260px', targets: 8 }
+                    { orderable: false, targets: [0, 3, 6, 8, 13] },
+                    { width: '260px', targets: 8 },
+                    { width: '80px', targets: 13, className: 'text-center' }
                 ],
                 dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
                 pageLength: 25,

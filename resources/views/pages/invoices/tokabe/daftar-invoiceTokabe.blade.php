@@ -485,25 +485,55 @@
         line-height: 1.45;
     }
 
-    /* Column Widths & Alignments */
-    #scroll-horizontal th:nth-child(1), #scroll-horizontal td:nth-child(1) { width: 50px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(2), #scroll-horizontal td:nth-child(2) { width: 170px; text-align: left !important; }
+    /* Column Widths & Alignments (14 Kolom Lengkap Sesuai DESIGN.md §13) */
+    #scroll-horizontal th:nth-child(1), #scroll-horizontal td:nth-child(1) { width: 45px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(2), #scroll-horizontal td:nth-child(2) { width: 175px; text-align: left !important; }
     #scroll-horizontal th:nth-child(3), #scroll-horizontal td:nth-child(3) { width: 220px; text-align: left !important; }
     #scroll-horizontal th:nth-child(4), #scroll-horizontal td:nth-child(4) { width: 140px; text-align: left !important; }
     #scroll-horizontal th:nth-child(5), #scroll-horizontal td:nth-child(5) { width: 165px; text-align: left !important; }
-    #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 145px; min-width: 140px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 120px; min-width: 115px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 270px !important; min-width: 270px !important; max-width: 270px !important; text-align: left !important; box-sizing: border-box !important; }
-    #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 120px; text-align: right !important; font-variant-numeric: tabular-nums; }
-    #scroll-horizontal th:nth-child(10), #scroll-horizontal td:nth-child(10) { width: 145px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; }
-    #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 155px; min-width: 145px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(12), #scroll-horizontal td:nth-child(12) { width: 140px; text-align: left !important; }
-    #scroll-horizontal th:nth-child(13), #scroll-horizontal td:nth-child(13) { width: 75px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 140px; min-width: 135px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 130px; text-align: left !important; }
+    #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 105px !important; min-width: 105px !important; max-width: 105px !important; text-align: center !important; }
+    #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 270px !important; min-width: 270px !important; max-width: 270px !important; text-align: left !important; box-sizing: border-box !important; }
+    #scroll-horizontal th:nth-child(10), #scroll-horizontal td:nth-child(10) { width: 130px; text-align: right !important; font-variant-numeric: tabular-nums; }
+    #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 155px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; }
+    #scroll-horizontal th:nth-child(12), #scroll-horizontal td:nth-child(12) { width: 150px; min-width: 140px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(13), #scroll-horizontal td:nth-child(13) { width: 140px; text-align: left !important; }
+
+    /* Kolom Aksi Sticky di Kanan — Akses Cepat Tanpa Perlu Scroll Horizontal */
+    #scroll-horizontal th:nth-child(14),
+    #scroll-horizontal td:nth-child(14) {
+        width: 80px !important;
+        min-width: 80px !important;
+        max-width: 80px !important;
+        text-align: center !important;
+        position: sticky !important;
+        right: 0 !important;
+        background: #121722 !important;
+        box-shadow: -4px 0 10px rgba(0, 0, 0, 0.45) !important;
+        z-index: 10 !important;
+    }
+    #scroll-horizontal thead th:nth-child(14) {
+        z-index: 25 !important;
+        background: var(--bg-surface-2, #1E293B) !important;
+    }
+    #scroll-horizontal tbody tr:hover td:nth-child(14) {
+        background: #1b2332 !important;
+    }
+    #scroll-horizontal tbody tr.is-expanded td:nth-child(14) {
+        background: #161c28 !important;
+    }
+
+    /* Stacking Context Dropdown agar Selalu di Atas Sticky Baris Lainnya */
+    #scroll-horizontal tbody td:nth-child(14):has(.show),
+    #scroll-horizontal tbody td:nth-child(14):focus-within {
+        z-index: 1050 !important;
+    }
 
     /* Header padding for centered sortable columns */
     #scroll-horizontal thead th:nth-child(6),
-    #scroll-horizontal thead th:nth-child(7),
-    #scroll-horizontal thead th:nth-child(11) {
+    #scroll-horizontal thead th:nth-child(8),
+    #scroll-horizontal thead th:nth-child(12) {
         text-align: center !important;
         padding-left: 20px !important;
         padding-right: 28px !important;
@@ -512,7 +542,7 @@
     #scroll-horizontal tbody td:nth-child(2),
     #scroll-horizontal tbody td:nth-child(3),
     #scroll-horizontal tbody td:nth-child(4),
-    #scroll-horizontal tbody td:nth-child(12) {
+    #scroll-horizontal tbody td:nth-child(13) {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -531,9 +561,10 @@
 
     #scroll-horizontal tbody td:nth-child(6),
     #scroll-horizontal tbody td:nth-child(7),
-    #scroll-horizontal tbody td:nth-child(9),
+    #scroll-horizontal tbody td:nth-child(8),
     #scroll-horizontal tbody td:nth-child(10),
-    #scroll-horizontal tbody td:nth-child(11) {
+    #scroll-horizontal tbody td:nth-child(11),
+    #scroll-horizontal tbody td:nth-child(12) {
         white-space: nowrap !important;
     }
 
@@ -1265,7 +1296,8 @@
         border-radius: var(--radius-lg, 12px) !important;
         box-shadow: var(--shadow-lg, 0 10px 25px -5px rgba(0, 0, 0, 0.5)) !important;
         padding: 6px !important;
-        z-index: 1050 !important;
+        min-width: 235px !important;
+        z-index: 1060 !important;
     }
     .dropdown-item {
         display: flex !important;
@@ -1276,6 +1308,7 @@
         border-radius: var(--radius-sm, 6px) !important;
         font-size: 13px !important;
         font-weight: 500 !important;
+        white-space: nowrap !important;
         color: var(--text-primary, #F1F5F9) !important;
         background: transparent !important;
         transition: background-color var(--dur-fast, 120ms) var(--ease-standard), color var(--dur-fast, 120ms) var(--ease-standard), transform var(--dur-instant, 80ms) var(--ease-standard) !important;
@@ -1330,6 +1363,7 @@
     .dropdown-menu a.invoice-request--unlock { color: #facc15 !important; border-inline-start-color: #facc15 !important; }
     .dropdown-menu a.invoice-request--settlement { color: #38bdf8 !important; border-inline-start-color: #38bdf8 !important; }
     .dropdown-menu a.invoice-request--cancel { color: #fb923c !important; border-inline-start-color: #fb923c !important; }
+.dropdown-menu a.invoice-request--delete { color: #f87171 !important; border-inline-start-color: #f87171 !important; }
     .dropdown-menu a.invoice-request--owner-2::after { opacity: .35; }
     .dropdown-menu a.invoice-request--owner-1::after { opacity: 1; }
 
@@ -2145,6 +2179,9 @@
 
                                                $msgBatalTkb = urlencode("Halo, saya ingin Request pembatalan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman pembatalan invoice:\n" . url("/tokabe-batal/{$inv->id}"));
 
+                                               // Pesan Request Hapus
+                                               $msgHapusTkb = urlencode("Halo, saya ingin meminta persetujuan untuk MENGHAPUS invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman konfirmasi hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
+
                                               // Format Nomor HP Customer
 
                                               $no_hp_cust = $inv->no_telepon ?? '';
@@ -2281,6 +2318,8 @@
 
                                                   </li>
 
+                                                  <li style="height:1px;margin:4px 0;background:var(--border-subtle,#1E293B);"></li>
+
 
 
                                                   {{-- === OWNER: Lock langsung jika sudah Unlock === --}}
@@ -2383,6 +2422,20 @@
 
                                                   @endif
 
+                                                   {{-- === ADMIN: Request Hapus via WA === --}}
+                                                   @if($isAdminTkb)
+                                                   <li>
+                                                       <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgHapusTkb }}" target="_blank">
+                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 1)
+                                                       </a>
+                                                   </li>
+                                                   <li>
+                                                       <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgHapusTkb }}" target="_blank">
+                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 2)
+                                                       </a>
+                                                   </li>
+                                                   @endif
+
 
 
                                                   {{-- === OWNER: Pelunasan langsung === --}}
@@ -2444,6 +2497,15 @@
                                                   </li>
 
                                                   @endif
+
+                                                   {{-- === OWNER: Hapus Invoice langsung === --}}
+                                                   @if($isOwnerTkb)
+                                                   <li>
+                                                       <a class="dropdown-item text-danger" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);" href="{{ route('tokabe.delete.page', $inv->id) }}">
+                                                           <i class="ri-delete-bin-line" style="font-size:16px;color:var(--danger,#EF4444);flex-shrink:0;"></i>Hapus Invoice
+                                                       </a>
+                                                   </li>
+                                                   @endif
 
 
 
@@ -2554,8 +2616,9 @@
             bSort: true,
             order: [[4, 'desc']],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 8, 13] },
-                { width: '270px', targets: 8 }
+                { orderable: false, targets: [0, 3, 6, 8, 13] },
+                { width: '270px', targets: 8 },
+                { width: '80px', targets: 13, className: 'text-center' }
             ],
             dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
             pageLength: 25,

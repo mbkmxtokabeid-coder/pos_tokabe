@@ -64,11 +64,11 @@ class PenjualanTokabeViewRenderTest extends TestCase
 
     /**
      * Should the "Request Delete" button be shown?
-     * Fitur delete telah dihapus dari blade.
+     * Fitur request delete khusus ditampilkan untuk Admin (meminta ke Owner).
      */
     private function shouldShowRequestDelete(bool $isAdmin): bool
     {
-        return false;
+        return $isAdmin;
     }
 
     // -------------------------------------------------------------------------
@@ -399,15 +399,15 @@ class PenjualanTokabeViewRenderTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // Request Delete tests (fitur dihapus)
+    // Request Delete tests (khusus Admin meminta ke Owner)
     // -------------------------------------------------------------------------
 
     /**
-     * Test Request Delete is removed/disabled for all roles.
+     * Test Request Delete is shown for Admin, but not for Non-Admin.
      */
-    public function test_request_delete_removed(): void
+    public function test_request_delete_shown_for_admin_only(): void
     {
-        $this->assertFalse($this->shouldShowRequestDelete(true), 'Request Delete is removed for Admin');
-        $this->assertFalse($this->shouldShowRequestDelete(false), 'Request Delete is removed for Non-Admin');
+        $this->assertTrue($this->shouldShowRequestDelete(true), 'Request Delete is shown for Admin');
+        $this->assertFalse($this->shouldShowRequestDelete(false), 'Request Delete is not shown for Non-Admin');
     }
 }
