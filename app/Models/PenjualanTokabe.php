@@ -39,8 +39,12 @@ class PenjualanTokabe extends Model
         'sisa_pembayaran',
         'approval',
         'approved_at',
+        'approved_by',
         'alasan_batal',
         'is_custom',
+        'npwp',
+        'no_faktur_pajak',
+        'faktur_pajak_status',
     ];
 
     public function invoice()
@@ -52,6 +56,12 @@ class PenjualanTokabe extends Model
     {
         return $this->belongsTo(User::class, 'admin');
     }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_by');
@@ -60,5 +70,39 @@ class PenjualanTokabe extends Model
     public function penjualanBarang()
     {
         return $this->hasMany(PenjualanJasaTokabe::class, 'penjualan_id');
+    }
+
+    public function approvalRequests()
+    {
+        return $this->hasMany(InvoiceApprovalRequest::class, 'invoice_id');
+    }
+
+    public function latestApprovalRequest()
+    {
+        return $this->hasOne(InvoiceApprovalRequest::class, 'invoice_id')->latestOfMany();
+    }
+
+    /**
+     * Helper to check if faktur pajak is already completed
+     */
+    public function isFakturPajakLengkap(): bool
+    {
+        return !empty($this->no_faktur_pajak);
+    }
+
+    /**
+     * Accessor for status_faktur_pajak
+     */
+    public function getStatusFakturPajakAttribute(): string
+    {
+        return $this->isFakturPajakLengkap() ? 'Selesai' : 'Belum Diisi';
+    }
+
+    /**
+     * Check if invoice is currently locked for admin
+     */
+    public function isLockedForAdmin(): bool
+    {
+        return $this->approval !== 'Unlock';
     }
 }

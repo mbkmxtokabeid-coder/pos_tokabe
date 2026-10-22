@@ -15,12 +15,50 @@
 @endsection
 @extends('layout.template')
 @section('content')
-@if($inv->approval == 'Lock')
-<div class="alert alert-warning d-flex align-items-center" role="alert">
-    <i class="las la-lock me-2 fs-18"></i>
-    <div>
-        Invoice ini sedang terkunci. Silakan minta Pemilik untuk memberikan izin unlock terlebih dahulu.
-        <a href="{{ route('tokabe.approval.page', $inv->id) }}" class="alert-link ms-1">Minta Unlock</a>
+@if($isLocked)
+<div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-3 p-3 mb-3" role="alert" style="background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b !important;">
+    <i class="ri-lock-2-line fs-20 text-warning mt-1"></i>
+    <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h6 class="mb-0 fw-semibold text-warning">Status: Invoice Terkunci (Read-Only)</h6>
+            <span class="badge {{ !empty($inv->no_faktur_pajak) ? 'bg-success' : 'bg-warning text-dark' }}">
+                {{ !empty($inv->no_faktur_pajak) ? 'Faktur Pajak Lengkap (Selesai)' : 'Faktur Pajak Belum Diisi' }}
+            </span>
+        </div>
+        <p class="mb-2 text-muted" style="font-size: 13.5px;">
+            Invoice ini dalam keadaan terkunci. Anda tidak dapat melakukan perubahan atau mengisi Nomor Faktur Pajak sampai mendapatkan persetujuan (approval) dari Pemilik/Owner.
+        </p>
+        @if(isset($latestApprovalRequest) && $latestApprovalRequest && $latestApprovalRequest->status === 'Pending')
+            <div class="alert alert-info py-1 px-2 mb-2 d-inline-flex align-items-center gap-1" style="font-size: 12px;">
+                <i class="ri-time-line"></i> Permintaan akses edit sedang menunggu verifikasi Owner (Diajukan pada {{ $latestApprovalRequest->created_at->format('d/m/Y H:i') }}).
+            </div>
+        @endif
+        <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
+            @if($isAdmin)
+                <form action="{{ route('tokabe.request.edit_faktur', $inv->id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="catatan" value="Pengajuan izin edit Nomor Faktur Pajak dari form edit">
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        <i class="ri-key-2-line me-1"></i>Minta Akses Edit ke Owner
+                    </button>
+                </form>
+            @endif
+            @if($isOwner)
+                <a href="{{ route('tokabe.approval.page', $inv->id) }}" class="btn btn-sm btn-success">
+                    <i class="ri-lock-unlock-line me-1"></i>Buka Kunci (Unlock) Sekarang
+                </a>
+            @endif
+        </div>
+    </div>
+</div>
+@else
+<div class="alert alert-success border-0 shadow-sm d-flex align-items-start gap-3 p-3 mb-3" role="alert" style="background: rgba(16, 185, 129, 0.12); border-left: 4px solid #10b981 !important;">
+    <i class="ri-lock-unlock-line fs-20 text-success mt-1"></i>
+    <div class="flex-grow-1">
+        <h6 class="mb-1 fw-semibold text-success">Akses Edit Terbuka (Unlocked)</h6>
+        <p class="mb-0 text-muted" style="font-size: 13.5px;">
+            Silakan periksa data dan masukkan <strong>Nomor Faktur Pajak</strong> pada form di bawah. Setelah Anda menekan tombol <strong>Simpan & Kunci Faktur Pajak</strong>, invoice akan otomatis terkunci kembali secara permanen (Status: Selesai).
+        </p>
     </div>
 </div>
 @endif
@@ -115,14 +153,44 @@
                                     <div class="row mb-3">
                                      <label for="customer" class="col-lg-5 col-form-label col-form-label-md">Nama Customer</label>
                                        <div class="col-lg-7">
-                                        <input type="text" class="form-control form-control-md @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama Customer"value="{{ $inv->customer }}">
+                                        <input type="text" class="form-control form-control-md @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama Customer" value="{{ $inv->customer }}" {{ $isLocked ? 'readonly' : '' }}>
                                         @error('pelanggan')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                        </div>
                                       </div>
 
-                                         {{-- Start No.Telepon --}}
+                                         <div class="row mb-3" style="margin-top: -10px;">
+                                           <div class="col-lg-5">
+                                               <label for="npwp" class="form-label col-form-label col-form-label-md">NPWP</label>
+                                           </div>
+                                           <div class="col-lg-7">
+                                               <input type="text" class="form-control @error('npwp') is-invalid @enderror" id="npwp" name="npwp" placeholder="Contoh: 01.234.567.8-901.000" value="{{ old('npwp', $inv->npwp) }}" maxlength="50" {{ $isLocked ? 'readonly' : '' }}>
+                                               @error('npwp')
+                                                   <div class="invalid-feedback">{{ $message }}</div>
+                                               @enderror
+                                           </div>
+                                       </div>
+
+                                       <div class="row mb-3" style="margin-top: -10px;">
+                                           <div class="col-lg-5">
+                                               <label for="no_faktur_pajak" class="form-label col-form-label col-form-label-md d-flex align-items-center justify-content-between">
+                                                   <span>Nomor Faktur Pajak</span>
+                                                   <span class="badge {{ !empty($inv->no_faktur_pajak) ? 'bg-success' : 'bg-warning text-dark' }}" style="font-size: 11px;">
+                                                       {{ !empty($inv->no_faktur_pajak) ? 'Lengkap' : 'Wajib Diisi Setelah Unlock' }}
+                                                   </span>
+                                               </label>
+                                           </div>
+                                           <div class="col-lg-7">
+                                               <input type="text" class="form-control fw-semibold @error('no_faktur_pajak') is-invalid @enderror" id="no_faktur_pajak" name="no_faktur_pajak" placeholder="Contoh: 010.000-24.00000001" value="{{ old('no_faktur_pajak', $inv->no_faktur_pajak) }}" maxlength="50" {{ $isLocked ? 'readonly' : '' }}>
+                                               <small class="text-muted d-block mt-1"><i class="ri-information-line me-1"></i>Diisi saat invoice telah dibuka oleh Owner. Menyimpan nomor faktur pajak akan otomatis mengunci invoice secara permanen.</small>
+                                               @error('no_faktur_pajak')
+                                                   <div class="invalid-feedback">{{ $message }}</div>
+                                               @enderror
+                                           </div>
+                                       </div>
+
+                                       {{-- Start No.Telepon --}}
                                       <div class="row mb-3" style="margin-top: -10px;">
                                        <div class="col-lg-5">
                                         <label for="contactNumber" class="form-label col-form-label col-form-label-md">Nomor Telepon</label>
@@ -488,9 +556,30 @@
                                </div>
                                <!--end row-->
                                <div class="hstack gap-2 justify-content-start d-print-none mt-4">
-                                 <button type="submit" id="update" class="btn btn-info"><i class="ri-printer-line align-bottom me-1"></i>Update</button>
-                                 <a href="{{ $inv->is_custom == 1 ? route('list_invoice_tokabe_custom') : route('list_invoice_tokabe') }}" class="btn btn-secondary btn-cancel-tokabe"><i class="ri-close-line align-bottom me-1"></i>Batal</a>
-                               </div>
+                                  @if($isLocked)
+                                      <button type="button" class="btn btn-secondary disabled" title="Invoice sedang terkunci (Read-Only)">
+                                          <i class="ri-lock-line align-bottom me-1"></i>Terkunci (Read-Only)
+                                      </button>
+                                      @if($isAdmin)
+                                          <form action="{{ route('tokabe.request.edit_faktur', $inv->id) }}" method="POST" class="d-inline">
+                                              @csrf
+                                              <button type="submit" class="btn btn-warning">
+                                                  <i class="ri-key-2-line align-bottom me-1"></i>Minta Akses Edit
+                                              </button>
+                                          </form>
+                                      @endif
+                                      @if($isOwner)
+                                          <a href="{{ route('tokabe.approval.page', $inv->id) }}" class="btn btn-success">
+                                              <i class="ri-lock-unlock-line align-bottom me-1"></i>Buka Kunci (Unlock)
+                                          </a>
+                                      @endif
+                                  @else
+                                      <button type="submit" id="update" class="btn btn-info">
+                                          <i class="ri-save-line align-bottom me-1"></i>Simpan & Kunci Faktur Pajak
+                                      </button>
+                                  @endif
+                                  <a href="{{ $inv->is_custom == 1 ? route('list_invoice_tokabe_custom') : route('list_invoice_tokabe') }}" class="btn btn-secondary btn-cancel-tokabe"><i class="ri-close-line align-bottom me-1"></i>Kembali</a>
+                                </div>
                              </div>
                             </form>
                            </div>
@@ -900,3 +989,13 @@
 
 </script>
 @endsection
+<span id="locked-state-handler"></span>
+@if($isLocked)
+<script>
+$(document).ready(function() {
+    // Disable inputs & selects when invoice is locked for Admin
+    $('#invoice_form input, #invoice_form select, #invoice_form textarea').not('[name="_token"], [name="_method"]').prop('disabled', true);
+    $('.add-material, .btn-tambah-material, #btn-add-item, .product-removal, .remove-material').hide();
+});
+</script>
+@endif

@@ -39,6 +39,34 @@
             <p class="text-base text-gray-800">{{ $invoice->customer }}</p>
         </div>
 
+        <div class="mb-4">
+            <p class="text-sm text-gray-700 mb-1">NPWP Customer:</p>
+            <p class="text-base text-gray-800 font-semibold">{{ $invoice->npwp ?? 'Tidak diisi / Non-NPWP' }}</p>
+        </div>
+
+        <div class="mb-4">
+            <p class="text-sm text-gray-700 mb-1">Status Faktur Pajak:</p>
+            @if(!empty($invoice->no_faktur_pajak))
+                <span class="badge bg-success text-white py-1 px-2 rounded">
+                    Lengkap: {{ $invoice->no_faktur_pajak }}
+                </span>
+            @else
+                <span class="badge bg-warning text-dark py-1 px-2 rounded">
+                    Belum Diisi (Akses akan dibuka untuk pengisian Nomor Faktur Pajak)
+                </span>
+            @endif
+        </div>
+
+        @if(isset($latestRequest) && $latestRequest)
+        <div class="mb-4 p-3 rounded" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35);">
+            <p class="text-sm mb-1 fw-bold text-warning" style="font-size: 13px;">
+                <i class="ri-user-voice-line me-1"></i>Permintaan Akses Edit dari Admin:
+            </p>
+            <p class="text-sm text-gray-800 mb-1" style="font-size: 12.5px;"><strong>Pemohon:</strong> {{ $latestRequest->requester->nama ?? 'Admin' }} ({{ $latestRequest->created_at->format('d/m/Y H:i') }})</p>
+            <p class="text-sm text-gray-800 mb-0" style="font-size: 12.5px;"><strong>Catatan:</strong> {{ $latestRequest->catatan_admin ?? 'Izin penginputan Nomor Faktur Pajak' }}</p>
+        </div>
+        @endif
+
         @foreach ($penjualan_barang as $index => $jual)
             @foreach ($barang[$index] as $item)
 

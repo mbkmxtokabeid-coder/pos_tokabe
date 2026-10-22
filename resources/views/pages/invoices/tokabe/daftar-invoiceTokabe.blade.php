@@ -493,7 +493,7 @@
     #scroll-horizontal th:nth-child(5), #scroll-horizontal td:nth-child(5) { width: 165px; text-align: left !important; }
     #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 140px; min-width: 135px; text-align: center !important; }
     #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 130px; text-align: left !important; }
-    #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 105px !important; min-width: 105px !important; max-width: 105px !important; text-align: center !important; }
+    #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 240px !important; min-width: 230px !important; max-width: 260px !important; text-align: center !important; }
     #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 270px !important; min-width: 270px !important; max-width: 270px !important; text-align: left !important; box-sizing: border-box !important; }
     #scroll-horizontal th:nth-child(10), #scroll-horizontal td:nth-child(10) { width: 130px; text-align: right !important; font-variant-numeric: tabular-nums; }
     #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 155px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -561,7 +561,6 @@
 
     #scroll-horizontal tbody td:nth-child(6),
     #scroll-horizontal tbody td:nth-child(7),
-    #scroll-horizontal tbody td:nth-child(8),
     #scroll-horizontal tbody td:nth-child(10),
     #scroll-horizontal tbody td:nth-child(11),
     #scroll-horizontal tbody td:nth-child(12) {
@@ -2061,15 +2060,23 @@
                                       </td>
 
                                       {{-- Badge Approval (DESIGN.md §14.1) --}}
-                                      <td data-order="{{ $inv->approval }}" class="text-center">
-                                          @if($inv->approval == 'Unlock')
-                                              <span class="badge badge--success badge--icon">
-                                                  <i class="ri-lock-unlock-line"></i>Unlock
+                                      <td data-order="{{ !empty($inv->no_faktur_pajak) ? 'Lengkap' : ($inv->approval == 'Unlock' ? 'Unlock' : 'Lock') }}" data-search="{{ !empty($inv->no_faktur_pajak) ? 'Faktur Pajak Lengkap Selesai ' . $inv->no_faktur_pajak : ($inv->approval == 'Unlock' ? 'Akses Terbuka Siap Diisi' : 'Faktur Pajak Belum Diisi Status: Terkunci') }}" class="text-center">
+                                          @if(!empty($inv->no_faktur_pajak))
+                                              <span class="badge badge--success badge--icon" title="Nomor Faktur: {{ $inv->no_faktur_pajak }}">
+                                                  <i class="ri-checkbox-circle-fill"></i> Faktur Pajak Lengkap (Selesai)
+                                              </span>
+                                              <small class="d-block text-muted mt-1" style="font-size: 11px; font-family: monospace;">{{ $inv->no_faktur_pajak }}</small>
+                                          @elseif($inv->approval == 'Unlock')
+                                              <span class="badge badge--info badge--icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">
+                                                  <i class="ri-lock-unlock-line"></i> Akses Terbuka (Siap Diisi)
                                               </span>
                                           @else
                                               <span class="badge badge--warning badge--icon">
-                                                  <i class="ri-lock-line"></i>Lock
+                                                  <i class="ri-alert-line"></i> Faktur Pajak Belum Diisi
                                               </span>
+                                              <small class="d-block text-warning mt-1" style="font-size: 11px; font-weight: 500; opacity: 0.9;">
+                                                  <i class="ri-lock-line me-1"></i>(Status: Terkunci)
+                                              </small>
                                           @endif
                                       </td>
 
@@ -2166,7 +2173,7 @@
 
                                               // Pesan Request Unlock
 
-                                              $msgUnlockTkb = urlencode("Halo, saya ingin meminta approval untuk membuka akses invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n" . url("/tokabe-approval/{$inv->id}"));
+                                              $msgUnlockTkb = urlencode("Halo, saya ingin meminta approval untuk membuka akses invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n" . url("/tokabe-approval/{$inv->id}"));
 
 
 
@@ -2340,30 +2347,35 @@
 
 
 
-                                                  {{-- === ADMIN: Request Unlock via WA jika masih Lock === --}}
+                                                  {{-- === OWNER: Buka Kunci jika Lock === --}}
+                                                  @if($isOwnerTkb && $inv->approval !== 'Unlock')
+                                                  <li>
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--success-text,#86EFAC);" href="{{ route('tokabe.approval.page', $inv->id) }}">
+                                                          <i class="ri-lock-unlock-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Buka Kunci (Unlock)
+                                                      </a>
+                                                  </li>
+                                                  @endif
 
+                                                  {{-- === ADMIN: Minta Akses Edit Faktur Pajak via Sistem & WA === --}}
                                                   @if($isAdminTkb && $inv->approval !== 'Unlock')
-
                                                   <li>
-
+                                                      <form action="{{ route('tokabe.request.edit_faktur', $inv->id) }}" method="POST" class="d-inline w-100">
+                                                          @csrf
+                                                          <button type="submit" class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;background:none;border:none;width:100%;text-align:left;">
+                                                              <i class="ri-key-2-line" style="font-size:16px;color:var(--warning,#F59E0B);flex-shrink:0;"></i>Minta Akses Edit (Sistem)
+                                                          </button>
+                                                      </form>
+                                                  </li>
+                                                  <li>
                                                       <a class="dropdown-item invoice-request invoice-request--unlock invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (Owner 1)
-
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Minta Akses Edit (Owner 1)
                                                       </a>
-
                                                   </li>
-
                                                   <li>
-
                                                       <a class="dropdown-item invoice-request invoice-request--unlock invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (Owner 2)
-
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Minta Akses Edit (Owner 2)
                                                       </a>
-
                                                   </li>
-
                                                   @endif
 
 
@@ -2617,6 +2629,7 @@
             order: [[4, 'desc']],
             columnDefs: [
                 { orderable: false, targets: [0, 3, 6, 8, 13] },
+                { width: '240px', targets: 7, className: 'text-center' },
                 { width: '270px', targets: 8 },
                 { width: '80px', targets: 13, className: 'text-center' }
             ],

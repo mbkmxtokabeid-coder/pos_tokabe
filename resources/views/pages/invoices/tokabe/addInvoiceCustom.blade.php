@@ -365,7 +365,7 @@ $(document).ready(function () {
                                           <input type="text" class="form-control form-control-md @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama Customer" value="{{ old('pelanggan') }}" list="customerList" required>
                                           <datalist id="customerList">
                                               @foreach ($kontak as $data)
-                                                  <option value="{{ $data->customer }}" data-company="{{ $data->perusahaan }}" data-phone="{{ $data->no_telepon }}">{{ $data->customer }}</option>
+                                                  <option value="{{ $data->customer }}" data-company="{{ $data->perusahaan }}" data-phone="{{ $data->no_telepon }}" data-npwp="{{ $data->npwp ?? '' }}">{{ $data->customer }}</option>
                                               @endforeach
                                           </datalist>
                                           @error('pelanggan')
@@ -375,6 +375,18 @@ $(document).ready(function () {
                                   </div>
 
                                   <div class="row mb-3" style="margin-top: -10px;">
+                                       <div class="col-lg-5">
+                                           <label for="npwp" class="form-label col-form-label col-form-label-md">NPWP</label>
+                                       </div>
+                                       <div class="col-lg-7">
+                                           <input type="text" class="form-control @error('npwp') is-invalid @enderror" id="npwp" name="npwp" placeholder="Contoh: 01.234.567.8-901.000" value="{{ old('npwp') }}" maxlength="50">
+                                           @error('npwp')
+                                               <div class="invalid-feedback">{{ $message }}</div>
+                                           @enderror
+                                       </div>
+                                   </div>
+
+                                   <div class="row mb-3" style="margin-top: -10px;">
                                       <div class="col-lg-5">
                                           <label for="phone-number" class="form-label col-form-label col-form-label-md">Nomor Telepon <span class="text-danger">*</span></label>
                                       </div>
@@ -730,6 +742,10 @@ $(document).ready(function () {
                        if (option.value === selectedOption) {
                            document.getElementById('usaha').value = option.getAttribute('data-company');
                            document.getElementById('phone-number').value = option.getAttribute('data-phone');
+                            var npwpVal = option.getAttribute('data-npwp');
+                            if (npwpVal && document.getElementById('npwp')) {
+                                document.getElementById('npwp').value = npwpVal;
+                            }
                            break;
                        }
                    }

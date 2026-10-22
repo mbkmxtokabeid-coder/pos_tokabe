@@ -12,6 +12,7 @@ use App\Models\Barang;
 use App\Models\PenjualanJasaTokabe;
 use App\Models\Rekening;
 use App\Models\Material;
+use App\Models\InvoiceApprovalRequest;
 use Carbon\Carbon;
 use DateTimezone;
 
@@ -975,7 +976,7 @@ class PenjualanTokabeController extends Controller
         }
         $jenisBarang = $catalogItems;
 
-        $kontak = PenjualanTokabe::select('customer', 'no_telepon', 'perusahaan')->get();
+        $kontak = PenjualanTokabe::select('customer', 'no_telepon', 'perusahaan', 'npwp')->whereNotNull('customer')->get();
         try {
             $rekenings = Rekening::where('status', 'Aktif')->get();
         } catch (\Throwable $e) {
@@ -1013,7 +1014,7 @@ class PenjualanTokabeController extends Controller
         }
         $jenisBarang = $catalogItems;
 
-        $kontak = PenjualanTokabe::select('customer', 'no_telepon', 'perusahaan')->get();
+        $kontak = PenjualanTokabe::select('customer', 'no_telepon', 'perusahaan', 'npwp')->whereNotNull('customer')->get();
         try {
             $rekenings = Rekening::where('status', 'Aktif')->get();
         } catch (\Throwable $e) {
@@ -1074,6 +1075,7 @@ class PenjualanTokabeController extends Controller
     {
         $rules = [
             'pelanggan'   => ['required', 'string', 'max:255'],
+            'npwp'        => ['nullable', 'string', 'max:50'],
             'tlp'         => ['required', 'string', 'max:50'],
             'adm'         => ['required'],
             'order'       => ['required', 'string'],
@@ -1285,6 +1287,11 @@ class PenjualanTokabeController extends Controller
 
         $existingPenjualan->total_pembayaran = $tot_pem;
         $existingPenjualan->sisa_pembayaran = $sisa_pem;
+        $existingPenjualan->npwp = $request->filled('npwp') ? trim($request->input('npwp')) : null;
+        $existingPenjualan->no_faktur_pajak = null;
+        $existingPenjualan->faktur_pajak_status = 'Belum Diisi';
+        $existingPenjualan->approval = 'Lock';
+        $existingPenjualan->approved_at = null;
         if ($request->filled('is_custom')) {
             $existingPenjualan->is_custom = 1;
         }
@@ -1370,6 +1377,11 @@ class PenjualanTokabeController extends Controller
 
         $penjualan->total_pembayaran = $tot_pem;
         $penjualan->sisa_pembayaran = $sisa_pem;
+        $penjualan->npwp = $request->filled('npwp') ? trim($request->input('npwp')) : null;
+        $penjualan->no_faktur_pajak = null;
+        $penjualan->faktur_pajak_status = 'Belum Diisi';
+        $penjualan->approval = 'Lock';
+        $penjualan->approved_at = null;
         $penjualan->is_custom = $request->filled('is_custom') ? 1 : 0;
         $penjualan->save();
 
@@ -1577,15 +1589,31 @@ class PenjualanTokabeController extends Controller
         } catch (\Throwable $e) {
             $rekenings = collect();
         }
+        $isOwner = Auth::check() && Auth::user()->role === 'Pemilik';
+        $isAdmin = Auth::check() && Auth::user()->role === 'Admin';
+        $isLocked = ($inv->approval !== 'Unlock') && !$isOwner;
+        $latestApprovalRequest = $inv->latestApprovalRequest;
+
         // Material untuk form edit
-        return view('pages.invoices.tokabe.edit-invoicesTokabe', compact('inv', 'jam', 'nomor_unik', 'perusahaan', 'admin', 'order', 'sales', 'jenisBarang', 'items', 'nama_adm', 'barang', 'invoice', 'penjualan_barang', 'rekenings'));
+        return view('pages.invoices.tokabe.edit-invoicesTokabe', compact('inv', 'jam', 'nomor_unik', 'perusahaan', 'admin', 'order', 'sales', 'jenisBarang', 'items', 'nama_adm', 'barang', 'invoice', 'penjualan_barang', 'rekenings', 'isLocked', 'isOwner', 'isAdmin', 'latestApprovalRequest'));
     }
 
     public function updateInvoice(Request $request, $id)
     {
+        $penjualan = PenjualanTokabe::findOrFail($id);
+        if (Auth::check() && Auth::user()->role === 'Admin' && $penjualan->approval !== 'Unlock') {
+            Alert::error('Akses Ditolak', 'Invoice berstatus Terkunci. Anda harus meminta izin/approval Owner terlebih dahulu.');
+            if ($penjualan->is_custom == 1) {
+                return redirect()->route('list_invoice_tokabe_custom');
+            }
+            return redirect()->route('list_invoice_tokabe');
+        }
+
         // 1. VALIDASI INPUT TERLEBIH DAHULU (Penting agar data tidak hilang!)
         $request->validate([
             'item_id.*' => ['nullable', 'integer', 'exists:items,id'],
+            'npwp' => ['nullable', 'string', 'max:50'],
+            'no_faktur_pajak' => ['nullable', 'string', 'max:50'],
         ]);
         $selectedItems = $request->input('item_id', []) + $request->input('barang_id', []);
         if (!empty($selectedItems)) {
@@ -1600,7 +1628,6 @@ class PenjualanTokabeController extends Controller
             }
         }
         
-        $penjualan = PenjualanTokabe::find($id);
         $nmr_inv = $request->kode . $request->kodeUnik;
 
         $status = ($request->jns_pem == 'Cash Lunas' || $request->jns_pem == 'Transfer Lunas') ? 'Lunas' : 'Belum Lunas';
@@ -1693,22 +1720,22 @@ class PenjualanTokabeController extends Controller
         }
 
         // 3. SIMPAN PENJUALAN
-        $penjualan->invoice = $request->inv;
-        $penjualan->nomor_invoice = $nmr_inv;
-        $penjualan->tgl_penjualan = $tanggalPenjualan;
-        $penjualan->customer = $request->pelanggan;
-        $penjualan->perusahaan = $request->perusahaan;
-        $penjualan->no_telepon = $request->tlp;
-        $penjualan->admin = $request->adm;
-        $penjualan->order_by = $request->order;
-        $penjualan->nama_sales = $request->sales;
-        $penjualan->tgl_selesai = $request->tgl_selesai;
-        $penjualan->jumlah_item = $item;
+        $penjualan->invoice = $request->input('inv', $penjualan->invoice ?? 5);
+        $penjualan->nomor_invoice = !empty(trim($nmr_inv)) ? $nmr_inv : $penjualan->nomor_invoice;
+        $penjualan->tgl_penjualan = !empty($request->tgl_jual) ? $tanggalPenjualan : $penjualan->tgl_penjualan;
+        $penjualan->customer = $request->input('pelanggan', $penjualan->customer);
+        $penjualan->perusahaan = $request->input('perusahaan', $penjualan->perusahaan);
+        $penjualan->no_telepon = $request->input('tlp', $penjualan->no_telepon);
+        $penjualan->admin = $request->input('adm', $penjualan->admin);
+        $penjualan->order_by = $request->input('order', $penjualan->order_by);
+        $penjualan->nama_sales = $request->input('sales', $penjualan->nama_sales);
+        $penjualan->tgl_selesai = $request->input('tgl_selesai', $penjualan->tgl_selesai);
+        $penjualan->jumlah_item = $item > 0 ? $item : $penjualan->jumlah_item;
         $penjualan->dp = $dp;
-        $penjualan->jenis_pembayaran = $request->jns_pem;
+        $penjualan->jenis_pembayaran = $request->input('jns_pem', $penjualan->jenis_pembayaran);
         $penjualan->no_rek = $norek;
-        $penjualan->total_harga = $tot_harga;
-        $penjualan->status = $status;
+        $penjualan->total_harga = $tot_harga > 0 ? $tot_harga : $penjualan->total_harga;
+        $penjualan->status = !empty($request->jns_pem) ? $status : $penjualan->status;
         
         $penjualan->ppn = $ppnVal;
         $penjualan->kode_ppn = $kodePpn;
@@ -1716,8 +1743,19 @@ class PenjualanTokabeController extends Controller
         $penjualan->diskon = null;
         $penjualan->potongan = null;
         
-        $penjualan->total_pembayaran = $tot_pem;
+        $penjualan->total_pembayaran = $tot_pem > 0 ? $tot_pem : $penjualan->total_pembayaran;
         $penjualan->sisa_pembayaran = $sisa_pem;
+        $penjualan->npwp = $request->filled('npwp') ? trim($request->input('npwp')) : $penjualan->npwp;
+
+        $fakturInput = trim((string)$request->input('no_faktur_pajak'));
+        if ($fakturInput !== '') {
+            $penjualan->no_faktur_pajak = $fakturInput;
+            $penjualan->faktur_pajak_status = 'Lengkap';
+        } else {
+            $penjualan->no_faktur_pajak = null;
+            $penjualan->faktur_pajak_status = 'Belum Diisi';
+        }
+        $penjualan->approval = 'Lock'; // Otomatis terkunci kembali secara permanen
         $penjualan->save();
         
         // 4. TAMBAHKAN ITEM BARU & POTONG STOK
@@ -1849,6 +1887,35 @@ class PenjualanTokabeController extends Controller
         }
     }
     
+    public function requestEditFaktur(Request $request, $id)
+    {
+        $inv = PenjualanTokabe::findOrFail($id);
+        $user = Auth::user();
+
+        $approvalRequest = InvoiceApprovalRequest::updateOrCreate(
+            [
+                'invoice_id' => $inv->id,
+                'status' => 'Pending',
+            ],
+            [
+                'user_id' => $user->id,
+                'tipe_request' => 'edit_faktur_pajak',
+                'catatan_admin' => $request->input('catatan', 'Permintaan izin buka kunci (unlock) invoice untuk pengisian Nomor Faktur Pajak.'),
+            ]
+        );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "Permintaan akses edit untuk invoice #{$inv->nomor_invoice} berhasil diajukan kepada Owner.",
+                'data' => $approvalRequest,
+            ]);
+        }
+
+        Alert::success('Berhasil', "Permintaan akses edit untuk invoice #{$inv->nomor_invoice} telah diajukan kepada Owner.");
+        return redirect()->back();
+    }
+
     public function unlock($id)
     {
         if (!auth()->check() || auth()->user()->role !== 'Pemilik') {
@@ -1862,7 +1929,19 @@ class PenjualanTokabeController extends Controller
         }
         $inv->approval = 'Unlock';
         $inv->approved_at = now();
+        $inv->approved_by = Auth::id();
         $inv->save();
+
+        // Update pending approval request jika ada
+        InvoiceApprovalRequest::where('invoice_id', $inv->id)
+            ->where('status', 'Pending')
+            ->update([
+                'status' => 'Approved',
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+                'catatan_owner' => 'Disetujui oleh Owner untuk pengisian Nomor Faktur Pajak.',
+            ]);
+
         $this->clearTokabeCaches($inv->tgl_penjualan);
         Alert::success('Invoice Tokabe berhasil di-Unlock');
         if ($inv->is_custom == 1) {
@@ -1895,11 +1974,12 @@ class PenjualanTokabeController extends Controller
         $invoice = PenjualanTokabe::findOrFail($id);
         $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
         $invoice->formatted_total_pembayaran = number_format($invoice->total_pembayaran, 0, ',', '.');
+        $latestRequest = $invoice->latestApprovalRequest;
         $barang = [];
         foreach ($penjualan_barang as $item) {
             $barang[] = $this->productForInvoiceLine($item);
         }
-        return view('pages.invoices.tokabe.approval', compact('invoice', 'penjualan_barang', 'barang'));
+        return view('pages.invoices.tokabe.approval', compact('invoice', 'penjualan_barang', 'barang', 'latestRequest'));
     }
 
     public function pelunasanPage($id)

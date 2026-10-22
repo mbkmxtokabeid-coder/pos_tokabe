@@ -96,6 +96,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/cetakTKB/{id}', [PenjualanTokabeController::class, 'cetakInvoiceTKB'])->name('cetak.inv.tkb');
             Route::get('/get-invoice-number', [PenjualanTokabeController::class, 'getUpdatedInvoiceNumber']);
             Route::get('/invoice/get-invoice-number', [PenjualanTokabeController::class, 'getUpdatedInvoiceNumber']);
+            Route::post('/tokabe/request-edit-faktur/{id}', [PenjualanTokabeController::class, 'requestEditFaktur'])->name('tokabe.request.edit_faktur');
 
             // TOKABE APPROVAL & PELUNASAN (HANYA PEMILIK)
             Route::post('/ubah-status-unlock-tokabe/{id}', [PenjualanTokabeController::class, 'unlock'])->middleware('role:Pemilik')->name('tokabe.unlock');
