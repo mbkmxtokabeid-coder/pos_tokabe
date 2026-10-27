@@ -316,8 +316,11 @@ $(document).ready(function () {
                                       <div class="col-lg-4">
                                           <input type="text" class="form-control bg-light border-0 flatpickr-input" id="date-field" name="tgl_jual" data-provider="flatpickr" value="{{ $hariIni }}" readonly="readonly">
                                       </div>
-                                      <div class="col-lg-6">
-                                          <input type="text" class="form-control bg-light border-0" placeholder="H:i" name="jam" value="{{ $formatJam }}" readonly="readonly">
+                                      <div class="col-lg-5">
+                                          <div class="input-group">
+                                              <input type="text" class="form-control bg-light border-0" id="time-field" placeholder="HH:mm" name="jam" value="{{ old('jam', $formatJam) }}" title="Jam transaksi (dapat diedit bebas)">
+                                              <span class="input-group-text bg-light border-0 text-muted"><i class="ri-time-line"></i></span>
+                                          </div>
                                       </div>
                                   </div>
                                         {{-- </div> --}}
@@ -617,12 +620,13 @@ $(document).ready(function () {
                                      </div>
                                    </div>
                                    {{-- Input untuk Dp --}}
-                                   <div class="row mb-1"  >
+                                   <div class="row mb-1" id="div-dp-row">
                                      <div class="col-lg-4" id="div-label" style="display: none" >
                                        <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp <span class="text-danger">*</span></label>
                                      </div>
                                        <div class="col-lg-6" id="dp" style="display: none;">
-                                         <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }' class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ old('dp') }}">
+                                         <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand", "numeralDecimalScale": 0, "numeralPositiveOnly": true }' class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ old('dp') }}">
+                                         <small class="text-muted d-block mt-1"><i class="ri-information-line me-1"></i>Default 70%, dapat diedit manual jika negosiasi</small>
                                        </div>
                                      </div>
                                      {{-- End Input --}}
@@ -761,6 +765,18 @@ $(document).ready(function () {
             @if(old('tgl_selesai'))
             defaultDate: "{{ old('tgl_selesai') }}"
             @endif
+        });
+      }
+
+      let timeField = document.getElementById("time-field");
+      if (timeField && !timeField._flatpickr) {
+        flatpickr(timeField, {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            allowInput: true,
+            defaultDate: timeField.value || "{{ $formatJam }}"
         });
       }
     });

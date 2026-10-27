@@ -99,7 +99,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/tokabe/request-edit-faktur/{id}', [PenjualanTokabeController::class, 'requestEditFaktur'])->name('tokabe.request.edit_faktur');
 
             // TOKABE APPROVAL & PELUNASAN (HANYA PEMILIK)
-            Route::post('/ubah-status-unlock-tokabe/{id}', [PenjualanTokabeController::class, 'unlock'])->middleware('role:Pemilik')->name('tokabe.unlock');
+            Route::match(['get', 'post'], '/ubah-status-unlock-tokabe/{id}', [PenjualanTokabeController::class, 'unlock'])->middleware('role:Pemilik')->name('tokabe.unlock');
             Route::get('/ubah-status-lock-tokabe/{id}', [PenjualanTokabeController::class, 'lock'])->middleware('role:Pemilik')->name('tokabe.lock');
             Route::get('/tokabe-approval/{id}', [PenjualanTokabeController::class, 'approvalPage'])->middleware('role:Pemilik')->name('tokabe.approval.page');
             Route::get('/tokabe-pelunasan/{id}', [PenjualanTokabeController::class, 'pelunasanPage'])->middleware('role:Pemilik')->name('tokabe.pelunasan.page');

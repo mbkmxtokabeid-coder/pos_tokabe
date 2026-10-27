@@ -1206,7 +1206,12 @@ class PenjualanTokabeController extends Controller
     }
 
     $status = ($request->jns_pem == 'Cash Lunas' || $request->jns_pem == 'Transfer Lunas') ? 'Lunas' : 'Belum Lunas';
-    $tanggalPenjualan = $request->tgl_jual . ":" . $request->jam;
+    $tgl = trim(explode(' ', $request->tgl_jual)[0]);
+    $jam = trim($request->jam ?: date('H:i'));
+    if (strlen($jam) === 5) {
+        $jam .= ':00';
+    }
+    $tanggalPenjualan = $tgl . ' ' . $jam;
     $item = count($request->input('item_id', $request->input('barang_id', [])));
     $sisa = ($request->jns_pem == 'Cash Lunas' || $request->jns_pem == 'Transfer Lunas') ? 0 : $request->sisa_pem;
     
@@ -1561,7 +1566,7 @@ class PenjualanTokabeController extends Controller
             }
             $items = Item::orderBy('nama_item')->get();
         }
-        $jam = substr($inv->tgl_penjualan, 11, 5);
+        $jam = (!empty($inv->tgl_penjualan) && strlen($inv->tgl_penjualan) >= 16) ? substr($inv->tgl_penjualan, 11, 5) : date('H:i');
         $nomor_unik = $inv->nomor_invoice;
         $perusahaan = $inv->perusahaan;
         $nama_adm = $admin_now->nama;
@@ -1631,19 +1636,24 @@ class PenjualanTokabeController extends Controller
         $nmr_inv = $request->kode . $request->kodeUnik;
 
         $status = ($request->jns_pem == 'Cash Lunas' || $request->jns_pem == 'Transfer Lunas') ? 'Lunas' : 'Belum Lunas';
-        $tanggalPenjualan = $request->tgl_jual . ":" . $request->jam;
+        $tgl = !empty($request->tgl_jual) ? trim(explode(' ', $request->tgl_jual)[0]) : substr($penjualan->tgl_penjualan, 0, 10);
+        $jam = trim($request->jam ?: (substr($penjualan->tgl_penjualan, 11, 5) ?: date('H:i')));
+        if (strlen($jam) === 5) {
+            $jam .= ':00';
+        }
+        $tanggalPenjualan = $tgl . ' ' . $jam;
         $item = count($selectedItems);
 
-        $tot_harga = intval(str_replace(',', '', $request->tot_harga));
-        $tot_pem = intval(str_replace(',', '', $request->tot_pem));
-        $dp = intval(str_replace(',', '', $request->dp));
+        $tot_harga = intval(preg_replace('/[^0-9]/', '', $request->tot_harga ?? '0'));
+        $tot_pem = intval(preg_replace('/[^0-9]/', '', $request->tot_pem ?? '0'));
+        $dp = intval(preg_replace('/[^0-9]/', '', $request->dp ?? '0'));
         
         $sisa_pemb = $request->sisa_pem;
 
         if ($request->jns_pem == 'Cash Lunas' || $request->jns_pem == 'Transfer Lunas') {
-            $sisa_pemb =  0;
+            $sisa_pemb = 0;
         }
-        $sisa_pem = intval(str_replace(',', '', $sisa_pemb));
+        $sisa_pem = intval(preg_replace('/[^0-9]/', '', (string)$sisa_pemb));
 
         if(!$request->norek){
             $norek = 'TKB';
@@ -1722,7 +1732,7 @@ class PenjualanTokabeController extends Controller
         // 3. SIMPAN PENJUALAN
         $penjualan->invoice = $request->input('inv', $penjualan->invoice ?? 5);
         $penjualan->nomor_invoice = !empty(trim($nmr_inv)) ? $nmr_inv : $penjualan->nomor_invoice;
-        $penjualan->tgl_penjualan = !empty($request->tgl_jual) ? $tanggalPenjualan : $penjualan->tgl_penjualan;
+        $penjualan->tgl_penjualan = (!empty($request->tgl_jual) || !empty($request->jam)) ? $tanggalPenjualan : $penjualan->tgl_penjualan;
         $penjualan->customer = $request->input('pelanggan', $penjualan->customer);
         $penjualan->perusahaan = $request->input('perusahaan', $penjualan->perusahaan);
         $penjualan->no_telepon = $request->input('tlp', $penjualan->no_telepon);
@@ -1944,10 +1954,13 @@ class PenjualanTokabeController extends Controller
 
         $this->clearTokabeCaches($inv->tgl_penjualan);
         Alert::success('Invoice Tokabe berhasil di-Unlock');
-        if ($inv->is_custom == 1) {
-            return redirect()->route('list_invoice_tokabe_custom');
+
+        $targetRoute = ($inv->is_custom == 1) ? route('list_invoice_tokabe_custom') : route('list_invoice_tokabe');
+        $referer = request()->headers->get('referer');
+        if ($referer && !str_contains($referer, 'tokabe-approval') && !str_contains($referer, 'ubah-status-unlock-tokabe')) {
+            return redirect()->back();
         }
-        return redirect()->route('list_invoice_tokabe');
+        return redirect($targetRoute);
     }
 
     public function lock($id)

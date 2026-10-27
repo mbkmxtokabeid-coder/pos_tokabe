@@ -120,8 +120,11 @@
                                           <div class="col-lg-4">
                                             <input type="text" class="form-control bg-light border-0 flatpickr-input" id="date-field" name="tgl_jual" data-provider="flatpickr" value="{{$inv->tgl_penjualan}}" readonly>
                                           </div>
-                                          <div class="col-lg-6">
-                                            <input type="text" class="form-control bg-light border-0" placeholder="H:i" name="jam" value="{{$jam}}" readonly="readonly">
+                                          <div class="col-lg-5">
+                                            <div class="input-group">
+                                              <input type="text" class="form-control bg-light border-0" id="time-field" placeholder="HH:mm" name="jam" value="{{ $jam }}" title="Jam transaksi (dapat diedit bebas)">
+                                              <span class="input-group-text bg-light border-0 text-muted"><i class="ri-time-line"></i></span>
+                                            </div>
                                           </div>
 
                                         </div>
@@ -189,7 +192,8 @@
                                                @enderror
                                            </div>
                                        </div>
-
+
+
                                        {{-- Start No.Telepon --}}
                                       <div class="row mb-3" style="margin-top: -10px;">
                                        <div class="col-lg-5">
@@ -468,16 +472,17 @@
                                       </div>
                                     </div>
                                     {{-- Input untuk Dp --}}
-                                    <div class="row mb-1"  >
-                                      <div class="col-lg-4" id="div-label" style="display: block" >
-                                        <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp</label>
+                                    <div class="row mb-1" id="div-dp-row">
+                                      <div class="col-lg-4" id="div-label" style="display: {{ ($inv->jns_pem === 'Transfer DP' || $inv->jns_pem === 'Cash Belum Lunas') ? 'block' : 'none' }};" >
+                                        <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp <span class="text-danger">*</span></label>
                                       </div>
-                                      <div class="col-lg-6" id="dp" style="display: block;">
+                                      <div class="col-lg-6" id="dp" style="display: {{ ($inv->jns_pem === 'Transfer DP' || $inv->jns_pem === 'Cash Belum Lunas') ? 'block' : 'none' }};">
                                         @if (!empty($inv->dp))
-                                          <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }'  class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ $inv->dp }}">
+                                          <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand", "numeralDecimalScale": 0, "numeralPositiveOnly": true }'  class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ $inv->dp }}">
                                         @else
-                                          <input id="input-dp" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }' name="dp" type="text" class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000">
+                                          <input id="input-dp" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand", "numeralDecimalScale": 0, "numeralPositiveOnly": true }' name="dp" type="text" class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000">
                                         @endif
+                                        <small class="text-muted d-block mt-1"><i class="ri-information-line me-1"></i>Default 70%, dapat diedit manual jika negosiasi</small>
                                       </div>
 
                                       </div>
@@ -642,6 +647,18 @@
                 @if(!empty($inv->tgl_selesai))
                 defaultDate: "{{ $inv->tgl_selesai }}",
                 @endif
+            });
+        }
+
+        let timeField = document.getElementById("time-field");
+        if (timeField && !timeField._flatpickr) {
+            flatpickr(timeField, {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true,
+                allowInput: true,
+                defaultDate: timeField.value || "{{ $jam }}"
             });
         }
     });

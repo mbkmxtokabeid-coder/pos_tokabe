@@ -47,6 +47,8 @@
                 adm: $('[name="adm"]').val() || '',
                 order: $('[name="order"]').val() || '',
                 sales: $('[name="sales"]').val() || '',
+                tgl_jual: $('[name="tgl_jual"]').val() || '',
+                jam: $('[name="jam"]').val() || '',
                 tgl_selesai: $('[name="tgl_selesai"]').val() || '',
                 jns_pem: $('[name="jns_pem"]').val() || '',
                 norek: $('[name="norek"]:checked').val() || '',
@@ -128,6 +130,22 @@
             $('[name="sales"]').val(header.sales);
             if ($('#divSales').length) $('#divSales').show();
         }
+        if (header.tgl_jual) {
+            var dateField = document.getElementById("date-field");
+            if (dateField && dateField._flatpickr) {
+                dateField._flatpickr.setDate(header.tgl_jual, true);
+            } else {
+                $('[name="tgl_jual"]').val(header.tgl_jual);
+            }
+        }
+        if (header.jam) {
+            var timeField = document.getElementById("time-field");
+            if (timeField && timeField._flatpickr) {
+                timeField._flatpickr.setDate(header.jam, true);
+            } else {
+                $('[name="jam"]').val(header.jam);
+            }
+        }
         if (header.tgl_selesai) $('[name="tgl_selesai"]').val(header.tgl_selesai);
         if (header.jns_pem) $('[name="jns_pem"]').val(header.jns_pem).trigger('change');
         if (header.norek) $('[name="norek"][value="' + header.norek + '"]').prop('checked', true);
@@ -142,6 +160,7 @@
             $('#input-pph').val(header.pph).trigger('input');
         }
         if (header.dp) {
+            window.userEditedDp = true;
             $('#input-dp').val(header.dp).trigger('input');
         }
 

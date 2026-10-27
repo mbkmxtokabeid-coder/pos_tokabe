@@ -1,66 +1,106 @@
-function autoCalc(v) {
+function parseNumber(val) {
+  if (!val) return 0;
+  if (typeof val === 'number') return val;
+  var cleaned = val.toString().replace(/[^0-9]/g, '');
+  var num = parseInt(cleaned, 10);
+  return isNaN(num) ? 0 : num;
+}
 
+function formatNumber(num) {
+  if (isNaN(num) || num === null || num === undefined) return '0';
+  return Math.round(num).toLocaleString('en-US');
+}
+
+function autoCalc(v) {
   var row = v.closest('tr');
   var index = Array.from(row.parentNode.children).indexOf(row) + 1;
 
-
-  var harga = document.getElementById('productRate-' + index).value;
-  var unformattedHarga = parseFloat(harga.replace(/,/g, ''));
-  var qty = parseFloat(document.getElementById('product-qty-' + index).value);
+  var hargaElem = document.getElementById('productRate-' + index);
+  var unformattedHarga = hargaElem ? parseNumber(hargaElem.value) : 0;
+  var qtyElem = document.getElementById('product-qty-' + index);
+  var qty = qtyElem ? parseFloat(qtyElem.value) : 0;
 
   if (!isNaN(unformattedHarga) && !isNaN(qty)) {
-    var jumlah = unformattedHarga * qty;
-    document.getElementById('productPrice-' + index).value = jumlah.toLocaleString();
+    var jumlah = Math.round(unformattedHarga * qty);
+    var priceElem = document.getElementById('productPrice-' + index);
+    if (priceElem) {
+      priceElem.value = formatNumber(jumlah);
+    }
     getTotal();
   }
 }
+
 function getTotal() {
   var sum = 0;
   var semuaHarga = document.querySelectorAll('[id^="productPrice-"]');
 
   for (let i = 0; i < semuaHarga.length; i++) {
-    const harga = parseFloat(semuaHarga[i].value.replace(/,/g, ''));
-    if (!isNaN(harga)) {
-      sum += harga;
-    }
+    const harga = parseNumber(semuaHarga[i].value);
+    sum += harga;
   }
 
-  document.getElementById('total-harga').value = sum.toLocaleString();
-  document.getElementById('total-pembelian').value = sum.toLocaleString();
-  dP();
-  totalPembayaran()
-  sisaPembayaran();
+  var roundedSum = Math.round(sum);
+  var totalHargaElem = document.getElementById('total-harga');
+  if (totalHargaElem) {
+    totalHargaElem.value = formatNumber(roundedSum);
+  }
+
+  totalPembayaran();
+}
+
+window.userEditedDp = false;
+var dpInputInit = document.getElementById('input-dp');
+if (dpInputInit) {
+  var initVal = parseNumber(dpInputInit.value);
+  if (initVal > 0) {
+    window.userEditedDp = true;
+  }
 }
 
 function dP() {
   var divLabel = document.getElementById("div-label");
   var divElement = document.getElementById("dp");
-  var totalHarga = parseFloat(document.getElementById('total-harga').value.replace(/,/g, ''));
-  var jnsPem = document.getElementById('choices-payment-type').value;
-  console.log(totalHarga);
-  if (totalHarga >= 500000) {
-    if (jnsPem == 'Cash Belum Lunas' || jnsPem == 'Transfer DP') {
-      divLabel.style.display = "block";
-      divElement.style.display = "block";
-    } else {
-      divLabel.style.display = "none";
-      divElement.style.display = "none";
+  var rowDp = document.getElementById("div-dp-row");
+  var paymentElem = document.getElementById('choices-payment-type');
+  var totalPemElem = document.getElementById('total-pembelian');
+  var totalHargaElem = document.getElementById('total-harga');
+  var dpInput = document.getElementById('input-dp');
+
+  if (!paymentElem || !divLabel || !divElement) return;
+
+  var jnsPem = paymentElem.value;
+  var totalTagihan = 0;
+  if (totalPemElem && totalPemElem.value) {
+    totalTagihan = parseNumber(totalPemElem.value);
+  }
+  if (totalTagihan <= 0 && totalHargaElem && totalHargaElem.value) {
+    totalTagihan = parseNumber(totalHargaElem.value);
+  }
+
+  if (jnsPem === 'Transfer DP' || jnsPem === 'Cash Belum Lunas') {
+    divLabel.style.display = "block";
+    divElement.style.display = "block";
+    if (rowDp) rowDp.style.display = "flex";
+
+    if (jnsPem === 'Transfer DP' && !window.userEditedDp && dpInput) {
+      var defaultDp = Math.round(totalTagihan * 0.7);
+      dpInput.value = formatNumber(defaultDp);
+      dpInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
   } else {
     divLabel.style.display = "none";
     divElement.style.display = "none";
+    if (rowDp) rowDp.style.display = "none";
+    if (dpInput && !window.userEditedDp) {
+      dpInput.value = '0';
+      dpInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   }
-  // sisaPembayaran();
 }
 
 function totalPembayaran() {
-  var total;
   var totalHargaElem = document.getElementById('total-harga');
-  var totalHargaVal = totalHargaElem ? totalHargaElem.value.replace(/,/g, '').trim() : '';
-  var totalHarga = parseFloat(totalHargaVal);
-  if (isNaN(totalHarga)) {
-    totalHarga = 0;
-  }
+  var totalHarga = totalHargaElem ? parseNumber(totalHargaElem.value) : 0;
 
   var inputPpn = document.getElementById('input-ppn');
   var inputPph = document.getElementById('input-pph');
@@ -71,17 +111,17 @@ function totalPembayaran() {
   var nominalPpn = (ppnPersen > 0) ? Math.round((ppnPersen / 100) * totalHarga) : 0;
   var nominalPph = (pphPersen > 0) ? Math.round((pphPersen / 100) * totalHarga) : 0;
 
-  total = Math.max(0, Math.round(totalHarga + nominalPpn - nominalPph));
+  var total = Math.max(0, Math.round(totalHarga + nominalPpn - nominalPph));
 
   var totalField = document.getElementById('total-pembelian');
   if (totalField) {
-    totalField.value = Math.round(total).toLocaleString();
+    totalField.value = formatNumber(total);
   }
 
   var ppnNominalLabel = document.getElementById('preview-nominal-ppn');
   if (ppnNominalLabel) {
     if (nominalPpn > 0) {
-      ppnNominalLabel.innerText = '+ Rp. ' + nominalPpn.toLocaleString('id-ID');
+      ppnNominalLabel.innerText = '+ Rp. ' + formatNumber(nominalPpn);
       ppnNominalLabel.style.display = 'block';
     } else {
       ppnNominalLabel.innerText = '';
@@ -92,7 +132,7 @@ function totalPembayaran() {
   var pphNominalLabel = document.getElementById('preview-nominal-pph');
   if (pphNominalLabel) {
     if (nominalPph > 0) {
-      pphNominalLabel.innerText = '- Rp. ' + nominalPph.toLocaleString('id-ID');
+      pphNominalLabel.innerText = '- Rp. ' + formatNumber(nominalPph);
       pphNominalLabel.style.display = 'block';
     } else {
       pphNominalLabel.innerText = '';
@@ -105,6 +145,7 @@ function totalPembayaran() {
     rowKodePpn.style.display = ppnPersen > 0 ? 'flex' : 'none';
   }
 
+  dP();
   sisaPembayaran();
 }
 
@@ -114,13 +155,11 @@ function sisaPembayaran() {
   var sisaPemElem = document.getElementById('sisa-pembayaran');
   if (!totalPemElem || !sisaPemElem) return;
 
-  var totalPem = parseFloat(totalPemElem.value.replace(/,/g, ''));
-  if (isNaN(totalPem)) totalPem = 0;
-  var dp = dpElem ? parseFloat(dpElem.value.replace(/,/g, '')) : 0;
-  if (isNaN(dp)) dp = 0;
+  var totalPem = parseNumber(totalPemElem.value);
+  var dp = dpElem ? parseNumber(dpElem.value) : 0;
 
-  var sisaPem = Math.max(0, totalPem - dp);
-  sisaPemElem.value = Math.round(sisaPem).toLocaleString();
+  var sisaPem = Math.max(0, Math.round(totalPem - dp));
+  sisaPemElem.value = formatNumber(sisaPem);
 }
 
 // Event listener
@@ -128,16 +167,29 @@ if (document.getElementById('total-pembelian')) {
   document.getElementById('total-pembelian').addEventListener('change', sisaPembayaran);
   document.getElementById('total-pembelian').addEventListener('input', sisaPembayaran);
 }
-if (document.getElementById('input-dp')) {
-  document.getElementById('input-dp').addEventListener('change', sisaPembayaran);
-  document.getElementById('input-dp').addEventListener('input', sisaPembayaran);
+if (dpInputInit) {
+  dpInputInit.addEventListener('input', function (e) {
+    if (e.isTrusted) {
+      window.userEditedDp = true;
+    }
+    sisaPembayaran();
+  });
+  dpInputInit.addEventListener('change', function (e) {
+    if (e.isTrusted) {
+      window.userEditedDp = true;
+    }
+    sisaPembayaran();
+  });
 }
 if (document.getElementById('total-harga')) {
   document.getElementById('total-harga').addEventListener('input', dP);
   document.getElementById('total-harga').addEventListener('change', dP);
 }
 if (document.getElementById('choices-payment-type')) {
-  document.getElementById('choices-payment-type').addEventListener('change', function() {
+  document.getElementById('choices-payment-type').addEventListener('change', function (e) {
+    if (e.isTrusted) {
+      window.userEditedDp = false;
+    }
     dP();
     sisaPembayaran();
   });

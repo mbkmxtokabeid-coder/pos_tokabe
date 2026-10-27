@@ -2330,28 +2330,24 @@
 
 
                                                   {{-- === OWNER: Lock langsung jika sudah Unlock === --}}
-
                                                   @if($isOwnerTkb && $inv->approval === 'Unlock')
-
                                                   <li>
-
                                                       <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="{{ route('tokabe.lock', $inv->id) }}">
-
-                                                          <i class="ri-lock-line" style="font-size:16px;flex-shrink:0;"></i>Lock
-
+                                                          <i class="ri-lock-line" style="font-size:16px;color:var(--warning,#F59E0B);flex-shrink:0;"></i>Lock Invoice
                                                       </a>
-
                                                   </li>
-
                                                   @endif
 
-
-
-                                                  {{-- === OWNER: Buka Kunci jika Lock === --}}
+                                                  {{-- === OWNER: Unlock Invoice & Halaman Approval jika Lock === --}}
                                                   @if($isOwnerTkb && $inv->approval !== 'Unlock')
                                                   <li>
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--success-text,#86EFAC);" href="{{ route('tokabe.approval.page', $inv->id) }}">
-                                                          <i class="ri-lock-unlock-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Buka Kunci (Unlock)
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--success-text,#86EFAC);" href="{{ route('tokabe.unlock', $inv->id) }}">
+                                                          <i class="ri-lock-unlock-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Unlock Invoice
+                                                      </a>
+                                                  </li>
+                                                  <li>
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="{{ route('tokabe.approval.page', $inv->id) }}">
+                                                          <i class="ri-shield-check-line" style="font-size:16px;color:var(--info,#06B6D4);flex-shrink:0;"></i>Halaman Approval
                                                       </a>
                                                   </li>
                                                   @endif

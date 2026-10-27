@@ -476,6 +476,35 @@
           border-top-color: #1e2227 !important;
       }
 
+      /* Flatpickr Timepicker Dark Theme */
+      .flatpickr-time {
+          background: #1e2227 !important;
+          border-top: 1px solid #383e45 !important;
+          line-height: 40px !important;
+          max-height: 40px !important;
+      }
+      .flatpickr-time .numInputWrapper input.flatpickr-hour,
+      .flatpickr-time .numInputWrapper input.flatpickr-minute {
+          color: #ffffff !important;
+          font-weight: 600 !important;
+      }
+      .flatpickr-time .flatpickr-time-separator {
+          color: #ffffff !important;
+      }
+      .flatpickr-time .numInputWrapper span.arrowUp:after {
+          border-bottom-color: #2b7a67 !important;
+      }
+      .flatpickr-time .numInputWrapper span.arrowDown:after {
+          border-top-color: #2b7a67 !important;
+      }
+      .flatpickr-time .numInputWrapper:hover {
+          background: #2c3238 !important;
+      }
+      .flatpickr-calendar.hasTime.noCalendar {
+          width: 160px !important;
+          padding: 4px 0 !important;
+      }
+
       /* =========================================================
          ULTRA-SMOOTH SHADCN THEMED SIDEBAR STYLING
          ========================================================= */
