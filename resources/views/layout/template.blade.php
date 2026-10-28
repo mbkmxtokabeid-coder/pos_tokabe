@@ -143,9 +143,11 @@
       }
 
       /* ========================================================================= */
-      /* SWEETALERT2 DARK THEME — DESIGN.md §15.3 & §4.1                          */
+      /* SWEETALERT2 DARK THEME — MODALS & TOASTS (DESIGN.md §15.3 & §4.1)         */
       /* ========================================================================= */
-      .swal2-container {
+      
+      /* --- Modal Container (Non-Toast) --- */
+      body:not(.swal2-toast-shown) .swal2-container:not(.swal2-top-end):not(.swal2-top-right):not(:has(.swal2-toast)) {
           position: fixed !important;
           top: 0 !important;
           left: 0 !important;
@@ -157,11 +159,20 @@
           align-items: center !important;
           justify-content: center !important;
           z-index: 100000 !important;
-          background-color: rgba(0, 0, 0, 0.7) !important;
-          backdrop-filter: blur(2px) !important;
+          background-color: rgba(0, 0, 0, 0.72) !important;
+          backdrop-filter: blur(4px) !important;
+          -webkit-backdrop-filter: blur(4px) !important;
           overflow-y: auto !important;
       }
-      .swal2-popup {
+
+      /* Fallback selector for centered modal container */
+      .swal2-container.swal2-center:not(:has(.swal2-toast)) {
+          background-color: rgba(0, 0, 0, 0.72) !important;
+          backdrop-filter: blur(4px) !important;
+          -webkit-backdrop-filter: blur(4px) !important;
+      }
+
+      body:not(.swal2-toast-shown) .swal2-popup:not(.swal2-toast) {
           margin: auto !important;
           position: relative !important;
           background-color: #161B22 !important;
@@ -169,17 +180,20 @@
           color: #F8F9FA !important;
           border: 1px solid #2D333B !important;
           border-radius: 16px !important;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 8px 16px -4px rgba(0, 0, 0, 0.5) !important;
           padding: 24px !important;
+          max-width: 460px !important;
+          width: 90% !important;
       }
-      .swal2-title {
+
+      .swal2-popup:not(.swal2-toast) .swal2-title {
           color: #F8F9FA !important;
           font-size: 18px !important;
           font-weight: 600 !important;
           margin-top: 12px !important;
           margin-bottom: 8px !important;
       }
-      .swal2-html-container {
+      .swal2-popup:not(.swal2-toast) .swal2-html-container {
           color: #CBD5E1 !important;
           font-size: 14px !important;
           line-height: 1.5 !important;
@@ -249,8 +263,8 @@
           border-color: rgba(16, 185, 129, 0.3) !important;
       }
       .swal2-icon.swal2-info {
-          border-color: #6366F1 !important;
-          color: #6366F1 !important;
+          border-color: #38BDF8 !important;
+          color: #38BDF8 !important;
       }
       .swal2-textarea,
       .swal2-input {
@@ -267,24 +281,186 @@
           box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
           outline: none !important;
       }
-      .swal2-toast {
-          background-color: #1E293B !important;
-          color: #F1F5F9 !important;
-          border: 1px solid #334155 !important;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
-          border-radius: 10px !important;
-          padding: 12px 16px !important;
+
+      /* --- SweetAlert2 Toast Container (Non-blocking, Floating Top-Right) --- */
+      body.swal2-toast-shown,
+      html.swal2-toast-shown {
+          overflow: auto !important;
       }
-      .swal2-toast .swal2-title {
-          color: #F1F5F9 !important;
+      body.swal2-toast-shown .swal2-container,
+      .swal2-container.swal2-top-end,
+      .swal2-container.swal2-top-right,
+      .swal2-container:has(.swal2-toast) {
+          position: fixed !important;
+          top: 24px !important;
+          right: 24px !important;
+          bottom: auto !important;
+          left: auto !important;
+          width: auto !important;
+          height: auto !important;
+          max-width: calc(100vw - 32px) !important;
+          background: transparent !important;
+          background-color: transparent !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          pointer-events: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: flex-end !important;
+          justify-content: flex-start !important;
+          padding: 0 !important;
+          overflow: visible !important;
+          z-index: 100000 !important;
+      }
+
+      /* --- SweetAlert2 Premium Toast Card Styling --- */
+      .swal2-popup.swal2-toast {
+          pointer-events: auto !important;
+          width: 390px !important;
+          max-width: calc(100vw - 32px) !important;
+          margin: 0 0 10px 0 !important;
+          padding: 14px 18px 16px 16px !important;
+          background: #181d24 !important;
+          background-color: #181d24 !important;
+          color: #F8FAFC !important;
+          border: 1px solid rgba(255, 255, 255, 0.08) !important;
+          border-left: 4px solid #38BDF8 !important;
+          border-radius: 12px !important;
+          box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+          backdrop-filter: blur(14px) !important;
+          -webkit-backdrop-filter: blur(14px) !important;
+          display: grid !important;
+          grid-template-columns: auto 1fr auto !important;
+          align-items: start !important;
+          column-gap: 12px !important;
+          row-gap: 4px !important;
+          box-sizing: border-box !important;
+          animation: swal2ToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+          transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+          position: relative !important;
+          overflow: hidden !important;
+      }
+
+      .swal2-popup.swal2-toast:hover {
+          transform: translateY(-2px) !important;
+          box-shadow: 0 20px 42px -6px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(0, 0, 0, 0.5) !important;
+      }
+
+      /* Toast Icon */
+      .swal2-popup.swal2-toast .swal2-icon {
+          width: 28px !important;
+          height: 28px !important;
+          min-width: 28px !important;
+          margin: 0 !important;
+          border-width: 2px !important;
+          border-radius: 50% !important;
+          grid-column: 1 !important;
+          grid-row: 1 / span 2 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+      }
+      .swal2-popup.swal2-toast .swal2-icon .swal2-icon-content {
+          font-size: 15px !important;
+          line-height: 26px !important;
+          font-weight: 700 !important;
+      }
+
+      /* Toast Typography */
+      .swal2-popup.swal2-toast .swal2-title {
+          color: #FFFFFF !important;
           font-size: 14px !important;
           font-weight: 600 !important;
+          letter-spacing: -0.01em !important;
           margin: 0 !important;
+          padding: 0 !important;
+          text-align: left !important;
+          grid-column: 2 !important;
+          grid-row: 1 !important;
       }
-      .swal2-toast .swal2-html-container {
-          color: #CBD5E1 !important;
-          font-size: 13px !important;
-          margin: 4px 0 0 0 !important;
+
+      .swal2-popup.swal2-toast .swal2-html-container {
+          color: #94A3B8 !important;
+          font-size: 12.5px !important;
+          line-height: 1.45 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          text-align: left !important;
+          grid-column: 2 !important;
+          grid-row: 2 !important;
+      }
+
+      /* Toast Close Button */
+      .swal2-popup.swal2-toast .swal2-close {
+          position: static !important;
+          grid-column: 3 !important;
+          grid-row: 1 !important;
+          color: #94A3B8 !important;
+          font-size: 18px !important;
+          width: 22px !important;
+          height: 22px !important;
+          line-height: 22px !important;
+          padding: 0 !important;
+          margin: -2px -2px 0 0 !important;
+          border-radius: 6px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          background: transparent !important;
+          border: none !important;
+          transition: all 0.15s ease !important;
+          cursor: pointer !important;
+      }
+      .swal2-popup.swal2-toast .swal2-close:hover {
+          color: #FFFFFF !important;
+          background: rgba(255, 255, 255, 0.1) !important;
+      }
+
+      /* Toast Progress Bar */
+      .swal2-popup.swal2-toast .swal2-timer-progress-bar {
+          background: linear-gradient(90deg, #38BDF8, #60A5FA) !important;
+          height: 3px !important;
+          position: absolute !important;
+          bottom: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          border-radius: 0 0 12px 12px !important;
+      }
+
+      /* Icon-specific borders & progress bar colors */
+      .swal2-popup.swal2-toast:has(.swal2-success),
+      .swal2-popup.swal2-toast.swal2-icon-success {
+          border-left-color: #10B981 !important;
+      }
+      .swal2-popup.swal2-toast:has(.swal2-success) .swal2-timer-progress-bar {
+          background: linear-gradient(90deg, #10B981, #34D399) !important;
+      }
+
+      .swal2-popup.swal2-toast:has(.swal2-warning),
+      .swal2-popup.swal2-toast.swal2-icon-warning {
+          border-left-color: #F59E0B !important;
+      }
+      .swal2-popup.swal2-toast:has(.swal2-warning) .swal2-timer-progress-bar {
+          background: linear-gradient(90deg, #F59E0B, #FBBF24) !important;
+      }
+
+      .swal2-popup.swal2-toast:has(.swal2-error),
+      .swal2-popup.swal2-toast.swal2-icon-error {
+          border-left-color: #EF4444 !important;
+      }
+      .swal2-popup.swal2-toast:has(.swal2-error) .swal2-timer-progress-bar {
+          background: linear-gradient(90deg, #EF4444, #F87171) !important;
+      }
+
+      @keyframes swal2ToastSlideIn {
+          from {
+              opacity: 0;
+              transform: translateX(36px) scale(0.96);
+          }
+          to {
+              opacity: 1;
+              transform: translateX(0) scale(1);
+          }
       }
 
 

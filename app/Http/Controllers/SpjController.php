@@ -22,28 +22,33 @@ class SpjController extends Controller
     {
         
         
-       $spj = Spj::orderByDesc('tanggal_tugas')->get();// Ambil semua data SPJ
-        $now = Carbon::now();
+        $spj = Spj::orderByDesc('tanggal_tugas')->get(); // Ambil semua data SPJ
 
-         // Total biaya bulan ini
-        $totalBulanIni = Spj::whereYear('created_at', $now->year)
-            ->whereMonth('created_at', $now->month)
-            ->sum('biaya_bahan_bakar');
+        // Total biaya & jumlah SPJ yang sudah Terbayar (All-Time)
+        $totalTerbayar = Spj::where('status', 'Terbayar')->sum('biaya_bahan_bakar');
+        $jumlahTerbayar = Spj::where('status', 'Terbayar')->count();
 
-        // Total biaya tahun ini
-        $totalTahunIni = Spj::whereYear('created_at', $now->year)
-            ->sum('biaya_bahan_bakar');
+        // Total biaya & jumlah SPJ yang Belum Bayar (All-Time)
+        $totalBelumBayar = Spj::where('status', 'Belum Bayar')->sum('biaya_bahan_bakar');
+        $jumlahBelumBayar = Spj::where('status', 'Belum Bayar')->count();
 
-        // Jumlah SPJ bulan ini
-        $jumlahSpjBulanIni = Spj::whereYear('created_at', $now->year)
-            ->whereMonth('created_at', $now->month)
-            ->count();
+        // Alias variabel lama untuk kompatibilitas
+        $totalTahunIni = $totalTerbayar;
+        $jumlahSpjTahunIni = $jumlahTerbayar;
+        $totalBulanIni = $totalBelumBayar;
+        $jumlahSpjBulanIni = $jumlahBelumBayar;
 
-        // Jumlah SPJ tahun ini
-        $jumlahSpjTahunIni = Spj::whereYear('created_at', $now->year)
-            ->count();
-       
-        return view('pages.SPJ.daftar-spj', compact('spj','totalBulanIni', 'totalTahunIni', 'jumlahSpjBulanIni', 'jumlahSpjTahunIni'));
+        return view('pages.SPJ.daftar-spj', compact(
+            'spj',
+            'totalTerbayar',
+            'jumlahTerbayar',
+            'totalBelumBayar',
+            'jumlahBelumBayar',
+            'totalTahunIni',
+            'jumlahSpjTahunIni',
+            'totalBulanIni',
+            'jumlahSpjBulanIni'
+        ));
     }
 
     /**

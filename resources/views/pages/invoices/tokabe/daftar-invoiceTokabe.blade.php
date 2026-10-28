@@ -226,8 +226,8 @@
         margin: 0;
     }
 
-    /* Atur SweetAlert menjadi lebih besar dan muncul di tengah */
-    .swal2-container {
+    /* Atur SweetAlert modal menjadi muncul di tengah (tidak menimpa toast) */
+    body:not(.swal2-toast-shown) .swal2-container:not(.swal2-top-end):not(.swal2-top-right):not(:has(.swal2-toast)) {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -241,7 +241,7 @@
         z-index: 100000 !important;
     }
 
-    .swal2-popup {
+    body:not(.swal2-toast-shown) .swal2-popup:not(.swal2-toast) {
         margin: auto !important;
         max-width: 500px;
     }

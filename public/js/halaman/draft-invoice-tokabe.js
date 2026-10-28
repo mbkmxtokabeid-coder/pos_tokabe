@@ -229,16 +229,25 @@
         if (typeof totalPembayaran === 'function') totalPembayaran();
         if (typeof sisaPembayaran === 'function') sisaPembayaran();
 
-        // Show Toast Notice
+        // Show Modern Toast Notice
         if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'info',
-                title: 'Draf Dimuat Kembali',
-                text: 'Data inputan sebelumnya berhasil dimuat otomatis. Tekan "Reset Draf" jika ingin memulai dari awal.',
+            var Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
-                timer: 5000
+                showCloseButton: true,
+                timer: 4500,
+                timerProgressBar: true,
+                didOpen: function (toast) {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+
+            Toast.fire({
+                icon: 'info',
+                title: 'Draf Dimuat Kembali',
+                html: 'Data inputan sebelumnya berhasil dimuat otomatis. Tekan <b>Reset Draf</b> jika ingin memulai dari awal.'
             });
         }
     }

@@ -109,6 +109,12 @@
         --kpi-accent-border: rgba(56, 189, 248, 0.3);
         --kpi-accent-text: #7DD3FC;
     }
+    .kpi-card--amber {
+        --kpi-accent: #F59E0B;
+        --kpi-accent-subtle: rgba(245, 158, 11, 0.12);
+        --kpi-accent-border: rgba(245, 158, 11, 0.3);
+        --kpi-accent-text: #FCD34D;
+    }
 
     /* Primary Button: Tambah SPJ */
     .btn-create-spj {
@@ -368,39 +374,39 @@
 
     {{-- KPI Metric Cards (DESIGN.md §12.4 & §4.3) --}}
     <div class="row g-3 mb-4">
-      {{-- Card 1: Jumlah SPJ Terbayar Tahun Ini --}}
+      {{-- Card 1: Total SPJ Terbayar --}}
       <div class="col-xl-6 col-md-6">
         <div class="kpi-card kpi-card--emerald">
           <div class="kpi-card__body">
             <div class="kpi-card__header">
-              <p class="kpi-card__overline">Jumlah SPJ Terbayar Tahun {{ date('Y') }}</p>
+              <p class="kpi-card__overline">Total SPJ Terbayar</p>
               <div class="kpi-card__icon" aria-hidden="true">
                 <i class="ri-wallet-3-line"></i>
               </div>
             </div>
-            <p class="kpi-card__value">Rp {{ number_format($totalTahunIni, 0, ',', '.') }}</p>
+            <p class="kpi-card__value">Rp {{ number_format($totalTerbayar, 0, ',', '.') }}</p>
             <div class="kpi-card__footer">
-              <span class="kpi-badge">{{ $jumlahSpjTahunIni }} SPJ</span>
-              <p class="kpi-card__label">Total SPJ Terbayar Tahun Ini</p>
+              <span class="kpi-badge">{{ $jumlahTerbayar }} SPJ</span>
+              <p class="kpi-card__label">Total Biaya SPJ Sudah Dibayar</p>
             </div>
           </div>
         </div>
       </div>
 
-      {{-- Card 2: Jumlah SPJ Terbayar Bulan Ini --}}
+      {{-- Card 2: Total SPJ Belum Bayar --}}
       <div class="col-xl-6 col-md-6">
-        <div class="kpi-card kpi-card--sky">
+        <div class="kpi-card kpi-card--amber">
           <div class="kpi-card__body">
             <div class="kpi-card__header">
-              <p class="kpi-card__overline">Jumlah SPJ Terbayar Bulan Ini</p>
+              <p class="kpi-card__overline">Total SPJ Belum Bayar</p>
               <div class="kpi-card__icon" aria-hidden="true">
-                <i class="ri-calendar-check-line"></i>
+                <i class="ri-time-line"></i>
               </div>
             </div>
-            <p class="kpi-card__value">Rp {{ number_format($totalBulanIni, 0, ',', '.') }}</p>
+            <p class="kpi-card__value">Rp {{ number_format($totalBelumBayar, 0, ',', '.') }}</p>
             <div class="kpi-card__footer">
-              <span class="kpi-badge">{{ $jumlahSpjBulanIni }} SPJ</span>
-              <p class="kpi-card__label">Total SPJ Terbayar Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
+              <span class="kpi-badge">{{ $jumlahBelumBayar }} SPJ</span>
+              <p class="kpi-card__label">Total Biaya SPJ Menunggu Pembayaran</p>
             </div>
           </div>
         </div>
