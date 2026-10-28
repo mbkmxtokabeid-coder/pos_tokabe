@@ -77,19 +77,33 @@
         JL SETIA BUDI KOMPLEK SETIA BUDI POINT NO D-10 <br> KEL TANJUNG SARI MEDAN 20132<br>
         Wa: 08112272727
         </div><br><br>
-      Nomor Invoice : {{$penjualan->nomor_invoice}}
+      Nomor Invoice : {{$penjualan->nomor_invoice}}<br>
+      @if(!empty($penjualan->no_faktur_pajak))
+      No. Faktur Pajak : {{$penjualan->no_faktur_pajak}}<br>
+      @endif
     </div>
     <div class="column" style="text-align:right; font-size: 12px;">
       <div style="position: absolute; left: 400px;top: 10px;">
         Kepada :<br>
-        
-        No. Telp :</div>
+        @if(!empty($penjualan->perusahaan) && $penjualan->perusahaan !== '-')
+        Perusahaan :<br>
+        @endif
+        No. Telp :
+        @if(!empty($penjualan->npwp))
+        <br>NPWP :
+        @endif
+      </div>
     </div>
     <div class="column" style="text-align:left;">
       <div style="position: absolute; left:560px;top: 10px;">
         <b style="font-size: 12px">{{$penjualan->customer}}</b><br>
-        
+        @if(!empty($penjualan->perusahaan) && $penjualan->perusahaan !== '-')
+        <span>{{$penjualan->perusahaan}}</span><br>
+        @endif
         <b>{{$penjualan->no_telepon}}</b>
+        @if(!empty($penjualan->npwp))
+        <br><span>{{$penjualan->npwp}}</span>
+        @endif
       </div>
     </div>
 
@@ -102,21 +116,28 @@
         <th>Jumlah</th>
       </tr>
 
-      @foreach ($penjualan_barang as $index => $jual)
-          @foreach ($barang[$index] as $item)
+      @forelse ($penjualan_barang as $index => $jual)
           @php
               $nomor = $index + 1;
+              $product = (isset($barang[$index]) && count($barang[$index]) > 0) ? $barang[$index]->first() : null;
+              $namaBarang = $product ? $product->jenis_barang : '';
+              $hargaFormatted = isset($hargaMod[$index]) ? $hargaMod[$index] : number_format($jual->harga, 0, ',', '.');
+              $jumlahFormatted = isset($jumlahHarga[$index]) ? $jumlahHarga[$index] : number_format($jual->jumlah_harga, 0, ',', '.');
           @endphp
           <tr id="rowHover" class="noborders">
             <td width="1%" align="center"> {{$nomor}}</td>
-            <td width="25%" style="padding-left: 10px;"> {{$item->jenis_barang}} {{$jual->deskripsi_item}}</td>
+            <td width="25%" style="padding-left: 10px;">
+                @if(!empty($namaBarang)) {{$namaBarang}} - @endif {{$jual->deskripsi_item}}
+            </td>
             <td width="5%" id="column_padding" align="center"> {{$jual->qty}} {{$jual->satuan}}</td>
-            <td width="10%" id="column_padding" align="center">Rp.{{$hargaMod[$index]}}</td>
-            <td width="10%" id="column_padding" align="center">Rp.{{$jumlahHarga[$index]}}</td>
-
+            <td width="10%" id="column_padding" align="center">Rp.{{$hargaFormatted}}</td>
+            <td width="10%" id="column_padding" align="center">Rp.{{$jumlahFormatted}}</td>
           </tr>
-          @endforeach
-      @endforeach
+      @empty
+          <tr class="noborders">
+            <td colspan="5" align="center" style="padding: 15px; color: #888;"><i>(Tidak ada rincian item barang pada invoice ini)</i></td>
+          </tr>
+      @endforelse
 
     </table>
     <div style="position: absolute; bottom: 220px; font-size: 10px">{{$norek}}</div>

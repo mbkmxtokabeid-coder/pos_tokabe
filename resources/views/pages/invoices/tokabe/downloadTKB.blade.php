@@ -60,6 +60,12 @@
                                     <div class="col-lg-4 col-4">
                                         <p class="text-dark mb-1 text-uppercase fs-16">Invoice No</p>
                                         <p class="fw-bold fs-16 mb-0"><span id="invoice-no">{{$penjualan->nomor_invoice}}</span></p>
+                                        @if(!empty($penjualan->no_faktur_pajak))
+                                        <div class="mt-2">
+                                            <p class="text-dark mb-1 text-uppercase fs-16">No. Faktur Pajak</p>
+                                            <p class="fw-bold fs-16 mb-0 text-primary"><span id="invoice-faktur-pajak">{{$penjualan->no_faktur_pajak}}</span></p>
+                                        </div>
+                                        @endif
                                     </div>
                                     <div class="col-lg-6 col-6"></div>
                                     <div class="col-lg-2 col-2 d-flex flex-column align-items-center text-center">
@@ -73,9 +79,14 @@
                                             <p class="fw-bold fs-16 mb-0"><span id="invoice-date">{{$formatTanggal}}</span></p>
                                         </div>
                                         <p class="text-dark text-uppercase fs-16 mb-1">Penerima</p>
-                                        <p class="fw-bold fs-16 mb-2" id="billing-name">{{$penjualan->customer}}</p>
-                                        
+                                        <p class="fw-bold fs-16 mb-1" id="billing-name">{{$penjualan->customer}}</p>
+                                        @if(!empty($penjualan->perusahaan) && $penjualan->perusahaan !== '-')
+                                            <p class="text-dark fs-15 mb-1"><span class="text-muted">Perusahaan: </span>{{$penjualan->perusahaan}}</p>
+                                        @endif
                                         <p class="text-dark fs-16 mb-1"><span>Telepon: </span><span id="billing-phone-no">{{$penjualan->no_telepon}}</span></p>
+                                        @if(!empty($penjualan->npwp))
+                                            <p class="text-dark fs-16 mb-1"><span>NPWP: </span><span id="billing-npwp" class="fw-semibold">{{$penjualan->npwp}}</span></p>
+                                        @endif
                                     </div>
                                     <div class="col-lg-5 col-5" style="margin-left: 100px"></div>
                                     <div class="col-lg-2 col-2">
@@ -128,25 +139,35 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="products-list">
-                                                @foreach ($penjualan_barang as $index => $jual)
-                                                    @foreach ($barang[$index] as $item)
-                                                        @php
-                                                            $nomor = $index + 1;
-                                                        @endphp
-                                                        <tr>
-                                                            <th scope="row">{{$nomor}}</th>
-                                                            <td class="text-start">
-                                                                <div>
-                                                                    <span class="fw-medium">{{$item->jenis_barang}}</span>
-                                                                    <p class="text-muted mb-0">{{$jual->deskripsi_item}}</p>
-                                                                </div>
-                                                            </td>
-                                                            <td>Rp.{{$hargaMod[$index]}}</td>
-                                                            <td>{{$jual->qty}}</td>
-                                                            <td class="text-end">{{$jumlahHarga[$index]}}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                @endforeach
+                                                @forelse ($penjualan_barang as $index => $jual)
+                                                    @php
+                                                        $nomor = $index + 1;
+                                                        $product = (isset($barang[$index]) && count($barang[$index]) > 0) ? $barang[$index]->first() : null;
+                                                        $namaBarang = $product ? $product->jenis_barang : '';
+                                                        $hargaFormatted = isset($hargaMod[$index]) ? $hargaMod[$index] : number_format($jual->harga, 0, ',', '.');
+                                                        $jumlahFormatted = isset($jumlahHarga[$index]) ? $jumlahHarga[$index] : number_format($jual->jumlah_harga, 0, ',', '.');
+                                                    @endphp
+                                                    <tr>
+                                                        <th scope="row">{{$nomor}}</th>
+                                                        <td class="text-start">
+                                                            <div>
+                                                                @if(!empty($namaBarang))
+                                                                    <span class="fw-medium">{{$namaBarang}}</span>
+                                                                @endif
+                                                                <p class="text-muted mb-0">{{$jual->deskripsi_item}}</p>
+                                                            </div>
+                                                        </td>
+                                                        <td>Rp.{{$hargaFormatted}}</td>
+                                                        <td>{{$jual->qty}} {{$jual->satuan ?? ''}}</td>
+                                                        <td class="text-end">{{$jumlahFormatted}}</td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="5" class="text-center text-muted py-4">
+                                                            <em>(Tidak ada rincian item barang pada invoice ini)</em>
+                                                        </td>
+                                                    </tr>
+                                                @endforelse
                                             </tbody>
                                         </table>
                                     </div>

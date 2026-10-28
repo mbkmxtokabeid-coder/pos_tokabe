@@ -232,6 +232,9 @@
                 <td class="company-info">
                     <h1 style="color: #333;">INVOICE</h1>
                     Nomor: <strong>#{{$penjualan->nomor_invoice}}</strong><br>
+                    @if(!empty($penjualan->no_faktur_pajak))
+                    No. Faktur Pajak: <strong style="color: #007bff;">{{$penjualan->no_faktur_pajak}}</strong><br>
+                    @endif
                     Tanggal: {{$formatTanggal}}
                 </td>
             </tr>
@@ -244,8 +247,13 @@
                     <div class="info-label">Ditagihkan Kepada (Bill To):</div>
                     <div class="info-value">{{$penjualan->customer}}</div>
                     <div class="address-value">
-                        
-                        {{$penjualan->no_telepon}}
+                        @if(!empty($penjualan->perusahaan) && $penjualan->perusahaan !== '-')
+                            Perusahaan: {{$penjualan->perusahaan}}<br>
+                        @endif
+                        Telepon: {{$penjualan->no_telepon}}
+                        @if(!empty($penjualan->npwp))
+                            <br>NPWP: <strong>{{$penjualan->npwp}}</strong>
+                        @endif
                     </div>
                 </td>
                 <td style="width: 50%; text-align: right;">
@@ -272,20 +280,32 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($penjualan_barang as $index => $jual)
-                    @foreach ($barang[$index] as $item)
+                @forelse ($penjualan_barang as $index => $jual)
+                    @php
+                        $product = (isset($barang[$index]) && count($barang[$index]) > 0) ? $barang[$index]->first() : null;
+                        $namaBarang = $product ? $product->jenis_barang : '';
+                        $hargaFormatted = isset($hargaMod[$index]) ? $hargaMod[$index] : number_format($jual->harga, 0, ',', '.');
+                        $jumlahFormatted = isset($jumlahHarga[$index]) ? $jumlahHarga[$index] : number_format($jual->jumlah_harga, 0, ',', '.');
+                    @endphp
                     <tr>
                         <td style="text-align: center;">{{ $index + 1 }}</td>
                         <td>
-                            <strong>{{$item->jenis_barang}}</strong><br>
+                            @if(!empty($namaBarang))
+                                <strong>{{$namaBarang}}</strong><br>
+                            @endif
                             <span style="font-size: 11px; color: #777;">{{$jual->deskripsi_item}}</span>
                         </td>
-                        <td>Rp.{{$hargaMod[$index]}}</td>
-                        <td style="text-align: center;">{{$jual->qty}}</td>
-                        <td style="text-align: right;">{{$jumlahHarga[$index]}}</td>
+                        <td>Rp.{{$hargaFormatted}}</td>
+                        <td style="text-align: center;">{{$jual->qty}} {{$jual->satuan ?? ''}}</td>
+                        <td style="text-align: right;">{{$jumlahFormatted}}</td>
                     </tr>
-                    @endforeach
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #888; padding: 20px;">
+                            <em>(Tidak ada rincian item barang pada invoice ini)</em>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
 
