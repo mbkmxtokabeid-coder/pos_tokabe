@@ -16,11 +16,18 @@ class Budget extends Model
         'nama_budget',
         'kategori_id',
         'anggaran',
+        'bank',
+        'nomor_rekening',
         'tanggal',
         'deleted_at',
     ];
     function kategori_barang()
     {
         return $this->belongsTo(KategoriBarang::class, 'kategori_id');
+    }
+
+    public function getNamaAnggaranAttribute()
+    {
+        return $this->nama_budget;
     }
 }

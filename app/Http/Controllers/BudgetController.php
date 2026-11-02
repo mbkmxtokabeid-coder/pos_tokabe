@@ -26,10 +26,12 @@ class BudgetController extends Controller
     function store(Request $request)
     {
         $request->validate([
-            'nama_anggaran' => 'required|string|max:191',
-            'kategori'      => 'required|exists:kategori_barang,id',
-            'anggaran'      => 'required',
-            'tanggal'       => 'required|date',
+            'nama_anggaran'  => 'required|string|max:191',
+            'kategori'       => 'required|exists:kategori_barang,id',
+            'anggaran'       => 'required',
+            'tanggal'        => 'required|date',
+            'bank'           => 'nullable|string|max:100',
+            'nomor_rekening' => 'nullable|string|max:100',
         ], [
             'nama_anggaran.required' => 'Nama anggaran wajib diisi.',
             'kategori.required'      => 'Kategori wajib dipilih.',
@@ -37,12 +39,14 @@ class BudgetController extends Controller
             'tanggal.required'       => 'Tanggal alokasi wajib diisi.',
         ]);
 
-        $anggaran = intval(str_replace(',', '', $request->anggaran));
+        $anggaran = (int) preg_replace('/[^0-9]/', '', (string) $request->anggaran);
         Budget::create([
-            'nama_budget' => $request->nama_anggaran,
-            'kategori_id' => $request->kategori,
-            'anggaran'    => $anggaran,
-            'tanggal'     => $request->tanggal,
+            'nama_budget'    => $request->nama_anggaran,
+            'kategori_id'    => $request->kategori,
+            'anggaran'       => $anggaran,
+            'bank'           => $request->filled('bank') ? trim($request->bank) : null,
+            'nomor_rekening' => $request->filled('nomor_rekening') ? trim($request->nomor_rekening) : null,
+            'tanggal'        => $request->tanggal,
         ]);
         Alert::success('Anggaran Berhasil Ditambah');
         return redirect(route('budget.list'));
@@ -59,10 +63,12 @@ class BudgetController extends Controller
     {
         $data = Budget::findOrFail($id);
         $request->validate([
-            'nama_anggaran' => 'required|string|max:191',
-            'kategori'      => 'required|exists:kategori_barang,id',
-            'anggaran'      => 'required',
-            'tanggal'       => 'required|date',
+            'nama_anggaran'  => 'required|string|max:191',
+            'kategori'       => 'required|exists:kategori_barang,id',
+            'anggaran'       => 'required',
+            'tanggal'        => 'required|date',
+            'bank'           => 'nullable|string|max:100',
+            'nomor_rekening' => 'nullable|string|max:100',
         ], [
             'nama_anggaran.required' => 'Nama anggaran wajib diisi.',
             'kategori.required'      => 'Kategori wajib dipilih.',
@@ -70,12 +76,14 @@ class BudgetController extends Controller
             'tanggal.required'       => 'Tanggal alokasi wajib diisi.',
         ]);
 
-        $anggaran = intval(str_replace(',', '', $request->anggaran));
+        $anggaran = (int) preg_replace('/[^0-9]/', '', (string) $request->anggaran);
         $data->update([
-            'nama_budget' => $request->nama_anggaran,
-            'kategori_id' => $request->kategori,
-            'anggaran'    => $anggaran,
-            'tanggal'     => $request->tanggal,
+            'nama_budget'    => $request->nama_anggaran,
+            'kategori_id'    => $request->kategori,
+            'anggaran'       => $anggaran,
+            'bank'           => $request->filled('bank') ? trim($request->bank) : null,
+            'nomor_rekening' => $request->filled('nomor_rekening') ? trim($request->nomor_rekening) : null,
+            'tanggal'        => $request->tanggal,
         ]);
         Alert::success('Anggaran Berhasil Diubah');
         return redirect(route('budget.list'));

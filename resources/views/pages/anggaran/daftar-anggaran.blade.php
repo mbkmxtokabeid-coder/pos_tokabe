@@ -132,6 +132,83 @@
         border: 1px solid rgba(99, 102, 241, 0.25);
     }
 
+    /* Bank & Rekening Capsule Badge */
+    .budget-rek-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        padding: 5px 12px;
+        background-color: #1A222D !important;
+        border: 1px solid #2E3846 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+        max-width: 100%;
+    }
+    .budget-rek-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(56, 189, 248, 0.15) !important;
+        color: #38BDF8 !important;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .budget-bank-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2.5px 8px;
+        border-radius: 5px;
+        background: rgba(56, 189, 248, 0.18) !important;
+        color: #38BDF8 !important;
+        border: 1px solid rgba(56, 189, 248, 0.45) !important;
+        font-weight: 700 !important;
+        font-size: 11.5px !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        white-space: nowrap;
+    }
+    .budget-rek-divider {
+        width: 1px;
+        height: 14px;
+        background-color: #475569;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .budget-rek-label {
+        color: #94A3B8 !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        white-space: nowrap;
+    }
+    .budget-rek-num {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        font-weight: 700 !important;
+        color: #FFFFFF !important;
+        font-size: 13.5px !important;
+        letter-spacing: 0.6px !important;
+        white-space: nowrap;
+    }
+    .btn-copy-norek {
+        background: transparent;
+        border: none;
+        color: #94A3B8;
+        padding: 2px 5px;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 120ms ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-copy-norek:hover {
+        color: #38BDF8;
+        background: rgba(56, 189, 248, 0.15);
+    }
+
     /* Action Buttons */
     .btn-action-icon {
         width: 32px;
@@ -274,7 +351,27 @@
                       <tr>
                         <td class="text-center text-muted fw-semibold" style="width: 50px;">{{ $loop->iteration }}</td>
                         <td>
-                          <span class="cell-budget-name">{{ $budget->nama_budget }}</span>
+                          <span class="cell-budget-name d-block fs-14 fw-semibold">{{ $budget->nama_budget }}</span>
+                          @if ($budget->bank || $budget->nomor_rekening)
+                            <div class="budget-rek-pill">
+                              <div class="budget-rek-icon" title="Rekening Bank">
+                                <i class="ri-bank-card-2-line"></i>
+                              </div>
+                              @if($budget->bank)
+                                <span class="budget-bank-tag">{{ $budget->bank }}</span>
+                              @endif
+                              @if($budget->bank && $budget->nomor_rekening)
+                                <span class="budget-rek-divider"></span>
+                              @endif
+                              @if($budget->nomor_rekening)
+                                <span class="budget-rek-label">No. Rek:</span>
+                                <span class="budget-rek-num">{{ $budget->nomor_rekening }}</span>
+                                <button type="button" class="btn-copy-norek" onclick="copyNorek('{{ $budget->nomor_rekening }}', this)" title="Salin No. Rekening">
+                                  <i class="ri-file-copy-line"></i>
+                                </button>
+                              @endif
+                            </div>
+                          @endif
                         </td>
                         <td>
                           <span class="badge-category">
@@ -339,6 +436,26 @@
   <script src="{{ asset('js/pages/datatables.init.js') }}"></script>
 
   <script>
+    function copyNorek(text, btn) {
+      if (!navigator.clipboard) {
+        const temp = document.createElement('input');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+      } else {
+        navigator.clipboard.writeText(text);
+      }
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.className = 'ri-check-line text-success';
+        setTimeout(() => {
+          icon.className = 'ri-file-copy-line';
+        }, 1500);
+      }
+    }
+
     function confirmDelete(id, name) {
       Swal.fire({
         title: 'Hapus Anggaran?',

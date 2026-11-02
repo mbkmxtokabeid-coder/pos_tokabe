@@ -15,6 +15,8 @@ use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\LaporanPembelianController;
+use App\Http\Controllers\BebanBelanjaController;
+use App\Http\Controllers\KategoriBebanController;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TokenController;
@@ -128,6 +130,10 @@ Route::group(['middleware' => ['auth']], function () {
             Route::put('/pembelian/{id}', [PembelianController::class, 'update'])->name('pembelian.update');
             Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy'])->name('pembelian.destroy');
             Route::get('/pembelian/{id}/lunas', [PembelianController::class, 'lunas'])->middleware('role:Pemilik')->name('pembelian.lunas');
+            // CICILAN PEMBELIAN
+            Route::post('/pembelian/{id}/cicilan', [PembelianController::class, 'bayarCicilan'])->name('pembelian.cicilan.store');
+            Route::post('/pembelian-cicilan/{id}/approve', [PembelianController::class, 'approveCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.approve');
+            Route::post('/pembelian-cicilan/{id}/reject', [PembelianController::class, 'rejectCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.reject');
             // APPROVAL PEMBELIAN (LOCK / UNLOCK - HANYA PEMILIK)
             Route::post('/ubah-status-unlock-pembelian/{id}', [PembelianController::class, 'unlock'])->middleware('role:Pemilik')->name('pembelian.unlock');
             Route::get('/ubah-status-lock-pembelian/{id}', [PembelianController::class, 'lock'])->middleware('role:Pemilik')->name('pembelian.lock');
@@ -138,6 +144,19 @@ Route::group(['middleware' => ['auth']], function () {
             Route::delete('/pembelian/vendor/{id}', [PembelianController::class, 'destroyVendor'])->name('pembelian.vendor.destroy');
             Route::get('/laporan-pembelian', [LaporanPembelianController::class, 'index'])->name('laporan.pembelian');
             Route::get('/laporan-pembelian/filter', [LaporanPembelianController::class, 'index'])->name('laporan.pembelian.filter');
+
+            // ROUTE BEBAN BELANJA (PENGELUARAN OPERASIONAL)
+            Route::get('/beban-belanja', [BebanBelanjaController::class, 'index'])->name('beban-belanja.index');
+            Route::post('/beban-belanja', [BebanBelanjaController::class, 'store'])->name('beban-belanja.store');
+            Route::put('/beban-belanja/{id}', [BebanBelanjaController::class, 'update'])->name('beban-belanja.update');
+            Route::delete('/beban-belanja/{id}', [BebanBelanjaController::class, 'destroy'])->name('beban-belanja.destroy');
+            Route::get('/beban-belanja-export', [BebanBelanjaController::class, 'export'])->name('beban-belanja.export');
+            Route::get('/beban-belanja-pdf', [BebanBelanjaController::class, 'exportPdf'])->name('beban-belanja.export-pdf');
+
+            // ROUTE KATEGORI BEBAN
+            Route::post('/kategori-beban', [KategoriBebanController::class, 'store'])->name('kategori-beban.store');
+            Route::put('/kategori-beban/{id}', [KategoriBebanController::class, 'update'])->name('kategori-beban.update');
+            Route::delete('/kategori-beban/{id}', [KategoriBebanController::class, 'destroy'])->name('kategori-beban.destroy');
 
             // ROUTE SPJ
             Route::get('/daftar-spj', [SpjController::class, 'index'])->name('spj.index');

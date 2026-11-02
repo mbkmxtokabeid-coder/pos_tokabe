@@ -754,7 +754,7 @@
                     <!-- Filter Status Pembayaran -->
                     <select id="filterStatusVendor" class="form-select form-select-sm vendor-filter-select" style="width: 170px;" title="Filter status tagihan vendor">
                         <option value="all">Semua Status</option>
-                        <option value="belum_lunas">Hanya Belum Lunas</option>
+                        <option value="cicil">Hanya Ada Cicilan</option>
                         <option value="lunas">Hanya Sudah Lunas</option>
                     </select>
 
@@ -1158,6 +1158,9 @@
             let matchStatus = true;
             if (statusFilter === 'belum_lunas') {
                 matchStatus = sisa > 0;
+            } else if (statusFilter === 'cicil') {
+                const terbayar = parseFloat(row.dataset.terbayar || '0');
+                matchStatus = sisa > 0 && terbayar > 0;
             } else if (statusFilter === 'lunas') {
                 matchStatus = sisa <= 0;
             }

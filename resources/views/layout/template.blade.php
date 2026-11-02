@@ -89,6 +89,7 @@
         "/daftar-spb",
         "/daftar-spj",
         "/pembelian",
+        "/beban-belanja",
         "/items",
         "/daftar-pelanggan",
         "/daftar-laporan",
@@ -1385,6 +1386,13 @@
                         <a class="nav-link menu-link {{ Request::is('pembelian*') ? 'active' : '' }}" href="{{ route('pembelian.index') }}">
                             <span class="icon-box"><i class="las la-shopping-cart menu-icon"></i></span>
                             <span class="menu-text">Invoice Masuk</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link menu-link {{ Request::is('beban-belanja*') ? 'active' : '' }}" href="{{ route('beban-belanja.index') }}">
+                            <span class="icon-box"><i class="las la-wallet menu-icon"></i></span>
+                            <span class="menu-text">Beban Belanja</span>
                         </a>
                     </li>
 

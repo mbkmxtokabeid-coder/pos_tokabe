@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Models\Pembelian;
 use App\Models\PembelianBarang;
+use App\Models\PembelianPembayaran;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,7 +66,7 @@ class PembelianController extends Controller
             'tanggal_jto'   => ['nullable', 'date'],
             'anggaran'      => ['required', 'exists:budget,id'],
             'terbayar'      => ['nullable', 'numeric', 'min:0'],
-            'status'        => ['required', 'in:Lunas,Belum Lunas'],
+            'status'        => ['required', 'in:Lunas,Cicil'],
             'items'         => ['required', 'array', 'min:1'],
             'items.*.deskripsi'    => ['required', 'string'],
             'items.*.harga_barang' => ['required', 'numeric', 'min:0'],
@@ -88,9 +89,15 @@ class PembelianController extends Controller
             $pphNominal = (int) round($subtotal * $pphPersen / 100);
             $jumlahHarga = $subtotal + $ppnNominal;
 
-            $terbayar = $request->status === 'Lunas'
-                ? $jumlahHarga
-                : min((int) round((float) ($request->terbayar ?? 0)), $jumlahHarga);
+            $rawTerbayar = min((int) round((float) ($request->terbayar ?? 0)), $jumlahHarga);
+
+            if ($request->status === 'Lunas') {
+                $terbayar = $jumlahHarga;
+                $status = 'Lunas';
+            } else {
+                $terbayar = $rawTerbayar;
+                $status = ($terbayar >= $jumlahHarga && $jumlahHarga > 0) ? 'Lunas' : 'Cicil';
+            }
             $sisa = $jumlahHarga - $terbayar;
 
             $tglJto = $request->tanggal_jto ?: $request->tanggal;
@@ -106,8 +113,9 @@ class PembelianController extends Controller
                 'tanggal'       => $request->tanggal,
                 'tanggal_jto'   => $tglJto,
                 'tgl_jto'       => $tglJto,
+                'tgl_lunas'     => $status === 'Lunas' ? now()->toDateString() : null,
                 'anggaran'      => $request->anggaran,
-                'status'        => $request->status,
+                'status'        => $status,
                 'jumlah_harga'  => $jumlahHarga,
                 'terbayar'      => $terbayar,
                 'sisa'          => $sisa,
@@ -118,6 +126,21 @@ class PembelianController extends Controller
 
             $this->adjustBudget($request->anggaran, -$terbayar);
             $this->adjustVendor($request->id_vendor, $jumlahHarga, $terbayar, $sisa);
+
+            if ($status === 'Cicil' && $terbayar > 0) {
+                PembelianPembayaran::create([
+                    'pembelian_id'    => $pembelian->id,
+                    'cicilan_ke'      => 1,
+                    'tanggal_bayar'   => $request->tanggal,
+                    'jumlah_bayar'    => $terbayar,
+                    'anggaran_id'     => $request->anggaran,
+                    'status_approval' => 'Approved',
+                    'catatan'         => 'Pembayaran Awal / DP',
+                    'user_id'         => Auth::id(),
+                    'approved_by'     => (Auth::user() && Auth::user()->role === 'Pemilik') ? Auth::id() : null,
+                    'approved_at'     => now(),
+                ]);
+            }
 
             foreach ($request->items as $item) {
                 $hargaBarang = (int) round((float) ($item['harga_barang'] ?? 0));
@@ -189,7 +212,7 @@ class PembelianController extends Controller
             'tanggal_jto'   => ['nullable', 'date'],
             'anggaran'      => ['required', 'exists:budget,id'],
             'terbayar'      => ['nullable', 'numeric', 'min:0'],
-            'status'        => ['required', 'in:Lunas,Belum Lunas'],
+            'status'        => ['required', 'in:Lunas,Cicil'],
             'items'         => ['required', 'array', 'min:1'],
             'items.*.deskripsi'    => ['required', 'string'],
             'items.*.harga_barang' => ['required', 'numeric', 'min:0'],
@@ -213,9 +236,15 @@ class PembelianController extends Controller
             $pphNominal = (int) round($subtotal * $pphPersen / 100);
             $jumlahHarga = $subtotal + $ppnNominal;
 
-            $terbayar = $request->status === 'Lunas'
-                ? $jumlahHarga
-                : min((int) round((float) ($request->terbayar ?? 0)), $jumlahHarga);
+            $rawTerbayar = min((int) round((float) ($request->terbayar ?? 0)), $jumlahHarga);
+
+            if ($request->status === 'Lunas') {
+                $terbayar = $jumlahHarga;
+                $status = 'Lunas';
+            } else {
+                $terbayar = $rawTerbayar;
+                $status = ($terbayar >= $jumlahHarga && $jumlahHarga > 0) ? 'Lunas' : 'Cicil';
+            }
             $sisa = $jumlahHarga - $terbayar;
 
             $tglJto = $request->tanggal_jto ?: $request->tanggal;
@@ -236,7 +265,8 @@ class PembelianController extends Controller
                 'tanggal'       => $request->tanggal,
                 'tanggal_jto'   => $tglJto,
                 'tgl_jto'       => $tglJto,
-                'status'        => $request->status,
+                'tgl_lunas'     => $status === 'Lunas' ? ($pembelian->tgl_lunas ?: now()->toDateString()) : null,
+                'status'        => $status,
                 'jumlah_harga'  => $jumlahHarga,
                 'terbayar'      => $terbayar,
                 'sisa'          => $sisa,
@@ -247,6 +277,21 @@ class PembelianController extends Controller
             // Terapkan alokasi transaksi baru
             $this->adjustBudget($request->anggaran, -$terbayar);
             $this->adjustVendor($request->id_vendor, $jumlahHarga, $terbayar, $sisa);
+
+            if ($status === 'Cicil' && $terbayar > 0) {
+                PembelianPembayaran::create([
+                    'pembelian_id'    => $pembelian->id,
+                    'cicilan_ke'      => 1,
+                    'tanggal_bayar'   => $request->tanggal,
+                    'jumlah_bayar'    => $terbayar,
+                    'anggaran_id'     => $request->anggaran,
+                    'status_approval' => 'Approved',
+                    'catatan'         => 'Pembayaran Awal / DP',
+                    'user_id'         => Auth::id(),
+                    'approved_by'     => (Auth::user() && Auth::user()->role === 'Pemilik') ? Auth::id() : null,
+                    'approved_at'     => now(),
+                ]);
+            }
 
             $pembelian->barang()->delete();
             foreach ($request->items as $item) {
@@ -305,7 +350,7 @@ class PembelianController extends Controller
 
     public function approvalPage($id)
     {
-        $pembelian = Pembelian::with(['vendor', 'barang'])->findOrFail($id);
+        $pembelian = Pembelian::with(['vendor', 'barang', 'pembayaran.anggaran', 'pembayaran.user'])->findOrFail($id);
         return view('pages.pembelian.approval', compact('pembelian'));
     }
 
@@ -340,6 +385,20 @@ class PembelianController extends Controller
             if ($sisa > 0) {
                 $this->adjustBudget($pembelian->anggaran, -$sisa);
                 $this->adjustVendor($pembelian->id_vendor, 0, $sisa, -$sisa);
+
+                $approvedCount = $pembelian->pembayaran()->where('status_approval', 'Approved')->count();
+                PembelianPembayaran::create([
+                    'pembelian_id'    => $pembelian->id,
+                    'cicilan_ke'      => min(5, $approvedCount + 1),
+                    'tanggal_bayar'   => now()->toDateString(),
+                    'jumlah_bayar'    => $sisa,
+                    'anggaran_id'     => $pembelian->anggaran,
+                    'status_approval' => 'Approved',
+                    'catatan'         => 'Pelunasan Penuh',
+                    'user_id'         => Auth::id(),
+                    'approved_by'     => Auth::id(),
+                    'approved_at'     => now(),
+                ]);
             }
 
             $pembelian->update([
@@ -351,6 +410,186 @@ class PembelianController extends Controller
         });
 
         return back()->with('success', 'Pembelian berhasil dilunasi.');
+    }
+
+    public function bayarCicilan(Request $request, $id)
+    {
+        if ($request->has('jumlah_bayar')) {
+            $cleanJumlah = preg_replace('/[^0-9]/', '', (string)$request->jumlah_bayar);
+            $request->merge(['jumlah_bayar' => $cleanJumlah !== '' ? (int)$cleanJumlah : 0]);
+        }
+
+        $request->validate([
+            'tanggal_bayar' => ['required', 'date'],
+            'jumlah_bayar'  => ['required', 'numeric', 'min:1'],
+            'anggaran_id'   => ['required', 'exists:budget,id'],
+            'catatan'       => ['nullable', 'string', 'max:255'],
+        ], [
+            'tanggal_bayar.required' => 'Tanggal pembayaran wajib diisi.',
+            'jumlah_bayar.required'  => 'Nominal cicilan wajib diisi.',
+            'jumlah_bayar.min'       => 'Nominal cicilan harus lebih dari 0.',
+            'anggaran_id.required'   => 'Sumber kas/anggaran wajib dipilih.',
+        ]);
+
+        $role = Auth::user()->role ?? null;
+        $isOwner = $role === 'Pemilik';
+
+        return DB::transaction(function () use ($request, $id, $isOwner) {
+            $pembelian = Pembelian::lockForUpdate()->findOrFail($id);
+
+            if ($pembelian->status === 'Lunas' || $pembelian->sisa <= 0) {
+                return redirect()->back()->with('error', 'Transaksi pembelian ini sudah Lunas.');
+            }
+
+            $approvedCount = $pembelian->pembayaran()->where('status_approval', 'Approved')->count();
+            $pendingCount  = $pembelian->pembayaran()->where('status_approval', 'Pending')->count();
+
+            if ($pendingCount > 0) {
+                return redirect()->back()->with('error', 'Masih ada cicilan yang menunggu persetujuan (Pending Approval) Pemilik. Harap tunggu persetujuan sebelum menambahkan cicilan baru.');
+            }
+
+            if ($approvedCount >= 5) {
+                return redirect()->back()->with('error', 'Batas maksimal 5 kali cicilan telah tercapai. Sisa tagihan hanya dapat diselesaikan melalui Pelunasan oleh Pemilik.');
+            }
+
+            $jumlahBayar = (int) $request->jumlah_bayar;
+            if ($jumlahBayar > $pembelian->sisa) {
+                return redirect()->back()->with('error', 'Nominal cicilan (Rp ' . number_format($jumlahBayar, 0, ',', '.') . ') melebihi sisa tagihan (Rp ' . number_format($pembelian->sisa, 0, ',', '.') . ').');
+            }
+
+            $cicilanKe = $approvedCount + 1;
+
+            if ($isOwner) {
+                $newTerbayar = $pembelian->terbayar + $jumlahBayar;
+                $newSisa = max(0, $pembelian->jumlah_harga - $newTerbayar);
+                $newStatus = ($newSisa <= 0) ? 'Lunas' : 'Cicil';
+
+                $this->adjustBudget($request->anggaran_id, -$jumlahBayar);
+                $this->adjustVendor($pembelian->id_vendor, 0, $jumlahBayar, -$jumlahBayar);
+
+                $pembelian->update([
+                    'terbayar'  => $newTerbayar,
+                    'sisa'      => $newSisa,
+                    'status'    => $newStatus,
+                    'tgl_lunas' => $newStatus === 'Lunas' ? ($pembelian->tgl_lunas ?: now()->toDateString()) : null,
+                ]);
+
+                PembelianPembayaran::create([
+                    'pembelian_id'    => $pembelian->id,
+                    'cicilan_ke'      => $cicilanKe,
+                    'tanggal_bayar'   => $request->tanggal_bayar,
+                    'jumlah_bayar'    => $jumlahBayar,
+                    'anggaran_id'     => $request->anggaran_id,
+                    'status_approval' => 'Approved',
+                    'catatan'         => $request->catatan,
+                    'user_id'         => Auth::id(),
+                    'approved_by'     => Auth::id(),
+                    'approved_at'     => now(),
+                ]);
+
+                $msg = "Pembayaran Cicilan ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dicatat dan disetujui.";
+                if ($newStatus === 'Lunas') {
+                    $msg .= " Pembelian ini kini telah LUNAS!";
+                } elseif ($cicilanKe === 5 && $newSisa > 0) {
+                    $msg .= " Perhatian: Pembelian telah mencapai batas maksimal 5 kali cicilan. Sisa Rp " . number_format($newSisa, 0, ',', '.') . " harus diselesaikan via pelunasan.";
+                }
+
+                return redirect()->back()->with('success', $msg);
+            } else {
+                PembelianPembayaran::create([
+                    'pembelian_id'    => $pembelian->id,
+                    'cicilan_ke'      => $cicilanKe,
+                    'tanggal_bayar'   => $request->tanggal_bayar,
+                    'jumlah_bayar'    => $jumlahBayar,
+                    'anggaran_id'     => $request->anggaran_id,
+                    'status_approval' => 'Pending',
+                    'catatan'         => $request->catatan,
+                    'user_id'         => Auth::id(),
+                    'approved_by'     => null,
+                    'approved_at'     => null,
+                ]);
+
+                return redirect()->back()->with('success', "Pengajuan Cicilan ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dikirim. Menunggu persetujuan (approval) Pemilik.");
+            }
+        });
+    }
+
+    public function approveCicilan($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menyetujui cicilan.');
+        }
+
+        return DB::transaction(function () use ($id) {
+            $pembayaran = PembelianPembayaran::lockForUpdate()->findOrFail($id);
+
+            if ($pembayaran->status_approval !== 'Pending') {
+                return redirect()->back()->with('error', 'Cicilan ini sudah diproses sebelumnya.');
+            }
+
+            $pembelian = Pembelian::lockForUpdate()->findOrFail($pembayaran->pembelian_id);
+
+            $approvedCount = $pembelian->pembayaran()->where('status_approval', 'Approved')->count();
+            if ($approvedCount >= 5) {
+                return redirect()->back()->with('error', 'Batas maksimal 5 kali cicilan telah tercapai.');
+            }
+
+            $jumlahBayar = $pembayaran->jumlah_bayar;
+            if ($jumlahBayar > $pembelian->sisa) {
+                return redirect()->back()->with('error', 'Nominal cicilan melebihi sisa tagihan.');
+            }
+
+            $cicilanKe = $approvedCount + 1;
+            $newTerbayar = $pembelian->terbayar + $jumlahBayar;
+            $newSisa = max(0, $pembelian->jumlah_harga - $newTerbayar);
+            $newStatus = ($newSisa <= 0) ? 'Lunas' : 'Cicil';
+
+            $this->adjustBudget($pembayaran->anggaran_id, -$jumlahBayar);
+            $this->adjustVendor($pembelian->id_vendor, 0, $jumlahBayar, -$jumlahBayar);
+
+            $pembelian->update([
+                'terbayar'  => $newTerbayar,
+                'sisa'      => $newSisa,
+                'status'    => $newStatus,
+                'tgl_lunas' => $newStatus === 'Lunas' ? ($pembelian->tgl_lunas ?: now()->toDateString()) : null,
+            ]);
+
+            $pembayaran->update([
+                'cicilan_ke'      => $cicilanKe,
+                'status_approval' => 'Approved',
+                'approved_by'     => Auth::id(),
+                'approved_at'     => now(),
+            ]);
+
+            $msg = "Cicilan ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil disetujui.";
+            if ($newStatus === 'Lunas') {
+                $msg .= " Pembelian ini kini telah LUNAS!";
+            } elseif ($cicilanKe === 5 && $newSisa > 0) {
+                $msg .= " Batas maksimal 5 kali cicilan telah tercapai.";
+            }
+
+            return redirect()->back()->with('success', $msg);
+        });
+    }
+
+    public function rejectCicilan($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menolak cicilan.');
+        }
+
+        $pembayaran = PembelianPembayaran::findOrFail($id);
+        if ($pembayaran->status_approval !== 'Pending') {
+            return redirect()->back()->with('error', 'Cicilan ini sudah diproses sebelumnya.');
+        }
+
+        $pembayaran->update([
+            'status_approval' => 'Rejected',
+            'approved_by'     => Auth::id(),
+            'approved_at'     => now(),
+        ]);
+
+        return redirect()->back()->with('success', "Pengajuan Cicilan ke-{$pembayaran->cicilan_ke} telah ditolak.");
     }
 
     private function adjustBudget($id, $amount): void
@@ -388,7 +627,7 @@ class PembelianController extends Controller
 
         $vendor = Vendor::findOrFail($id);
 
-        $pembelian = Pembelian::with('vendor')
+        $pembelian = Pembelian::with(['vendor', 'pembayaran.anggaran', 'pembayaran.user', 'pembayaran.approver'])
             ->where('id_vendor', $id)
             ->latest('tanggal')
             ->get();
@@ -397,9 +636,10 @@ class PembelianController extends Controller
         $totalTerbayar = $pembelian->sum('terbayar');
         $totalSisa     = $pembelian->sum('sisa');
         $sisaKas       = (float) Budget::sum('anggaran');
+        $budgets       = Budget::orderByDesc('tanggal')->get();
 
         return view('pages.pembelian.show-vendor', compact(
-            'vendor', 'pembelian', 'totalTagihan', 'totalTerbayar', 'totalSisa', 'sisaKas'
+            'vendor', 'pembelian', 'totalTagihan', 'totalTerbayar', 'totalSisa', 'sisaKas', 'budgets'
         ));
     }
 

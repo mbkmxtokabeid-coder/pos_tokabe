@@ -202,6 +202,8 @@
                     <td class="text-center">
                         @if($item->status === 'Lunas')
                             <span class="badge badge-success">Lunas</span>
+                        @elseif($item->status === 'Cicil')
+                            <span class="badge badge-info" style="background-color: #0284c7; color: white;">Cicil</span>
                         @else
                             <span class="badge badge-danger">Belum Lunas</span>
                         @endif

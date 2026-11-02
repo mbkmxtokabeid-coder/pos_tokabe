@@ -295,8 +295,7 @@
                     <option value="">-- Pilih Anggaran --</option>
                     @foreach ($budgets as $b)
                       <option value="{{ $b->id }}" {{ old('anggaran', $pembelian->anggaran) == $b->id ? 'selected' : '' }}>
-                        {{ $b->nama_budget }}
-                        @if($b->tanggal) ({{ \Carbon\Carbon::parse($b->tanggal)->format('d M Y') }}) @endif
+                        {{ $b->nama_budget }} &mdash; Sisa Kas: Rp {{ number_format($b->anggaran, 0, ',', '.') }}
                       </option>
                     @endforeach
                   </select>
@@ -390,7 +389,7 @@
                 <label class="col-lg-4 col-form-label">Status Pembelian <span class="text-danger">*</span></label>
                 <div class="col-lg-8">
                   <select name="status" id="status_pembelian" class="form-select w-100 @error('status') is-invalid @enderror" required onchange="handleStatusChange()" style="width: 100% !important; min-width: 100% !important; display: block !important;">
-                    <option value="Belum Lunas" {{ old('status', $pembelian->status) === 'Belum Lunas' ? 'selected' : '' }}>Belum Lunas</option>
+                    <option value="Cicil" {{ old('status', $pembelian->status) === 'Cicil' || old('status', $pembelian->status) === 'Belum Lunas' ? 'selected' : '' }}>Cicil</option>
                     <option value="Lunas" {{ old('status', $pembelian->status) === 'Lunas' ? 'selected' : '' }}>Lunas</option>
                   </select>
                   @error('status')<span class="error-help-block">{{ $message }}</span>@enderror
@@ -689,7 +688,7 @@
 
     // Update status & terbayar
     const statusEl = document.getElementById('status_pembelian');
-    const status = statusEl ? statusEl.value : 'Belum Lunas';
+    const status = statusEl ? statusEl.value : 'Cicil';
     const terbayarInput = document.getElementById('terbayar');
 
     if (status === 'Lunas') {
@@ -722,7 +721,7 @@
 
   function handleStatusChange() {
     const statusEl = document.getElementById('status_pembelian');
-    const status = statusEl ? statusEl.value : 'Belum Lunas';
+    const status = statusEl ? statusEl.value : 'Cicil';
     const subtotal = getSubtotalHarga();
     const jenis = document.getElementById('jenis_invoice').value;
     let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa')
@@ -736,6 +735,15 @@
       if (terbayarInput) {
         terbayarInput.value = formatRp(total);
         terbayarInput.readOnly = true;
+      }
+    } else if (status === 'Cicil') {
+      if (terbayarInput) {
+        terbayarInput.readOnly = false;
+        let curVal = parseRibuan(terbayarInput.value);
+        if (curVal <= 0 || curVal >= total) {
+          terbayarInput.value = '0';
+        }
+        terbayarInput.focus();
       }
     } else {
       if (terbayarInput) {
@@ -771,8 +779,10 @@
     if (statusEl) {
       if (total > 0 && terbayar >= total) {
         statusEl.value = 'Lunas';
+      } else if (terbayar > 0 && terbayar < total) {
+        statusEl.value = 'Cicil';
       } else {
-        statusEl.value = 'Belum Lunas';
+        statusEl.value = 'Cicil';
       }
     }
   }

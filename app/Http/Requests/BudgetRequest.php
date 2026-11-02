@@ -22,11 +22,12 @@ class BudgetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nama_anggaran' => 'required',
-            'kategori' => 'required',
-            'anggaran' => 'required',
-            'tanggal' => 'required',
-
+            'nama_anggaran'  => 'required',
+            'kategori'       => 'required',
+            'anggaran'       => 'required',
+            'tanggal'        => 'required',
+            'bank'           => 'nullable|string|max:100',
+            'nomor_rekening' => 'nullable|string|max:100',
         ];
     }
     public function messages()

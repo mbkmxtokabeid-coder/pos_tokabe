@@ -210,6 +210,24 @@
                     </div>
                   </div>
 
+                  {{-- Bank --}}
+                  <div class="col-md-6">
+                    <label class="form-label-budget" for="bank">Bank</label>
+                    <div class="input-group">
+                      <span class="input-group-text input-group-addon-custom"><i class="ri-bank-line"></i></span>
+                      <input type="text" id="bank" name="bank" class="form-control" placeholder="Contoh: BCA / Mandiri / BSI / Kas Tunai" value="{{ old('bank') }}">
+                    </div>
+                  </div>
+
+                  {{-- Nomor Rekening --}}
+                  <div class="col-md-6">
+                    <label class="form-label-budget" for="nomor_rekening">Nomor Rekening</label>
+                    <div class="input-group">
+                      <span class="input-group-text input-group-addon-custom"><i class="ri-bank-card-line"></i></span>
+                      <input type="text" id="nomor_rekening" name="nomor_rekening" class="form-control" placeholder="Contoh: 1234567890" value="{{ old('nomor_rekening') }}">
+                    </div>
+                  </div>
+
                 </div>
               </div>
 

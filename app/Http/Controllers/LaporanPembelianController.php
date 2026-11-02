@@ -45,9 +45,12 @@ class LaporanPembelianController extends Controller
         }
 
         $statusLabel = 'Semua Status';
-        if ($request->filled('status') && in_array($request->status, ['Lunas', 'Belum Lunas'], true)) {
+        if ($request->filled('status') && in_array($request->status, ['Lunas', 'Cicil'], true)) {
             $query->where('status', $request->status);
             $statusLabel = $request->status;
+        } elseif ($request->filled('status') && $request->status === 'Belum Lunas') {
+            $query->where('status', 'Cicil');
+            $statusLabel = 'Cicil';
         }
 
         $periodeLabel = 'Seluruh Periode';

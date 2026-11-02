@@ -72,4 +72,30 @@ class Pembelian extends Model
     {
         return $this->belongsTo(Budget::class, 'anggaran');
     }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(PembelianPembayaran::class, 'pembelian_id')->orderBy('cicilan_ke');
+    }
+
+    public function getApprovedCicilanCountAttribute()
+    {
+        return $this->relationLoaded('pembayaran')
+            ? $this->pembayaran->where('status_approval', 'Approved')->count()
+            : $this->pembayaran()->where('status_approval', 'Approved')->count();
+    }
+
+    public function getPendingCicilanCountAttribute()
+    {
+        return $this->relationLoaded('pembayaran')
+            ? $this->pembayaran->where('status_approval', 'Pending')->count()
+            : $this->pembayaran()->where('status_approval', 'Pending')->count();
+    }
+
+    public function getCanAddCicilanAttribute()
+    {
+        return $this->status !== 'Lunas'
+            && $this->sisa > 0
+            && $this->approved_cicilan_count < 5;
+    }
 }
