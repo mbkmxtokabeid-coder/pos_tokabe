@@ -66,7 +66,7 @@ class PembelianController extends Controller
             'tanggal_jto'   => ['nullable', 'date'],
             'anggaran'      => ['required', 'exists:budget,id'],
             'terbayar'      => ['nullable', 'numeric', 'min:0'],
-            'status'        => ['required', 'in:Lunas,Cicil'],
+            'status'        => ['required', 'in:Lunas,Cicil,Termin'],
             'items'         => ['required', 'array', 'min:1'],
             'items.*.deskripsi'    => ['required', 'string'],
             'items.*.harga_barang' => ['required', 'numeric', 'min:0'],
@@ -96,7 +96,7 @@ class PembelianController extends Controller
                 $status = 'Lunas';
             } else {
                 $terbayar = $rawTerbayar;
-                $status = ($terbayar >= $jumlahHarga && $jumlahHarga > 0) ? 'Lunas' : 'Cicil';
+                $status = ($terbayar >= $jumlahHarga && $jumlahHarga > 0) ? 'Lunas' : (($request->status === 'Termin') ? 'Cicil' : $request->status);
             }
             $sisa = $jumlahHarga - $terbayar;
 
@@ -135,7 +135,7 @@ class PembelianController extends Controller
                     'jumlah_bayar'    => $terbayar,
                     'anggaran_id'     => $request->anggaran,
                     'status_approval' => 'Approved',
-                    'catatan'         => 'Pembayaran Awal / DP',
+                    'catatan'         => 'Pembayaran Awal / DP (Termin 1)',
                     'user_id'         => Auth::id(),
                     'approved_by'     => (Auth::user() && Auth::user()->role === 'Pemilik') ? Auth::id() : null,
                     'approved_at'     => now(),
@@ -212,7 +212,7 @@ class PembelianController extends Controller
             'tanggal_jto'   => ['nullable', 'date'],
             'anggaran'      => ['required', 'exists:budget,id'],
             'terbayar'      => ['nullable', 'numeric', 'min:0'],
-            'status'        => ['required', 'in:Lunas,Cicil'],
+            'status'        => ['required', 'in:Lunas,Cicil,Termin'],
             'items'         => ['required', 'array', 'min:1'],
             'items.*.deskripsi'    => ['required', 'string'],
             'items.*.harga_barang' => ['required', 'numeric', 'min:0'],
@@ -243,7 +243,7 @@ class PembelianController extends Controller
                 $status = 'Lunas';
             } else {
                 $terbayar = $rawTerbayar;
-                $status = ($terbayar >= $jumlahHarga && $jumlahHarga > 0) ? 'Lunas' : 'Cicil';
+                $status = ($terbayar >= $jumlahHarga && $jumlahHarga > 0) ? 'Lunas' : (($request->status === 'Termin') ? 'Cicil' : $request->status);
             }
             $sisa = $jumlahHarga - $terbayar;
 
@@ -286,7 +286,7 @@ class PembelianController extends Controller
                     'jumlah_bayar'    => $terbayar,
                     'anggaran_id'     => $request->anggaran,
                     'status_approval' => 'Approved',
-                    'catatan'         => 'Pembayaran Awal / DP',
+                    'catatan'         => 'Pembayaran Awal / DP (Termin 1)',
                     'user_id'         => Auth::id(),
                     'approved_by'     => (Auth::user() && Auth::user()->role === 'Pemilik') ? Auth::id() : null,
                     'approved_at'     => now(),
@@ -487,11 +487,11 @@ class PembelianController extends Controller
                     'approved_at'     => now(),
                 ]);
 
-                $msg = "Pembayaran Cicilan ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dicatat dan disetujui.";
+                $msg = "Pembayaran Termin ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dicatat dan disetujui.";
                 if ($newStatus === 'Lunas') {
                     $msg .= " Pembelian ini kini telah LUNAS!";
                 } elseif ($cicilanKe === 5 && $newSisa > 0) {
-                    $msg .= " Perhatian: Pembelian telah mencapai batas maksimal 5 kali cicilan. Sisa Rp " . number_format($newSisa, 0, ',', '.') . " harus diselesaikan via pelunasan.";
+                    $msg .= " Perhatian: Pembelian telah mencapai batas maksimal 5 kali termin. Sisa Rp " . number_format($newSisa, 0, ',', '.') . " harus diselesaikan via pelunasan.";
                 }
 
                 return redirect()->back()->with('success', $msg);
@@ -509,7 +509,7 @@ class PembelianController extends Controller
                     'approved_at'     => null,
                 ]);
 
-                return redirect()->back()->with('success', "Pengajuan Cicilan ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dikirim. Menunggu persetujuan (approval) Pemilik.");
+                return redirect()->back()->with('success', "Pengajuan Termin ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dikirim. Menunggu persetujuan (approval) Pemilik.");
             }
         });
     }
@@ -517,26 +517,26 @@ class PembelianController extends Controller
     public function approveCicilan($id)
     {
         if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
-            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menyetujui cicilan.');
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menyetujui termin.');
         }
 
         return DB::transaction(function () use ($id) {
             $pembayaran = PembelianPembayaran::lockForUpdate()->findOrFail($id);
 
             if ($pembayaran->status_approval !== 'Pending') {
-                return redirect()->back()->with('error', 'Cicilan ini sudah diproses sebelumnya.');
+                return redirect()->back()->with('error', 'Termin ini sudah diproses sebelumnya.');
             }
 
             $pembelian = Pembelian::lockForUpdate()->findOrFail($pembayaran->pembelian_id);
 
             $approvedCount = $pembelian->pembayaran()->where('status_approval', 'Approved')->count();
             if ($approvedCount >= 5) {
-                return redirect()->back()->with('error', 'Batas maksimal 5 kali cicilan telah tercapai.');
+                return redirect()->back()->with('error', 'Batas maksimal 5 kali termin telah tercapai.');
             }
 
             $jumlahBayar = $pembayaran->jumlah_bayar;
             if ($jumlahBayar > $pembelian->sisa) {
-                return redirect()->back()->with('error', 'Nominal cicilan melebihi sisa tagihan.');
+                return redirect()->back()->with('error', 'Nominal termin melebihi sisa tagihan.');
             }
 
             $cicilanKe = $approvedCount + 1;
@@ -561,11 +561,11 @@ class PembelianController extends Controller
                 'approved_at'     => now(),
             ]);
 
-            $msg = "Cicilan ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil disetujui.";
+            $msg = "Termin ke-{$cicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil disetujui.";
             if ($newStatus === 'Lunas') {
                 $msg .= " Pembelian ini kini telah LUNAS!";
             } elseif ($cicilanKe === 5 && $newSisa > 0) {
-                $msg .= " Batas maksimal 5 kali cicilan telah tercapai.";
+                $msg .= " Batas maksimal 5 kali termin telah tercapai.";
             }
 
             return redirect()->back()->with('success', $msg);
@@ -575,12 +575,12 @@ class PembelianController extends Controller
     public function rejectCicilan($id)
     {
         if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
-            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menolak cicilan.');
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat menolak termin.');
         }
 
         $pembayaran = PembelianPembayaran::findOrFail($id);
         if ($pembayaran->status_approval !== 'Pending') {
-            return redirect()->back()->with('error', 'Cicilan ini sudah diproses sebelumnya.');
+            return redirect()->back()->with('error', 'Termin ini sudah diproses sebelumnya.');
         }
 
         $pembayaran->update([
@@ -589,7 +589,7 @@ class PembelianController extends Controller
             'approved_at'     => now(),
         ]);
 
-        return redirect()->back()->with('success', "Pengajuan Cicilan ke-{$pembayaran->cicilan_ke} telah ditolak.");
+        return redirect()->back()->with('success', "Pengajuan Termin ke-{$pembayaran->cicilan_ke} telah ditolak.");
     }
 
     private function adjustBudget($id, $amount): void

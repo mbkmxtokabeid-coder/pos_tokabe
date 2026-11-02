@@ -45,12 +45,14 @@ class LaporanPembelianController extends Controller
         }
 
         $statusLabel = 'Semua Status';
-        if ($request->filled('status') && in_array($request->status, ['Lunas', 'Cicil'], true)) {
-            $query->where('status', $request->status);
-            $statusLabel = $request->status;
-        } elseif ($request->filled('status') && $request->status === 'Belum Lunas') {
-            $query->where('status', 'Cicil');
-            $statusLabel = 'Cicil';
+        if ($request->filled('status')) {
+            if ($request->status === 'Lunas') {
+                $query->where('status', 'Lunas');
+                $statusLabel = 'Lunas';
+            } elseif (in_array($request->status, ['Cicil', 'Termin', 'Belum Lunas'], true)) {
+                $query->where('status', 'Cicil');
+                $statusLabel = 'Termin';
+            }
         }
 
         $periodeLabel = 'Seluruh Periode';

@@ -383,7 +383,7 @@
                 <label class="col-lg-4 col-form-label">Status Pembelian <span class="text-danger">*</span></label>
                 <div class="col-lg-8">
                   <select name="status" id="status_pembelian" class="form-select @error('status') is-invalid @enderror" required onchange="handleStatusChange()">
-                    <option value="Cicil" {{ old('status', 'Cicil') === 'Cicil' ? 'selected' : '' }}>Cicil</option>
+                    <option value="Cicil" {{ old('status', 'Cicil') === 'Cicil' || old('status') === 'Termin' ? 'selected' : '' }}>Termin</option>
                     <option value="Lunas" {{ old('status') === 'Lunas' ? 'selected' : '' }}>Lunas</option>
                   </select>
                   @error('status')<span class="error-help-block">{{ $message }}</span>@enderror

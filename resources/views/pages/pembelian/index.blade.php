@@ -754,7 +754,7 @@
                     <!-- Filter Status Pembayaran -->
                     <select id="filterStatusVendor" class="form-select form-select-sm vendor-filter-select" style="width: 170px;" title="Filter status tagihan vendor">
                         <option value="all">Semua Status</option>
-                        <option value="cicil">Hanya Ada Cicilan</option>
+                        <option value="cicil">Hanya Ada Termin</option>
                         <option value="lunas">Hanya Sudah Lunas</option>
                     </select>
 

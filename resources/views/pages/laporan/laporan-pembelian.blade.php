@@ -176,7 +176,7 @@
                                     <select name="status" class="form-select">
                                         <option value="semua">Semua Status</option>
                                         <option value="Lunas">Lunas</option>
-                                        <option value="Cicil">Cicil</option>
+                                        <option value="Cicil">Termin</option>
                                         </select>
                                 </div>
                             </div>

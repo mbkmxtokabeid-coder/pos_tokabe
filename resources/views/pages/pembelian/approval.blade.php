@@ -287,7 +287,7 @@
                         $approvedCount = $pembelian->pembayaran ? $pembelian->pembayaran->where('status_approval', 'Approved')->count() : 0;
                     @endphp
                     <span class="pill-badge pill-cicil">
-                        <i class="ri-time-line"></i> Cicil ({{ $approvedCount }}/5)
+                        <i class="ri-time-line"></i> Termin ({{ $approvedCount }}/5)
                     </span>
                 @elseif($pembelian->status === 'Lunas')
                     <span class="pill-badge pill-lunas">
@@ -323,7 +323,7 @@
                             </div>
                             <div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <h6 class="text-white fw-bold mb-0">Pengajuan Cicilan Ke-{{ $pPending->cicilan_ke }} Menunggu Persetujuan</h6>
+                                    <h6 class="text-white fw-bold mb-0">Pengajuan Termin Ke-{{ $pPending->cicilan_ke }} Menunggu Persetujuan</h6>
                                     <span class="badge bg-warning bg-opacity-20 text-warning px-2 py-0.5 fs-11">Pending Approval</span>
                                 </div>
                                 <div class="text-muted fs-12 mt-1">
@@ -342,10 +342,10 @@
                             <form action="{{ route('pembelian.cicilan.approve', $pPending->id) }}" method="POST" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-success px-3 py-1.5 fs-12 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm">
-                                    <i class="ri-check-line"></i> Setujui Cicilan
+                                    <i class="ri-check-line"></i> Setujui Termin
                                 </button>
                             </form>
-                            <form action="{{ route('pembelian.cicilan.reject', $pPending->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tolak cicilan ini?')">
+                            <form action="{{ route('pembelian.cicilan.reject', $pPending->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tolak termin ini?')">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-outline-danger px-3 py-1.5 fs-12 fw-semibold d-inline-flex align-items-center gap-1">
                                     <i class="ri-close-line"></i> Tolak
@@ -458,7 +458,7 @@
                     <div class="app-card-header d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
                             <i class="ri-history-line text-warning fs-15"></i>
-                            <h6 class="mb-0 text-white fw-semibold fs-13">Riwayat Pembayaran Cicilan</h6>
+                            <h6 class="mb-0 text-white fw-semibold fs-13">Riwayat Pembayaran Termin</h6>
                         </div>
                         <span class="badge bg-secondary bg-opacity-25 text-light fs-11 px-2 py-0.5">
                             {{ $pembelian->pembayaran->count() }} Pembayaran Terdata
@@ -481,7 +481,7 @@
                                 @foreach($pembelian->pembayaran as $pby)
                                 <tr>
                                     <td class="fw-semibold text-white">
-                                        Cicilan Ke-{{ $pby->cicilan_ke }}
+                                        Termin Ke-{{ $pby->cicilan_ke }}
                                     </td>
                                     <td class="text-muted fs-12">
                                         {{ optional($pby->tanggal_bayar)->translatedFormat('d M Y') ?: '-' }}
@@ -510,7 +510,7 @@
                                                         <i class="ri-check-line"></i> Setuju
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('pembelian.cicilan.reject', $pby->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tolak cicilan ini?')">
+                                                <form action="{{ route('pembelian.cicilan.reject', $pby->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tolak termin ini?')">
                                                     @csrf
                                                     <button type="submit" class="btn btn-sm btn-danger py-1 px-2 fs-11 fw-semibold" title="Tolak">
                                                         <i class="ri-close-line"></i> Tolak

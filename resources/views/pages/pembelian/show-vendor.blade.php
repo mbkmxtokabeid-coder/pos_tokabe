@@ -444,7 +444,7 @@
                     <select id="filterStatusPembelian" class="form-select form-select-sm" style="width: 150px; background-color: #212529; border: 1px solid #383E45; border-radius: 8px; color: #F8F9FA; font-size: 13px;" title="Filter status pembayaran">
                         <option value="all">Semua Status</option>
                         <option value="Lunas">Lunas</option>
-                        <option value="Cicil">Cicil</option>
+                        <option value="Cicil">Termin</option>
                         </select>
                 </div>
             </div>
@@ -491,14 +491,14 @@
                                         @if($item->status === 'Lunas')
                                             <span class="badge-status-lunas">Lunas</span>
                                         @else
-                                            <span class="badge-status-cicil">Cicil</span>
+                                            <span class="badge-status-cicil">Termin</span>
                                             @if($item->approved_cicilan_count >= 5 && $item->sisa > 0)
-                                                <span class="badge py-0.5 px-2 fs-10 fw-semibold" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3);" title="Batas maksimal cicilan 5x tercapai. Butuh pelunasan dari Pemilik.">
+                                                <span class="badge py-0.5 px-2 fs-10 fw-semibold" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3);" title="Batas maksimal termin 5x tercapai. Butuh pelunasan dari Pemilik.">
                                                     <i class="ri-alert-line"></i> Maks 5/5
                                                 </span>
                                             @else
                                                 <span class="badge py-0.5 px-2 fs-10 fw-semibold" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);">
-                                                    Cicilan {{ $item->approved_cicilan_count }}/5
+                                                    Termin {{ $item->approved_cicilan_count }}/5
                                                 </span>
                                             @endif
                                         @endif
@@ -585,37 +585,37 @@
                                                 @endif
                                             @endif
 
-                                            {{-- Menu Bayar Cicilan --}}
+                                            {{-- Menu Bayar Termin --}}
                                             @if($item->status !== 'Lunas' && $item->sisa > 0)
                                                 @if($item->approved_cicilan_count < 5)
                                                     @if($item->pending_cicilan_count == 0)
                                                         <li>
                                                             <a class="dropdown-item text-primary" href="javascript:void(0)"
                                                                onclick="openModalBayarCicilan('{{ $item->id }}', '{{ $item->nomor_inv }}', {{ $item->sisa }}, {{ $item->approved_cicilan_count + 1 }}, '{{ $item->anggaran }}')">
-                                                                <i class="ri-money-dollar-circle-line fs-15 text-primary"></i>Bayar Cicilan (Ke-{{ $item->approved_cicilan_count + 1 }}/5)
+                                                                <i class="ri-money-dollar-circle-line fs-15 text-primary"></i>Bayar Termin (Ke-{{ $item->approved_cicilan_count + 1 }}/5)
                                                             </a>
                                                         </li>
                                                     @else
                                                         <li>
                                                             <span class="dropdown-item text-warning disabled">
-                                                                <i class="ri-time-line fs-15 text-warning"></i>Cicilan Menunggu Approval
+                                                                <i class="ri-time-line fs-15 text-warning"></i>Termin Menunggu Approval
                                                             </span>
                                                         </li>
                                                     @endif
                                                 @else
                                                     <li>
-                                                        <span class="dropdown-item text-danger disabled" title="Batas maksimal cicilan 5 kali telah tercapai">
-                                                            <i class="ri-forbid-line fs-15 text-danger"></i>Maks Cicilan 5x Tercapai
+                                                        <span class="dropdown-item text-danger disabled" title="Batas maksimal termin 5 kali telah tercapai">
+                                                            <i class="ri-forbid-line fs-15 text-danger"></i>Maks Termin 5x Tercapai
                                                         </span>
                                                     </li>
                                                 @endif
                                             @endif
 
-                                            {{-- Menu Track Record / Riwayat Cicilan --}}
+                                            {{-- Menu Track Record / Riwayat Termin --}}
                                             @if($item->pembayaran->isNotEmpty() || $item->status === 'Cicil')
                                                 <li>
                                                     <a class="dropdown-item text-info" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalRiwayatCicilan_{{ $item->id }}">
-                                                        <i class="ri-history-line fs-15 text-info"></i>Track Record Cicilan ({{ $item->pembayaran->count() }})
+                                                        <i class="ri-history-line fs-15 text-info"></i>Track Record Termin ({{ $item->pembayaran->count() }})
                                                     </a>
                                                 </li>
                                             @endif
@@ -662,7 +662,7 @@
             </div>
         </div>
 
-{{-- Modal Bayar Cicilan --}}
+{{-- Modal Bayar Termin --}}
 <div class="modal fade modal-vendor-custom" id="modalBayarCicilan" tabindex="-1" aria-labelledby="modalBayarCicilanLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 520px;">
         <div class="modal-content shadow-lg">
@@ -675,9 +675,9 @@
                         </div>
                         <div>
                             <h5 class="modal-title fs-16 fw-semibold text-white mb-0" id="modalBayarCicilanLabel">
-                                Pembayaran Cicilan
+                                Pembayaran Termin
                             </h5>
-                            <small class="text-muted fs-12" id="modal_cicilan_subtitle">Maksimal 5 Kali Pembayaran Cicilan</small>
+                            <small class="text-muted fs-12" id="modal_cicilan_subtitle">Maksimal 5 Kali Pembayaran Termin</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
@@ -696,20 +696,20 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fs-12 text-muted">Tahap Pembayaran:</span>
                             <span class="badge py-1 px-2 fs-11 fw-semibold" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; border: 1px solid rgba(99, 102, 241, 0.3);" id="modal_cicilan_ke_badge">
-                                Cicilan Ke-1 dari Maks 5x
+                                Termin Ke-1 dari Maks 5x
                             </span>
                         </div>
                     </div>
 
-                    {{-- Warning jika cicilan ke-5 --}}
+                    {{-- Warning jika termin ke-5 --}}
                     <div id="modal_cicilan_ke5_warning" class="alert alert-warning py-2 px-3 fs-12 mb-3 d-none" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #FCD34D; border-radius: 8px;">
-                        <i class="ri-alert-fill me-1"></i><strong>Perhatian:</strong> Ini adalah cicilan ke-5 (terakhir). Jika masih ada sisa setelah pembayaran ini, transaksi tidak dapat dicicil lagi dan harus diselesaikan via pelunasan oleh Pemilik.
+                        <i class="ri-alert-fill me-1"></i><strong>Perhatian:</strong> Ini adalah termin ke-5 (terakhir). Jika masih ada sisa setelah pembayaran ini, transaksi tidak dapat dicicil lagi dan harus diselesaikan via pelunasan oleh Pemilik.
                     </div>
 
                     {{-- Notice Role --}}
                     @if((Auth::user()->role ?? null) === 'Admin')
                         <div class="alert alert-info py-2 px-3 fs-12 mb-3" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: #38BDF8; border-radius: 8px;">
-                            <i class="ri-information-line me-1"></i>Sebagai <strong>Admin</strong>, cicilan ini akan dikirim sebagai pengajuan dan membutuhkan <strong>Approval Pemilik</strong> sebelum kas terpotong.
+                            <i class="ri-information-line me-1"></i>Sebagai <strong>Admin</strong>, termin ini akan dikirim sebagai pengajuan dan membutuhkan <strong>Approval Pemilik</strong> sebelum kas terpotong.
                         </div>
                     @endif
 
@@ -719,7 +719,7 @@
                     </div>
 
                     <div class="mb-2.5">
-                        <label for="cicilan_jumlah" class="form-label fs-13 text-white fw-medium">Nominal Cicilan (Rp) <span class="text-danger">*</span></label>
+                        <label for="cicilan_jumlah" class="form-label fs-13 text-white fw-medium">Nominal Termin (Rp) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text" style="background: #212529; border-color: #383E45; color: #94A3B8;">Rp</span>
                             <input type="text" name="jumlah_bayar" id="cicilan_jumlah" class="form-control fw-bold fs-15 text-white" placeholder="0" required oninput="formatInputRibuan(this); checkCicilanMax(this);">
@@ -751,7 +751,7 @@
                         @if((Auth::user()->role ?? null) === 'Pemilik')
                             <i class="ri-check-line me-1"></i>Simpan Pembayaran
                         @else
-                            <i class="ri-send-plane-line me-1"></i>Simpan & Ajukan Cicilan
+                            <i class="ri-send-plane-line me-1"></i>Simpan & Ajukan Termin
                         @endif
                     </button>
                 </div>
@@ -760,7 +760,7 @@
     </div>
 </div>
 
-{{-- Modals Riwayat Track Record Cicilan --}}
+{{-- Modals Riwayat Track Record Termin --}}
 @foreach($pembelian as $item)
 <div class="modal fade" id="modalRiwayatCicilan_{{ $item->id }}" tabindex="-1" aria-labelledby="modalRiwayatLabel_{{ $item->id }}" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
@@ -772,7 +772,7 @@
                     </div>
                     <div>
                         <h5 class="modal-title fs-16 fw-semibold text-white mb-0" id="modalRiwayatLabel_{{ $item->id }}">
-                            Track Record Cicilan &mdash; Invoice #{{ $item->nomor_inv }}
+                            Track Record Termin &mdash; Invoice #{{ $item->nomor_inv }}
                         </h5>
                         <small class="text-muted fs-12">Vendor: {{ $vendor->nama_vendor }}</small>
                     </div>
@@ -802,7 +802,7 @@
                     </div>
                     <div class="col-sm-3 col-6">
                         <div class="p-2.5 rounded text-center" style="background: #212529; border: 1px solid #383E45;">
-                            <span class="fs-11 text-muted d-block text-uppercase fw-semibold">Status Cicilan</span>
+                            <span class="fs-11 text-muted d-block text-uppercase fw-semibold">Status Termin</span>
                             <span class="fs-13 fw-bold text-info">{{ $item->approved_cicilan_count }}/5 Kali</span>
                         </div>
                     </div>
@@ -813,7 +813,7 @@
                     <table class="table table-hover align-middle mb-0" style="color: #CBD5E1;">
                         <thead style="background: #181E26; font-size: 11.5px; text-transform: uppercase;">
                             <tr>
-                                <th class="text-center" style="width: 70px;">Cicilan</th>
+                                <th class="text-center" style="width: 70px;">Termin</th>
                                 <th>Tanggal Bayar</th>
                                 <th class="text-end">Nominal (Rp)</th>
                                 <th>Kas / Anggaran</th>
@@ -853,20 +853,20 @@
                                             <div class="d-flex align-items-center justify-content-center gap-1">
                                                 <form action="{{ route('pembelian.cicilan.approve', $pby->id) }}" method="POST" class="d-inline">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-success py-1 px-2 fs-11" title="Setujui Cicilan">
+                                                    <button type="submit" class="btn btn-sm btn-success py-1 px-2 fs-11" title="Setujui Termin">
                                                         <i class="ri-check-line"></i> Setuju
                                                     </button>
                                                 </form>
-                                                <form action="{{ route('pembelian.cicilan.reject', $pby->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tolak pengajuan cicilan ini?')">
+                                                <form action="{{ route('pembelian.cicilan.reject', $pby->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Tolak pengajuan termin ini?')">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-sm btn-danger py-1 px-2 fs-11" title="Tolak Cicilan">
+                                                    <button type="submit" class="btn btn-sm btn-danger py-1 px-2 fs-11" title="Tolak Termin">
                                                         <i class="ri-close-line"></i> Tolak
                                                     </button>
                                                 </form>
                                             </div>
                                         @else
                                             @php
-                                                $pesanWaCicilan = urlencode("Halo, admin telah mengajukan pembayaran cicilan ke-{$pby->cicilan_ke} untuk invoice #{$item->nomor_inv} ({$vendor->nama_vendor}) sebesar Rp " . number_format($pby->jumlah_bayar, 0, ',', '.') . ". Mohon persetujuan Pemilik melalui sistem Tokabe.");
+                                                $pesanWaCicilan = urlencode("Halo, admin telah mengajukan pembayaran termin ke-{$pby->cicilan_ke} untuk invoice #{$item->nomor_inv} ({$vendor->nama_vendor}) sebesar Rp " . number_format($pby->jumlah_bayar, 0, ',', '.') . ". Mohon persetujuan Pemilik melalui sistem Tokabe.");
                                             @endphp
                                             <a href="https://wa.me/{{ $waOwner1 }}?text={{ $pesanWaCicilan }}" target="_blank" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
                                                 <i class="ri-whatsapp-line"></i> Hubungi Owner
@@ -879,7 +879,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8" class="text-center text-muted py-4">Belum ada riwayat pembayaran cicilan yang tercatat.</td>
+                                <td colspan="8" class="text-center text-muted py-4">Belum ada riwayat pembayaran termin yang tercatat.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -909,7 +909,7 @@
         document.getElementById('modal_cicilan_inv').textContent = '#' + nomorInv;
         document.getElementById('modal_cicilan_sisa_text').textContent = 'Rp ' + formatRp(sisa);
         document.getElementById('modal_cicilan_max_label').textContent = 'Rp ' + formatRp(sisa);
-        document.getElementById('modal_cicilan_ke_badge').textContent = `Cicilan Ke-${nextCicilanKe} dari Maksimal 5x`;
+        document.getElementById('modal_cicilan_ke_badge').textContent = `Termin Ke-${nextCicilanKe} dari Maksimal 5x`;
 
         currentCicilanMaxSisa = sisa;
 

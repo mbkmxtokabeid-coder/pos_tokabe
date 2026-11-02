@@ -178,7 +178,7 @@ class PembelianCicilStatusTest extends TestCase
         $response = $this->actingAs($pemilik)->get(route('pembelian.vendor.show', $vendor->id));
         $response->assertStatus(200);
         $response->assertSee('badge-status-cicil');
-        $response->assertSee('Cicil');
+        $response->assertSee('Termin');
         $response->assertSee('filterStatusPembelian');
     }
 
@@ -410,10 +410,10 @@ class PembelianCicilStatusTest extends TestCase
         $response->assertSee('Konfirmasi Persetujuan Edit Pembelian');
         $response->assertSee('Setujui & Buka Kunci', false);
         $response->assertSee($pembelian->nomor_inv);
-        $response->assertSee('Riwayat Pembayaran Cicilan');
-        $response->assertSee('Cicilan Ke-1');
-        $response->assertSee('Pengajuan Cicilan Ke-2 Menunggu Persetujuan');
-        $response->assertSee('Setujui Cicilan');
+        $response->assertSee('Riwayat Pembayaran Termin');
+        $response->assertSee('Termin Ke-1');
+        $response->assertSee('Pengajuan Termin Ke-2 Menunggu Persetujuan');
+        $response->assertSee('Setujui Termin');
         $response->assertSee(route('pembelian.cicilan.approve', $pendingPay->id));
     }
 }
