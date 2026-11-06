@@ -1147,16 +1147,6 @@ class PenjualanTokabeController extends Controller
             }
         }
 
-        if ($request->jns_pem === 'Transfer DP') {
-            $dpCheck = intval(preg_replace('/[^0-9]/', '', $request->dp ?? '0'));
-            if ($dpCheck <= 0) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Nominal DP wajib diisi untuk jenis pembayaran Transfer DP.'
-                ], 422);
-            }
-        }
-
         // --- 1. VALIDASI & FILTERING STOK MULTI-MATERIAL ---
         if (!empty($request->barang_id)) {
             foreach ($request->barang_id as $key => $value) {

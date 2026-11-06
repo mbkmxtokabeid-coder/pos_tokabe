@@ -263,4 +263,82 @@ class TokabeInvoiceEnhancementsTest extends TestCase
         $this->assertEquals(7000, $invoice->dp);
         $this->assertEquals(3000, $invoice->sisa_pembayaran);
     }
+
+    public function test_transfer_dp_can_be_zero_rupiah()
+    {
+        $barang = Barang::where('is_active', 1)->first();
+        $totalHarga = 250000;
+
+        // 1. Simpan Invoice Baru dengan DP = 0
+        $payloadStore = [
+            'pelanggan' => 'Customer DP Nol',
+            'perusahaan' => 'PT Nol Rupiah',
+            'tlp' => '081234567890',
+            'adm' => $this->admin->id,
+            'order' => 'Langsung',
+            'sales' => '-',
+            'tgl_jual' => '2026-11-02',
+            'jam' => '10:00',
+            'tgl_selesai' => '2026-11-05',
+            'jns_pem' => 'Transfer DP',
+            'dp' => '0',
+            'norek' => 'TKB',
+            'tot_harga' => number_format($totalHarga, 0, ',', '.'),
+            'tot_pem' => number_format($totalHarga, 0, ',', '.'),
+            'sisa_pem' => number_format($totalHarga, 0, ',', '.'),
+            'barang_id' => [$barang ? $barang->id : 1],
+            'qty' => [1],
+            'satuan' => ['Pcs'],
+            'hrg' => [number_format($totalHarga, 0, ',', '.')],
+            'jlh_hrg' => [number_format($totalHarga, 0, ',', '.')],
+            'deskripsi_item' => ['Barang DP 0 Rupiah'],
+        ];
+
+        $resStore = $this->actingAs($this->admin)->postJson('/addInvoiceTokabe', $payloadStore);
+        $this->assertTrue(in_array($resStore->status(), [200, 302]));
+
+        $saved = PenjualanTokabe::where('customer', 'Customer DP Nol')->latest('id')->first();
+        $this->assertNotNull($saved);
+        $this->assertEquals('Transfer DP', $saved->jenis_pembayaran);
+        $this->assertEquals(0, $saved->dp);
+        $this->assertEquals($totalHarga, $saved->total_pembayaran);
+        $this->assertEquals($totalHarga, $saved->sisa_pembayaran);
+        $this->assertEquals('Belum Lunas', $saved->status);
+
+        // 2. Update Invoice menjadi DP = 0
+        $saved->approval = 'Unlock';
+        $saved->save();
+
+        $payloadUpdate = [
+            'inv' => '5',
+            'pelanggan' => 'Customer DP Nol',
+            'perusahaan' => 'PT Nol Rupiah Updated',
+            'tlp' => '081234567890',
+            'adm' => $this->admin->id,
+            'order' => 'Langsung',
+            'sales' => '-',
+            'tgl_jual' => '2026-11-02',
+            'jam' => '11:00',
+            'tgl_selesai' => '2026-11-06',
+            'jns_pem' => 'Transfer DP',
+            'dp' => '0',
+            'norek' => 'TKB',
+            'tot_harga' => number_format($totalHarga, 0, ',', '.'),
+            'tot_pem' => number_format($totalHarga, 0, ',', '.'),
+            'sisa_pem' => number_format($totalHarga, 0, ',', '.'),
+            'barang_id' => [$barang ? $barang->id : 1],
+            'qty' => [1],
+            'satuan' => ['Pcs'],
+            'hrg' => [number_format($totalHarga, 0, ',', '.')],
+            'jlh_hrg' => [number_format($totalHarga, 0, ',', '.')],
+            'deskripsi_item' => ['Barang DP 0 Rupiah Updated'],
+        ];
+
+        $resUpdate = $this->actingAs($this->pemilik)->putJson(route('update-invoiceTokabe', $saved->id), $payloadUpdate);
+        $this->assertTrue(in_array($resUpdate->status(), [200, 302]));
+
+        $saved->refresh();
+        $this->assertEquals(0, $saved->dp);
+        $this->assertEquals($totalHarga, $saved->sisa_pembayaran);
+    }
 }

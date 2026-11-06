@@ -193,22 +193,6 @@ $(document).ready(function () {
         return false;
     }
 
-    // Validasi DP jika Transfer DP
-    if (jnsPem === 'Transfer DP') {
-        var dpVal = parseInt(($('#input-dp').val() || '').replace(/[^0-9]/g, '')) || 0;
-        if (dpVal <= 0) {
-            Swal.fire({
-                icon: "warning",
-                title: "DP Wajib Diisi",
-                text: "Nominal DP wajib diisi untuk jenis pembayaran Transfer DP.",
-                confirmButtonColor: "#6366F1",
-            }).then(function() {
-                $('#input-dp').focus();
-            });
-            return false;
-        }
-    }
-
     // Temporarily enable inputs so serialize captures values
     $('#input-ppn, #input-pph').prop('disabled', false);
     var formData = $(this).serialize();
@@ -641,7 +625,7 @@ $(document).ready(function () {
                                    {{-- Input untuk Dp --}}
                                    <div class="row mb-1" id="div-dp-row">
                                      <div class="col-lg-4" id="div-label" style="display: none" >
-                                       <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp <span class="text-danger">*</span></label>
+                                       <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp</label>
                                      </div>
                                        <div class="col-lg-6" id="dp" style="display: none;">
                                          <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand", "numeralDecimalScale": 0, "numeralPositiveOnly": true }' class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ old('dp') }}">

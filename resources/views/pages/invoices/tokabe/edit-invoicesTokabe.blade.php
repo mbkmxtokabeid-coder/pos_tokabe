@@ -474,7 +474,7 @@
                                     {{-- Input untuk Dp --}}
                                     <div class="row mb-1" id="div-dp-row">
                                       <div class="col-lg-4" id="div-label" style="display: {{ ($inv->jns_pem === 'Transfer DP' || $inv->jns_pem === 'Cash Belum Lunas') ? 'block' : 'none' }};" >
-                                        <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp <span class="text-danger">*</span></label>
+                                        <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp</label>
                                       </div>
                                       <div class="col-lg-6" id="dp" style="display: {{ ($inv->jns_pem === 'Transfer DP' || $inv->jns_pem === 'Cash Belum Lunas') ? 'block' : 'none' }};">
                                         @if (!empty($inv->dp))

@@ -161,7 +161,7 @@ function sisaPembayaran() {
 var dpElem = document.getElementById('input-dp');
 if (dpElem) {
   var initialDp = parseFloat(dpElem.value.replace(/[.,]/g, ''));
-  if (!isNaN(initialDp) && initialDp > 0) {
+  if (!isNaN(initialDp) && dpElem.value.trim() !== '') {
     window.userEditedDp = true;
   }
 

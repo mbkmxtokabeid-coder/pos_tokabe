@@ -51,8 +51,7 @@ function getTotal() {
 window.userEditedDp = false;
 var dpInputInit = document.getElementById('input-dp');
 if (dpInputInit) {
-  var initVal = parseNumber(dpInputInit.value);
-  if (initVal > 0) {
+  if (dpInputInit.value !== '' && dpInputInit.value !== null) {
     window.userEditedDp = true;
   }
 }
