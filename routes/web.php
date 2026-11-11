@@ -284,3 +284,12 @@ Route::get('/invoice-tkb/public-download/{id}', [PenjualanTokabeController::clas
 Route::get('/test', function () {
     return view('pages.laporan.pdf');
 });
+
+// ROUTE CLEAR CACHE HOSTINGER
+Route::get('/clear-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return response('<h3>Semua Cache Hostinger Berhasil Dibersihkan!</h3><p>Silakan kembali ke <a href="' . url('/welcomeTKB') . '">Dashboard Tokabe</a>.</p>');
+})->middleware('auth');

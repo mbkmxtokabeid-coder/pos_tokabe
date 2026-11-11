@@ -2026,7 +2026,7 @@ body,
     </script>
     <!-- html2canvas & Exporter -->
     <script src="{{asset('libs/html2canvas/html2canvas.min.js')}}"></script>
-    <script src="{{asset('js/halaman/dashboardtokabe.js')}}"></script>
+    <script src="{{asset('js/halaman/dashboardtokabe.js')}}?v={{ file_exists(public_path('js/halaman/dashboardtokabe.js')) ? filemtime(public_path('js/halaman/dashboardtokabe.js')) : time() }}"></script>
 @endsection
 
 
