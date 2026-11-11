@@ -754,26 +754,26 @@ var customItemPeriodLabel = '';
 var chartPenjualanItem = null;
 var chartPilihanPajakDonut = null;
 
-const ITEM_PALETTE = [
+var ITEM_PALETTE = [
   '#6B73F0', '#7E85F4', '#5A62DB', '#8B92FF', '#4E55C7',
   '#A0A6FF', '#3D44A6', '#6B7686', '#9AA4B2', '#4A5361'
 ];
 
-const TAX_COLOR_MAP = {
+var TAX_COLOR_MAP = {
   'ppn': '#6B73F0',         // Single Accent Indigo
   'pph': '#E3A33B',         // Warm Amber Warning
   'ppn_pph': '#5B9DF0',     // Info Blue
   'tanpa_pajak': '#6B7686', // Slate Neutral
 };
 
-const TAX_LABEL_MAP = {
+var TAX_LABEL_MAP = {
   'ppn': 'PPN',
   'pph': 'PPh',
   'ppn_pph': 'PPN & PPh',
   'tanpa_pajak': 'Tanpa Pajak',
 };
 
-const TAX_BADGE_CLASS = {
+var TAX_BADGE_CLASS = {
   'ppn': 'badge-tax-ppn',
   'pph': 'badge-tax-pph',
   'ppn_pph': 'badge-tax-ppn_pph',
