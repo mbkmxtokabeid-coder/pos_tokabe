@@ -59,7 +59,7 @@ class PembelianController extends Controller
         $request->validate([
             'id_vendor'     => ['required', 'exists:vendor,id'],
             'nomor_inv'     => ['required', 'string', 'max:100'],
-            'jenis_invoice' => ['required', 'in:Barang,Jasa,Barang dan Jasa,Tanpa Pajak'],
+            'jenis_invoice' => ['required', 'in:Barang,Jasa,Barang dan Jasa,Jasa Iklan,Tanpa Pajak'],
             'ppn_persen'    => ['nullable', 'numeric', 'min:0', 'max:100'],
             'pph_persen'    => ['nullable', 'numeric', 'min:0', 'max:100'],
             'tanggal'       => ['required', 'date'],
@@ -80,14 +80,14 @@ class PembelianController extends Controller
             }));
 
             $jenisInvoice = $request->jenis_invoice;
-            $ppnPersen = in_array($jenisInvoice, ['Barang', 'Barang dan Jasa'], true)
+            $ppnPersen = in_array($jenisInvoice, ['Barang', 'Barang dan Jasa', 'Jasa Iklan'], true)
                 ? (float) ($request->ppn_persen ?? 0) : 0;
-            $pphPersen = in_array($jenisInvoice, ['Jasa', 'Barang dan Jasa'], true)
+            $pphPersen = in_array($jenisInvoice, ['Jasa', 'Barang dan Jasa', 'Jasa Iklan'], true)
                 ? (float) ($request->pph_persen ?? 0) : 0;
 
             $ppnNominal = (int) round($subtotal * $ppnPersen / 100);
             $pphNominal = (int) round($subtotal * $pphPersen / 100);
-            $jumlahHarga = $subtotal + $ppnNominal;
+            $jumlahHarga = max(0, $subtotal + $ppnNominal - $pphNominal);
 
             $rawTerbayar = min((int) round((float) ($request->terbayar ?? 0)), $jumlahHarga);
 
@@ -205,7 +205,7 @@ class PembelianController extends Controller
         $request->validate([
             'id_vendor'     => ['required', 'exists:vendor,id'],
             'nomor_inv'     => ['required', 'string', 'max:100'],
-            'jenis_invoice' => ['required', 'in:Barang,Jasa,Barang dan Jasa,Tanpa Pajak'],
+            'jenis_invoice' => ['required', 'in:Barang,Jasa,Barang dan Jasa,Jasa Iklan,Tanpa Pajak'],
             'ppn_persen'    => ['nullable', 'numeric', 'min:0', 'max:100'],
             'pph_persen'    => ['nullable', 'numeric', 'min:0', 'max:100'],
             'tanggal'       => ['required', 'date'],
@@ -227,14 +227,14 @@ class PembelianController extends Controller
             }));
 
             $jenisInvoice = $request->jenis_invoice;
-            $ppnPersen = in_array($jenisInvoice, ['Barang', 'Barang dan Jasa'], true)
+            $ppnPersen = in_array($jenisInvoice, ['Barang', 'Barang dan Jasa', 'Jasa Iklan'], true)
                 ? (float) ($request->ppn_persen ?? 0) : 0;
-            $pphPersen = in_array($jenisInvoice, ['Jasa', 'Barang dan Jasa'], true)
+            $pphPersen = in_array($jenisInvoice, ['Jasa', 'Barang dan Jasa', 'Jasa Iklan'], true)
                 ? (float) ($request->pph_persen ?? 0) : 0;
 
             $ppnNominal = (int) round($subtotal * $ppnPersen / 100);
             $pphNominal = (int) round($subtotal * $pphPersen / 100);
-            $jumlahHarga = $subtotal + $ppnNominal;
+            $jumlahHarga = max(0, $subtotal + $ppnNominal - $pphNominal);
 
             $rawTerbayar = min((int) round((float) ($request->terbayar ?? 0)), $jumlahHarga);
 
@@ -592,6 +592,74 @@ class PembelianController extends Controller
         return redirect()->back()->with('success', "Pengajuan Termin ke-{$pembayaran->cicilan_ke} telah ditolak.");
     }
 
+    public function cancelCicilan($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat membatalkan termin yang sudah disetujui.');
+        }
+
+        return DB::transaction(function () use ($id) {
+            $pembayaran = PembelianPembayaran::lockForUpdate()->findOrFail($id);
+
+            if ($pembayaran->status_approval !== 'Approved') {
+                return redirect()->back()->with('error', 'Hanya termin yang berstatus Disetujui (Approved) yang dapat dibatalkan.');
+            }
+
+            $pembelian = Pembelian::lockForUpdate()->findOrFail($pembayaran->pembelian_id);
+
+            $jumlahBayar = (int) $pembayaran->jumlah_bayar;
+            $oldTerbayar = (int) $pembelian->terbayar;
+            $newTerbayar = max(0, $oldTerbayar - $jumlahBayar);
+            $actualReduced = $oldTerbayar - $newTerbayar;
+            $newSisa = max(0, (int) $pembelian->jumlah_harga - $newTerbayar);
+            $newStatus = ($newSisa <= 0 && $pembelian->jumlah_harga > 0) ? 'Lunas' : 'Cicil';
+
+            // Kembalikan saldo kas/anggaran dan sesuaikan saldo vendor
+            $anggaranId = $pembayaran->anggaran_id ?: $pembelian->anggaran;
+            $this->adjustBudget($anggaranId, $actualReduced);
+            $this->adjustVendor($pembelian->id_vendor, 0, -$actualReduced, $actualReduced);
+
+            $pembelian->update([
+                'terbayar'  => $newTerbayar,
+                'sisa'      => $newSisa,
+                'status'    => $newStatus,
+                'tgl_lunas' => $newStatus === 'Lunas' ? $pembelian->tgl_lunas : null,
+            ]);
+
+            $oldCicilanKe = $pembayaran->cicilan_ke;
+            $catatanLama = trim((string) $pembayaran->catatan);
+            $catatanBaru = str_contains($catatanLama, '[Dibatalkan Owner]')
+                ? $catatanLama
+                : trim($catatanLama . ' [Dibatalkan Owner]');
+
+            $pembayaran->update([
+                'status_approval' => 'Rejected',
+                'catatan'         => $catatanBaru,
+                'approved_by'     => Auth::id(),
+                'approved_at'     => now(),
+            ]);
+
+            // Urutkan ulang nomor cicilan_ke untuk termin yang masih Approved
+            $remainingApproved = $pembelian->pembayaran()
+                ->where('status_approval', 'Approved')
+                ->orderBy('tanggal_bayar')
+                ->orderBy('created_at')
+                ->get();
+
+            foreach ($remainingApproved as $idx => $itemApproved) {
+                $expectedKe = $idx + 1;
+                if ((int) $itemApproved->cicilan_ke !== $expectedKe) {
+                    $itemApproved->update(['cicilan_ke' => $expectedKe]);
+                }
+            }
+
+            return redirect()->back()->with(
+                'success',
+                "Pembayaran Termin ke-{$oldCicilanKe} sebesar Rp " . number_format($jumlahBayar, 0, ',', '.') . " berhasil dibatalkan. Saldo kas dan sisa tagihan vendor telah dikembalikan."
+            );
+        });
+    }
+
     private function adjustBudget($id, $amount): void
     {
         if ($id && $amount != 0) {
@@ -627,7 +695,7 @@ class PembelianController extends Controller
 
         $vendor = Vendor::findOrFail($id);
 
-        $pembelian = Pembelian::with(['vendor', 'pembayaran.anggaran', 'pembayaran.user', 'pembayaran.approver'])
+        $pembelian = Pembelian::with(['vendor', 'barang', 'pembayaran.anggaran', 'pembayaran.user', 'pembayaran.approver'])
             ->where('id_vendor', $id)
             ->latest('tanggal')
             ->get();

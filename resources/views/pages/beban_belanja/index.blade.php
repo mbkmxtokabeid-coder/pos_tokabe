@@ -1054,6 +1054,22 @@
             </form>
         </div>
 
+        @php
+            $roleUserBb = Auth::user()->role ?? '';
+            $isOwnerBb  = $roleUserBb === 'Pemilik';
+            $isAdminBb  = $roleUserBb === 'Admin';
+            $pendingBbCount = \App\Models\BebanBelanja::where('approval', 'Pending')->count();
+        @endphp
+
+        @if($isOwnerBb && $pendingBbCount > 0)
+            <div class="alert d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 py-2.5 px-3" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #FCD34D; border-radius: 10px;">
+                <div class="d-flex align-items-center gap-2 fs-13">
+                    <i class="ri-notification-badge-line fs-18"></i>
+                    <span>Terdapat <strong>{{ $pendingBbCount }} permintaan buka kunci (Edit/Hapus)</strong> Beban Belanja dari Admin yang menunggu persetujuan Anda.</span>
+                </div>
+            </div>
+        @endif
+
         <!-- ============================================================== -->
         <!-- TABLE DATA CARD (DESIGN.md §13)                                -->
         <!-- ============================================================== -->
@@ -1085,11 +1101,18 @@
                             <th style="width: 175px;">Sumber Anggaran</th>
                             <th class="text-center" style="width: 80px;">Struk</th>
                             <th style="width: 145px;">Admin PIC</th>
-                            <th class="text-center" style="width: 90px;">Aksi</th>
+                            <th class="text-center" style="width: 115px;">Akses Edit</th>
+                            <th class="text-center text-nowrap" style="min-width: 130px; white-space: nowrap;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($bebanList as $index => $item)
+                            @php
+                                $bbApproval = $item->approval ?: 'Lock';
+                                $isBbUnlocked = $bbApproval === 'Unlock';
+                                $isBbPending  = $bbApproval === 'Pending';
+                                $canManageBb  = !$isAdminBb || $isBbUnlocked;
+                            @endphp
                             <tr>
                                 <td class="text-center text-muted font-num" style="font-size: 12px;">{{ $bebanList->firstItem() + $index }}</td>
                                 <td>
@@ -1183,23 +1206,87 @@
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <div class="d-inline-flex gap-1.5">
-                                        <button type="button" class="btn-table-action btn-table-action--edit" title="Edit Data" onclick="openEditModal({{ json_encode($item) }})">
-                                            <i class="ri-edit-2-line"></i>
-                                        </button>
-                                        <form action="{{ route('beban-belanja.destroy', $item->id) }}" method="POST" class="d-inline form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="btn-table-action btn-table-action--delete" title="Hapus Data" onclick="confirmDelete(this.closest('form'), '{{ $item->nomor_beban }}')">
-                                                <i class="ri-delete-bin-line"></i>
+                                    @if($isBbUnlocked)
+                                        <span class="badge py-1 px-2 fs-11 fw-semibold" style="background: rgba(16, 185, 129, 0.14); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);" title="Akses edit/hapus terbuka (akan terkunci kembali setelah diedit)">
+                                            <i class="ri-lock-unlock-line me-0.5"></i>Terbuka
+                                        </span>
+                                    @elseif($isBbPending)
+                                        <span class="badge py-1 px-2 fs-11 fw-semibold" style="background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.35);" title="Menunggu persetujuan Owner">
+                                            <i class="ri-time-line me-0.5"></i>Menunggu ACC
+                                        </span>
+                                    @else
+                                        <span class="badge py-1 px-2 fs-11 fw-semibold" style="background: rgba(148, 163, 184, 0.1); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.25);" title="Akses edit/hapus terkunci untuk Admin">
+                                            <i class="ri-lock-line me-0.5" style="color: #F59E0B;"></i>Terkunci
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center text-nowrap" style="white-space: nowrap;">
+                                    <div class="d-inline-flex align-items-center justify-content-center flex-nowrap gap-1">
+                                        {{-- OWNER: TOMBOL ACC / UNLOCK / LOCK --}}
+                                        @if($isOwnerBb)
+                                            @if($isBbPending)
+                                                <form action="{{ route('beban-belanja.unlock', $item->id) }}" method="POST" class="d-inline m-0 p-0">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm px-2 py-1 fs-11 fw-semibold text-nowrap" style="background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Setujui permintaan buka kunci dari Admin">
+                                                        <i class="ri-lock-unlock-line"></i> ACC
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('beban-belanja.lock', $item->id) }}" method="POST" class="d-inline m-0 p-0">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm px-2 py-1 fs-11" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35);" title="Tolak permintaan buka kunci">
+                                                        <i class="ri-close-line"></i>
+                                                    </button>
+                                                </form>
+                                            @elseif($isBbUnlocked)
+                                                <form action="{{ route('beban-belanja.lock', $item->id) }}" method="POST" class="d-inline m-0 p-0">
+                                                    @csrf
+                                                    <button type="submit" class="btn-table-action" style="background: rgba(245, 158, 11, 0.12); color: #FCD34D; border-color: rgba(245, 158, 11, 0.3);" title="Kunci Kembali (Lock)">
+                                                        <i class="ri-lock-line"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('beban-belanja.unlock', $item->id) }}" method="POST" class="d-inline m-0 p-0">
+                                                    @csrf
+                                                    <button type="submit" class="btn-table-action" style="background: rgba(16, 185, 129, 0.12); color: #34D399; border-color: rgba(16, 185, 129, 0.3);" title="Buka Kunci (Unlock) untuk Admin">
+                                                        <i class="ri-lock-unlock-line"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+
+                                        {{-- TOMBOL EDIT & HAPUS (Aktif jika Owner atau sudah Unlock) --}}
+                                        @if($canManageBb)
+                                            <button type="button" class="btn-table-action btn-table-action--edit" title="Edit Data" onclick="openEditModal({{ json_encode($item) }})">
+                                                <i class="ri-edit-2-line"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('beban-belanja.destroy', $item->id) }}" method="POST" class="d-inline m-0 p-0 form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn-table-action btn-table-action--delete" title="Hapus Data" onclick="confirmDelete(this.closest('form'), '{{ $item->nomor_beban }}')">
+                                                    <i class="ri-delete-bin-line"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            {{-- ADMIN SAAT TERKUNCI: REQUEST KE OWNER --}}
+                                            @if($isBbPending)
+                                                <span class="badge py-1 px-2 fs-11 text-nowrap" style="background: rgba(245, 158, 11, 0.12); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3);" title="Permintaan buka kunci sedang menunggu persetujuan Owner">
+                                                    <i class="ri-time-line"></i> Menunggu Owner
+                                                </span>
+                                            @else
+                                                <form action="{{ route('beban-belanja.request-unlock', $item->id) }}" method="POST" class="d-inline m-0 p-0" onsubmit="return confirm('Ajukan permintaan ke Owner untuk membuka akses Edit/Hapus pada pengeluaran {{ $item->nomor_beban }}?')">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm px-2 py-1 fs-11 fw-semibold text-nowrap" style="background: rgba(245, 158, 11, 0.14); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.35);" title="Minta izin ke Owner untuk mengedit atau menghapus data ini">
+                                                        <i class="ri-key-2-line me-0.5"></i>Request Edit
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="p-0">
+                                <td colspan="12" class="p-0">
                                     <div class="bb-empty-state">
                                         <div class="bb-empty-state__icon">
                                             <i class="ri-receipt-line"></i>

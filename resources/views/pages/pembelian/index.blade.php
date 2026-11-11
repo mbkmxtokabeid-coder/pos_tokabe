@@ -77,11 +77,12 @@
         border: 1px solid var(--border-subtle, #232A35) !important;
         border-radius: 12px !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
-        overflow: hidden;
+        overflow: visible;
     }
     .card-vendor-header {
         background-color: #161B22 !important;
         border-bottom: 1px solid #232A35 !important;
+        border-radius: 12px 12px 0 0 !important;
         padding: 14px 20px !important;
     }
     .card-vendor-title {
@@ -225,6 +226,11 @@
         border-radius: 8px !important;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
         padding: 6px !important;
+        z-index: 1060 !important;
+    }
+    .table-responsive .dropdown-menu.show {
+        position: fixed !important;
+        z-index: 1060 !important;
     }
     .dropdown-item {
         color: #CBD5E1 !important;
@@ -797,7 +803,7 @@
                                 <td class="text-end fw-medium" style="color: {{ $vendor->pembelian_sisa > 0 ? '#fb7185' : '#94a3b8' }};">{{ number_format($vendor->pembelian_sisa, 0, ',', '.') }}</td>
                                 <td class="text-center">
                                     <div class="dropdown">
-                                        <button class="btn btn-action-more" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Aksi vendor">
+                                        <button class="btn btn-action-more" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false" title="Aksi vendor">
                                             <i class="ri-more-fill fs-16"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow">

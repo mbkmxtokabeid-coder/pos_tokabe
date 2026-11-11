@@ -13,6 +13,7 @@ use App\Models\PenjualanJasaTokabe;
 use App\Models\Rekening;
 use App\Models\Material;
 use App\Models\InvoiceApprovalRequest;
+use App\Models\KategoriInvoice;
 use Carbon\Carbon;
 use DateTimezone;
 
@@ -43,90 +44,55 @@ class PenjualanTokabeController extends Controller
         $rekenings = Rekening::all()->keyBy('id');
 
         // =========================================================================
-        // 1-3. KONSOLIDASI STATISTIK KARTU (Cached 30s for fast page load)
+        // 1-3. KONSOLIDASI STATISTIK 5 TRANSACTION CARD INVOICE (Tahunan & Bulanan)
         // =========================================================================
         $cardStats = Cache::remember('tkb_invoice_card_stats_' . $yearNow . '_' . $monthNow, 30, function () use ($yearNow, $monthNow) {
-            $nonPoStats = DB::table('penjualan_tokabe')
+            $stats = DB::table('penjualan_tokabe')
                 ->whereNull('deleted_at')
                 ->where(function($q) {
                     $q->where('is_custom', 0)->orWhereNull('is_custom');
                 })
-                ->where(function($q) {
-                    $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-                })
                 ->selectRaw("
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? THEN 1 END) as jlh_invoice,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_tahun,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status <> 'Batal' THEN 1 END) as jlh_invoice,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as total_per_tahun,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as total_lunas,
                     COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as lunas,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN dp ELSE 0 END), 0) as tot_dp_tahun,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_tahun,
                     COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN COALESCE(dp, 0) ELSE 0 END), 0) as total_terbayar_bulan,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND (status = 'Lunas' OR (status = 'Belum Lunas' AND COALESCE(dp, 0) > 0)) THEN 1 END) as count_terbayar_bulan,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas_month
-                ", [
-                    $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow,
-                    $yearNow, $monthNow, $yearNow, $monthNow
-                ])
-                ->first();
-
-            $poStats = DB::table('penjualan_tokabe')
-                ->whereNull('deleted_at')
-                ->where(function($q) {
-                    $q->where('is_custom', 0)->orWhereNull('is_custom');
-                })
-                ->where('jenis_pembayaran', 'PO')
-                ->selectRaw("
-                    COALESCE(SUM(CASE WHEN status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po,
-                    COUNT(CASE WHEN status <> 'Batal' THEN 1 END) as count_all_inv_po,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_lunas,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as count_all_settled_po,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_blm_lunas,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as count_all_outstanding_po,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan_po,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as blm_lunas_po
-                ", [
-                    $yearNow, $yearNow, $yearNow, $yearNow,
-                    $yearNow, $monthNow, $yearNow, $monthNow
-                ])
-                ->first();
-
-            $generalStats = DB::table('penjualan_tokabe')
-                ->whereNull('deleted_at')
-                ->where(function($q) {
-                    $q->where('is_custom', 0)->orWhereNull('is_custom');
-                })
-                ->selectRaw("
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas_month,
                     COUNT(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN 1 END) as batal,
                     COALESCE(SUM(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as jumlah_batal,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_bulan,
-                    COALESCE(SUM(total_pembayaran), 0) as jumlah_invoice
-                ", [$yearNow, $yearNow, $yearNow, $monthNow])
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as total_per_bulan,
+                    COALESCE(SUM(CASE WHEN status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as jumlah_invoice
+                ", [
+                    $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow,
+                    $yearNow, $monthNow, $yearNow, $monthNow,
+                    $yearNow, $monthNow,
+                    $yearNow, $monthNow, $yearNow, $monthNow,
+                    $yearNow, $yearNow, $yearNow, $monthNow
+                ])
                 ->first();
 
             return [
-                'jlhInvoice' => $nonPoStats->jlh_invoice ?? 0,
-                'totalPerTahun' => $nonPoStats->total_per_tahun ?? 0,
-                'jumlahPerTahun' => $nonPoStats->total_per_tahun ?? 0,
-                'lunas' => $nonPoStats->lunas ?? 0,
-                'totalLunasThn' => ($nonPoStats->total_lunas ?? 0) + ($nonPoStats->tot_dp_tahun ?? 0),
-                'belumLunas' => $nonPoStats->belum_lunas ?? 0,
-                'jumlahBBPerTahun' => $nonPoStats->jumlah_bb_per_tahun ?? 0,
-                'belumLunasMonth' => $nonPoStats->belum_lunas_month ?? 0,
-                'jumlahBBPerBulan' => $nonPoStats->jumlah_bb_per_bulan ?? 0,
-                'jumlahPO' => $poStats->jumlah_po ?? 0,
-                'countAllInvPO' => $poStats->count_all_inv_po ?? 0,
-                'jumlahPOLunas' => $poStats->jumlah_po_lunas ?? 0,
-                'countAllSettledPO' => $poStats->count_all_settled_po ?? 0,
-                'jumlahPOBlmLunas' => $poStats->jumlah_po_blm_lunas ?? 0,
-                'countAllOutstandingPO' => $poStats->count_all_outstanding_po ?? 0,
-                'jumlahBBPerBulanPO' => $poStats->jumlah_bb_per_bulan_po ?? 0,
-                'blmLunasPO' => $poStats->blm_lunas_po ?? 0,
-                'batal' => $generalStats->batal ?? 0,
-                'jumlahBatal' => $generalStats->jumlah_batal ?? 0,
-                'totalPerBulan' => $generalStats->total_per_bulan ?? 0,
-                'jumlahPerBulan' => $generalStats->total_per_bulan ?? 0,
-                'jumlahInvoice' => $generalStats->jumlah_invoice ?? 0,
+                'jlhInvoice' => $stats->jlh_invoice ?? 0,
+                'totalPerTahun' => $stats->total_per_tahun ?? 0,
+                'jumlahPerTahun' => $stats->total_per_tahun ?? 0,
+                'lunas' => $stats->lunas ?? 0,
+                'totalLunasThn' => $stats->total_lunas ?? 0,
+                'belumLunas' => $stats->belum_lunas ?? 0,
+                'jumlahBBPerTahun' => $stats->jumlah_bb_per_tahun ?? 0,
+                'totalTerbayarBulan' => $stats->total_terbayar_bulan ?? 0,
+                'countTerbayarBulan' => $stats->count_terbayar_bulan ?? 0,
+                'belumLunasMonth' => $stats->belum_lunas_month ?? 0,
+                'jumlahBBPerBulan' => $stats->jumlah_bb_per_bulan ?? 0,
+                'batal' => $stats->batal ?? 0,
+                'jumlahBatal' => $stats->jumlah_batal ?? 0,
+                'totalPerBulan' => $stats->total_per_bulan ?? 0,
+                'jumlahPerBulan' => $stats->total_per_bulan ?? 0,
+                'jumlahInvoice' => $stats->jumlah_invoice ?? 0,
             ];
         });
 
@@ -240,9 +206,7 @@ class PenjualanTokabeController extends Controller
         return view('pages.invoices.tokabe.daftar-invoiceTokabe', compact(
             'invoices', 'perusahaan', 'penjualan', 'rekenings', 'jlhInvoice', 'lunas', 'belumLunas', 'batal', 
             'totalLunasThn', 'jumlahBatal', 'jumlahInvoice', 'jumlahBBPerTahun', 'jumlahBBPerBulan', 
-            'jumlahPerBulan', 'jumlahPerTahun', 'belumLunasMonth',
-            'jumlahPO', 'countAllInvPO', 'jumlahPOLunas', 'countAllSettledPO', 
-            'jumlahPOBlmLunas', 'countAllOutstandingPO', 'jumlahBBPerBulanPO', 'blmLunasPO',
+            'jumlahPerBulan', 'jumlahPerTahun', 'belumLunasMonth', 'totalTerbayarBulan', 'countTerbayarBulan',
             'ppnTotal', 'ppnTotalCount', 'ppn01', 'ppn01Count', 'ppn02', 'ppn02Count',
             'ppn03', 'ppn03Count', 'ppn04', 'ppn04Count', 'pphTotal', 'pphTotalCount', 'availableYears'
         ));
@@ -334,74 +298,43 @@ class PenjualanTokabeController extends Controller
         // =========================================================================
         // CARD NON-PO (jenis_pembayaran != 'PO' atau NULL)
         // =========================================================================
-        $queryNonPo = (clone $query)->where(function($q) {
-            $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-        });
-        $card4QueryNonPo = (clone $card4Query)->where(function($q) {
-            $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-        });
-
-        // Non-PO Card 1: Total Non-PO
-        $totalNominalNonPo = (clone $queryNonPo)->sum('total_pembayaran');
-        $jlhInvoiceNonPo = (clone $queryNonPo)->count();
-        $valCard1 = number_format($totalNominalNonPo, 0, ',', '.');
-
-        // Non-PO Card 2: Terbayar Non-PO
-        $dataLunasNonPo = (clone $queryNonPo)->where('status', 'Lunas');
-        $dataBlmLunasNonPo = (clone $queryNonPo)->where('status', 'Belum Lunas');
-        $totLunasNonPo = (clone $dataLunasNonPo)->sum('total_pembayaran');
-        $totDpNonPo = (clone $dataBlmLunasNonPo)->sum('dp');
-        $lunasNonPo = (clone $dataLunasNonPo)->count();
-        $totalLunasThnVal = $totLunasNonPo + $totDpNonPo;
-        $valCard2 = number_format($totalLunasThnVal, 0, ',', '.');
-
-        // Non-PO Card 3: Belum Terbayar Non-PO Periode
-        $belumLunasNonPo = (clone $dataBlmLunasNonPo)->count();
-        $totalBBNonPo = (clone $dataBlmLunasNonPo)->sum('sisa_pembayaran');
-        $valCard3 = number_format($totalBBNonPo, 0, ',', '.');
-
-        // Non-PO Card 4: Belum Terbayar Non-PO Bulan
-        $dataBlmLunasMonthNonPo = (clone $card4QueryNonPo)->where('status', 'Belum Lunas');
-        $belumLunasMonthNonPo = (clone $dataBlmLunasMonthNonPo)->count();
-        $totalBBMonthNonPo = (clone $dataBlmLunasMonthNonPo)->sum('sisa_pembayaran');
-        $valCard4 = number_format($totalBBMonthNonPo, 0, ',', '.');
-
+        // 5 TRANSACTION CARDS STATISTIK INVOICE (TAHUNAN & BULANAN)
         // =========================================================================
-        // CARD PO (Purchase Order - jenis_pembayaran == 'PO')
-        // =========================================================================
-        $queryPo = (clone $query)->where('jenis_pembayaran', 'PO');
-        $card4QueryPo = (clone $card4Query)->where('jenis_pembayaran', 'PO');
+        $queryAktif = (clone $query)->where('status', '<>', 'Batal');
+        $card4QueryAktif = (clone $card4Query)->where('status', '<>', 'Batal');
 
-        // PO Card 1: Jumlah Seluruh PO
-        if ($timeframe === 'year' || empty($timeframe)) {
-            $totalNominalPo = PenjualanTokabe::where(function($q) {
-                $q->where('is_custom', 0)->orWhereNull('is_custom');
-            })->where('jenis_pembayaran', 'PO')->where('status', '<>', 'Batal')->sum('total_pembayaran');
-            $countInvPo = PenjualanTokabe::where(function($q) {
-                $q->where('is_custom', 0)->orWhereNull('is_custom');
-            })->where('jenis_pembayaran', 'PO')->where('status', '<>', 'Batal')->count();
-        } else {
-            $totalNominalPo = (clone $queryPo)->where('status', '<>', 'Batal')->sum('total_pembayaran');
-            $countInvPo = (clone $queryPo)->where('status', '<>', 'Batal')->count();
-        }
-        $valPo1 = number_format($totalNominalPo, 0, ',', '.');
+        // 1. Total Invoice Tahun Ini (Periode)
+        $totalNominal = (clone $queryAktif)->sum('total_pembayaran');
+        $jlhInvoice = (clone $queryAktif)->count();
+        $valCard1 = number_format($totalNominal, 0, ',', '.');
 
-        // PO Card 2: PO Lunas Periode
-        $dataLunasPo = (clone $queryPo)->where('status', 'Lunas');
-        $valPo2 = number_format((clone $dataLunasPo)->sum('total_pembayaran'), 0, ',', '.');
-        $countPo2 = (clone $dataLunasPo)->count();
+        // 2. Total Invoice Lunas Tahun Ini (Periode)
+        $dataLunas = (clone $query)->where('status', 'Lunas');
+        $totLunas = (clone $dataLunas)->sum('total_pembayaran');
+        $lunasCount = (clone $dataLunas)->count();
+        $valCard2 = number_format($totLunas, 0, ',', '.');
 
-        // PO Card 3: PO Belum Lunas Periode
-        $dataBlmLunasPo = (clone $queryPo)->where('status', 'Belum Lunas');
-        $valPo3 = number_format((clone $dataBlmLunasPo)->sum('total_pembayaran'), 0, ',', '.');
-        $countPo3 = (clone $dataBlmLunasPo)->count();
+        // 3. Total Invoice Belum Lunas Tahun Ini (Periode)
+        $dataBlmLunas = (clone $query)->where('status', 'Belum Lunas');
+        $belumLunasCount = (clone $dataBlmLunas)->count();
+        $totalBB = (clone $dataBlmLunas)->sum('sisa_pembayaran');
+        $valCard3 = number_format($totalBB, 0, ',', '.');
 
-        // PO Card 4: PO Belum Lunas Bulan
-        $dataBlmLunasMonthPo = (clone $card4QueryPo)->where('status', 'Belum Lunas');
-        $valPo4 = number_format((clone $dataBlmLunasMonthPo)->sum('sisa_pembayaran'), 0, ',', '.');
-        $countPo4 = (clone $dataBlmLunasMonthPo)->count();
+        // 4. Total Terbayar Bulan Ini (Kas masuk aktual tanpa double counting DP/termin)
+        $dataLunasMonth = (clone $card4Query)->where('status', 'Lunas');
+        $dataBlmLunasMonth = (clone $card4Query)->where('status', 'Belum Lunas');
+        $totLunasMonth = (clone $dataLunasMonth)->sum('total_pembayaran');
+        $totDpMonth = (clone $dataBlmLunasMonth)->where('dp', '>', 0)->sum('dp');
+        $totalTerbayarBulanVal = $totLunasMonth + $totDpMonth;
+        $terbayarBulanCount = (clone $dataLunasMonth)->count() + (clone $dataBlmLunasMonth)->where('dp', '>', 0)->count();
+        $valCard4 = number_format($totalTerbayarBulanVal, 0, ',', '.');
 
-        // Card 5: Batal
+        // 5. Total Belum Terbayar Bulan Ini (Sisa tagihan bulan berjalan)
+        $belumLunasMonthCount = (clone $dataBlmLunasMonth)->count();
+        $totalBBMonth = (clone $dataBlmLunasMonth)->sum('sisa_pembayaran');
+        $valCardBulanBelum = number_format($totalBBMonth, 0, ',', '.');
+
+        // Card Batal
         $dataBatal = (clone $query)->where('status', 'Batal');
         $batal = (clone $dataBatal)->count();
         $totalBatal = (clone $dataBatal)->sum('total_pembayaran');
@@ -410,7 +343,7 @@ class PenjualanTokabeController extends Controller
 
         // Pajak PPN & PPh
         $dataPajak = (clone $query)->where('status', '!=', 'Batal')
-            ->select('ppn', 'diskon', 'potongan', 'pph', 'total_pembayaran', 'total_harga')
+            ->select('ppn', 'diskon', 'potongan', 'pph', 'total_pembayaran', 'total_harga', 'kode_ppn')
             ->get();
         $ppnTotal = 0;
         $ppnTotalCount = 0;
@@ -470,14 +403,11 @@ class PenjualanTokabeController extends Controller
             'status' => 'success',
             'periodLabel' => $periodLabel,
             'card4MonthName' => $card4MonthName,
-            'card1' => ['nominal' => $valCard1, 'count' => $jlhInvoiceNonPo],
-            'card2' => ['nominal' => $valCard2, 'count' => $lunasNonPo],
-            'card3' => ['nominal' => $valCard3, 'count' => $belumLunasNonPo],
-            'card4' => ['nominal' => $valCard4, 'count' => $belumLunasMonthNonPo],
-            'cardPo1' => ['nominal' => $valPo1, 'count' => $countInvPo],
-            'cardPo2' => ['nominal' => $valPo2, 'count' => $countPo2],
-            'cardPo3' => ['nominal' => $valPo3, 'count' => $countPo3],
-            'cardPo4' => ['nominal' => $valPo4, 'count' => $countPo4],
+            'card1' => ['nominal' => $valCard1, 'count' => $jlhInvoice],
+            'card2' => ['nominal' => $valCard2, 'count' => $lunasCount],
+            'card3' => ['nominal' => $valCard3, 'count' => $belumLunasCount],
+            'card4' => ['nominal' => $valCard4, 'count' => $terbayarBulanCount],
+            'cardBulanBelum' => ['nominal' => $valCardBulanBelum, 'count' => $belumLunasMonthCount],
             'card5' => ['nominal' => $valCard5, 'count' => $batal],
             'cardHapus' => ['nominal' => '0', 'count' => 0],
             'card6' => ['nominal' => number_format($ppnTotal, 0, ',', '.'), 'count' => $ppnTotalCount],
@@ -508,81 +438,59 @@ class PenjualanTokabeController extends Controller
         $rekenings = Rekening::all()->keyBy('id');
 
         $cardStats = Cache::remember('tkb_custom_invoice_card_stats_' . $yearNow . '_' . $monthNow, 30, function () use ($yearNow, $monthNow) {
-            $nonPoStats = DB::table('penjualan_tokabe')
+            $stats = DB::table('penjualan_tokabe')
                 ->whereNull('deleted_at')
                 ->where('is_custom', 1)
-                ->where(function($q) {
-                    $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-                })
                 ->selectRaw("
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? THEN 1 END) as jlh_invoice,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_tahun,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status <> 'Batal' THEN 1 END) as jlh_invoice,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as total_per_tahun,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as total_lunas,
                     COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as lunas,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN dp ELSE 0 END), 0) as tot_dp_tahun,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_tahun,
                     COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas,
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN COALESCE(dp, 0) ELSE 0 END), 0) as total_terbayar_bulan,
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND (status = 'Lunas' OR (status = 'Belum Lunas' AND COALESCE(dp, 0) > 0)) THEN 1 END) as terbayar_bulan_count,
                     COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas_month
-                ", [
-                    $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow,
-                    $yearNow, $monthNow, $yearNow, $monthNow
-                ])
-                ->first();
-
-            $poStats = DB::table('penjualan_tokabe')
-                ->whereNull('deleted_at')
-                ->where('is_custom', 1)
-                ->where('jenis_pembayaran', 'PO')
-                ->selectRaw("
-                    COALESCE(SUM(CASE WHEN status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po,
-                    COUNT(CASE WHEN status <> 'Batal' THEN 1 END) as count_all_inv_po,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_lunas,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Lunas' THEN 1 END) as count_all_settled_po,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN total_pembayaran ELSE 0 END), 0) as jumlah_po_blm_lunas,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as count_all_outstanding_po,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN sisa_pembayaran ELSE 0 END), 0) as jumlah_bb_per_bulan_po,
-                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as blm_lunas_po
-                ", [
-                    $yearNow, $yearNow, $yearNow, $yearNow,
-                    $yearNow, $monthNow, $yearNow, $monthNow
-                ])
-                ->first();
-
-            $generalStats = DB::table('penjualan_tokabe')
-                ->whereNull('deleted_at')
-                ->where('is_custom', 1)
-                ->selectRaw("
+                    COUNT(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status = 'Belum Lunas' THEN 1 END) as belum_lunas_month,
                     COUNT(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN 1 END) as batal,
                     COALESCE(SUM(CASE WHEN status = 'Batal' AND YEAR(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as jumlah_batal,
-                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? THEN total_pembayaran ELSE 0 END), 0) as total_per_bulan,
-                    COALESCE(SUM(total_pembayaran), 0) as jumlah_invoice
-                ", [$yearNow, $yearNow, $yearNow, $monthNow])
+                    COALESCE(SUM(CASE WHEN YEAR(tgl_penjualan) = ? AND MONTH(tgl_penjualan) = ? AND status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as total_per_bulan,
+                    COALESCE(SUM(CASE WHEN status <> 'Batal' THEN total_pembayaran ELSE 0 END), 0) as jumlah_invoice
+                ", [
+                    $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow, $yearNow,
+                    $yearNow, $monthNow, $yearNow, $monthNow,
+                    $yearNow, $monthNow,
+                    $yearNow, $monthNow, $yearNow, $monthNow,
+                    $yearNow, $yearNow, $yearNow, $monthNow
+                ])
                 ->first();
 
             return [
-                'jlhInvoice' => $nonPoStats->jlh_invoice ?? 0,
-                'totalPerTahun' => $nonPoStats->total_per_tahun ?? 0,
-                'jumlahPerTahun' => $nonPoStats->total_per_tahun ?? 0,
-                'lunas' => $nonPoStats->lunas ?? 0,
-                'totalLunasThn' => ($nonPoStats->total_lunas ?? 0) + ($nonPoStats->tot_dp_tahun ?? 0),
-                'belumLunas' => $nonPoStats->belum_lunas ?? 0,
-                'jumlahBBPerTahun' => $nonPoStats->jumlah_bb_per_tahun ?? 0,
-                'belumLunasMonth' => $nonPoStats->belum_lunas_month ?? 0,
-                'jumlahBBPerBulan' => $nonPoStats->jumlah_bb_per_bulan ?? 0,
-                'jumlahPO' => $poStats->jumlah_po ?? 0,
-                'countAllInvPO' => $poStats->count_all_inv_po ?? 0,
-                'jumlahPOLunas' => $poStats->jumlah_po_lunas ?? 0,
-                'countAllSettledPO' => $poStats->count_all_settled_po ?? 0,
-                'jumlahPOBlmLunas' => $poStats->jumlah_po_blm_lunas ?? 0,
-                'countAllOutstandingPO' => $poStats->count_all_outstanding_po ?? 0,
-                'jumlahBBPerBulanPO' => $poStats->jumlah_bb_per_bulan_po ?? 0,
-                'blmLunasPO' => $poStats->blm_lunas_po ?? 0,
-                'batal' => $generalStats->batal ?? 0,
-                'jumlahBatal' => $generalStats->jumlah_batal ?? 0,
-                'totalPerBulan' => $generalStats->total_per_bulan ?? 0,
-                'jumlahPerBulan' => $generalStats->total_per_bulan ?? 0,
-                'jumlahInvoice' => $generalStats->jumlah_invoice ?? 0,
+                'jlhInvoice' => $stats->jlh_invoice ?? 0,
+                'totalPerTahun' => $stats->total_per_tahun ?? 0,
+                'jumlahPerTahun' => $stats->total_per_tahun ?? 0,
+                'lunas' => $stats->lunas ?? 0,
+                'totalLunasThn' => $stats->total_lunas ?? 0,
+                'belumLunas' => $stats->belum_lunas ?? 0,
+                'jumlahBBPerTahun' => $stats->jumlah_bb_per_tahun ?? 0,
+                'totalTerbayarBulan' => $stats->total_terbayar_bulan ?? 0,
+                'terbayarBulanCount' => $stats->terbayar_bulan_count ?? 0,
+                'belumLunasMonth' => $stats->belum_lunas_month ?? 0,
+                'jumlahBBPerBulan' => $stats->jumlah_bb_per_bulan ?? 0,
+                'jumlahPO' => 0,
+                'countAllInvPO' => 0,
+                'jumlahPOLunas' => 0,
+                'countAllSettledPO' => 0,
+                'jumlahPOBlmLunas' => 0,
+                'countAllOutstandingPO' => 0,
+                'jumlahBBPerBulanPO' => 0,
+                'blmLunasPO' => 0,
+                'batal' => $stats->batal ?? 0,
+                'jumlahBatal' => $stats->jumlah_batal ?? 0,
+                'totalPerBulan' => $stats->total_per_bulan ?? 0,
+                'jumlahPerBulan' => $stats->total_per_bulan ?? 0,
+                'jumlahInvoice' => $stats->jumlah_invoice ?? 0,
                 'hapus' => 0,
                 'jumlahHapus' => 0,
             ];
@@ -690,6 +598,7 @@ class PenjualanTokabeController extends Controller
             'invoices', 'perusahaan', 'penjualan', 'rekenings',
             'jlhInvoice', 'lunas', 'belumLunas', 'batal', 
             'totalLunasThn', 'jumlahBatal', 'jumlahInvoice', 'jumlahBBPerTahun', 'jumlahBBPerBulan', 
+            'totalTerbayarBulan', 'terbayarBulanCount',
             'jumlahPerBulan', 'jumlahPerTahun', 'totalPerTahun', 'belumLunasMonth',
             'jumlahPO', 'countAllInvPO', 'jumlahPOLunas', 'countAllSettledPO', 
             'jumlahPOBlmLunas', 'countAllOutstandingPO', 'jumlahBBPerBulanPO', 'blmLunasPO',
@@ -795,70 +704,40 @@ class PenjualanTokabeController extends Controller
         }
 
         // =========================================================================
-        // CARD NON-PO (jenis_pembayaran != 'PO' atau NULL)
+        // 5 TRANSACTION CARDS STATISTIK INVOICE CUSTOM (TAHUNAN & BULANAN)
         // =========================================================================
-        $queryNonPo = (clone $query)->where(function($q) {
-            $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-        });
-        $card4QueryNonPo = (clone $card4Query)->where(function($q) {
-            $q->where('jenis_pembayaran', '<>', 'PO')->orWhereNull('jenis_pembayaran');
-        });
+        $queryAktif = (clone $query)->where('status', '<>', 'Batal');
 
-        // Non-PO Card 1: Total Non-PO
-        $totalNominalNonPo = (clone $queryNonPo)->sum('total_pembayaran');
-        $jlhInvoiceNonPo = (clone $queryNonPo)->count();
-        $valCard1 = number_format($totalNominalNonPo, 0, ',', '.');
+        // 1. Total Invoice Tahun Ini
+        $totalNominal = (clone $queryAktif)->sum('total_pembayaran');
+        $jlhInvoice = (clone $queryAktif)->count();
+        $valCard1 = number_format($totalNominal, 0, ',', '.');
 
-        // Non-PO Card 2: Terbayar Non-PO
-        $dataLunasNonPo = (clone $queryNonPo)->where('status', 'Lunas');
-        $dataBlmLunasNonPo = (clone $queryNonPo)->where('status', 'Belum Lunas');
-        $totLunasNonPo = (clone $dataLunasNonPo)->sum('total_pembayaran');
-        $totDpNonPo = (clone $dataBlmLunasNonPo)->sum('dp');
-        $lunasNonPo = (clone $dataLunasNonPo)->count();
-        $totalLunasThnVal = $totLunasNonPo + $totDpNonPo;
-        $valCard2 = number_format($totalLunasThnVal, 0, ',', '.');
+        // 2. Total Invoice Lunas Tahun Ini
+        $dataLunas = (clone $query)->where('status', 'Lunas');
+        $totLunas = (clone $dataLunas)->sum('total_pembayaran');
+        $lunasCount = (clone $dataLunas)->count();
+        $valCard2 = number_format($totLunas, 0, ',', '.');
 
-        // Non-PO Card 3: Belum Terbayar Non-PO Periode
-        $belumLunasNonPo = (clone $dataBlmLunasNonPo)->count();
-        $totalBBNonPo = (clone $dataBlmLunasNonPo)->sum('sisa_pembayaran');
-        $valCard3 = number_format($totalBBNonPo, 0, ',', '.');
+        // 3. Total Invoice Belum Lunas Tahun Ini
+        $dataBlmLunas = (clone $query)->where('status', 'Belum Lunas');
+        $belumLunasCount = (clone $dataBlmLunas)->count();
+        $totalBB = (clone $dataBlmLunas)->sum('sisa_pembayaran');
+        $valCard3 = number_format($totalBB, 0, ',', '.');
 
-        // Non-PO Card 4: Belum Terbayar Non-PO Bulan
-        $dataBlmLunasMonthNonPo = (clone $card4QueryNonPo)->where('status', 'Belum Lunas');
-        $belumLunasMonthNonPo = (clone $dataBlmLunasMonthNonPo)->count();
-        $totalBBMonthNonPo = (clone $dataBlmLunasMonthNonPo)->sum('sisa_pembayaran');
-        $valCard4 = number_format($totalBBMonthNonPo, 0, ',', '.');
+        // 4. Total Terbayar Bulan Ini
+        $dataLunasMonth = (clone $card4Query)->where('status', 'Lunas');
+        $dataBlmLunasMonth = (clone $card4Query)->where('status', 'Belum Lunas');
+        $totLunasMonth = (clone $dataLunasMonth)->sum('total_pembayaran');
+        $totDpMonth = (clone $dataBlmLunasMonth)->where('dp', '>', 0)->sum('dp');
+        $totalTerbayarBulanVal = $totLunasMonth + $totDpMonth;
+        $terbayarBulanCount = (clone $dataLunasMonth)->count() + (clone $dataBlmLunasMonth)->where('dp', '>', 0)->count();
+        $valCard4 = number_format($totalTerbayarBulanVal, 0, ',', '.');
 
-        // =========================================================================
-        // CARD PO (Purchase Order - jenis_pembayaran == 'PO')
-        // =========================================================================
-        $queryPo = (clone $query)->where('jenis_pembayaran', 'PO');
-        $card4QueryPo = (clone $card4Query)->where('jenis_pembayaran', 'PO');
-
-        // PO Card 1: Jumlah Seluruh PO
-        if ($timeframe === 'year' || empty($timeframe)) {
-            $totalNominalPo = PenjualanTokabe::where('is_custom', 1)->where('jenis_pembayaran', 'PO')->where('status', '<>', 'Batal')->sum('total_pembayaran');
-            $countInvPo = PenjualanTokabe::where('is_custom', 1)->where('jenis_pembayaran', 'PO')->where('status', '<>', 'Batal')->count();
-        } else {
-            $totalNominalPo = (clone $queryPo)->where('status', '<>', 'Batal')->sum('total_pembayaran');
-            $countInvPo = (clone $queryPo)->where('status', '<>', 'Batal')->count();
-        }
-        $valPo1 = number_format($totalNominalPo, 0, ',', '.');
-
-        // PO Card 2: PO Lunas Periode
-        $dataLunasPo = (clone $queryPo)->where('status', 'Lunas');
-        $valPo2 = number_format((clone $dataLunasPo)->sum('total_pembayaran'), 0, ',', '.');
-        $countPo2 = (clone $dataLunasPo)->count();
-
-        // PO Card 3: PO Belum Lunas Periode
-        $dataBlmLunasPo = (clone $queryPo)->where('status', 'Belum Lunas');
-        $valPo3 = number_format((clone $dataBlmLunasPo)->sum('total_pembayaran'), 0, ',', '.');
-        $countPo3 = (clone $dataBlmLunasPo)->count();
-
-        // PO Card 4: PO Belum Lunas Bulan
-        $dataBlmLunasMonthPo = (clone $card4QueryPo)->where('status', 'Belum Lunas');
-        $valPo4 = number_format((clone $dataBlmLunasMonthPo)->sum('sisa_pembayaran'), 0, ',', '.');
-        $countPo4 = (clone $dataBlmLunasMonthPo)->count();
+        // 5. Total Belum Terbayar Bulan Ini
+        $belumLunasMonthCount = (clone $dataBlmLunasMonth)->count();
+        $totalBBMonth = (clone $dataBlmLunasMonth)->sum('sisa_pembayaran');
+        $valCardBulanBelum = number_format($totalBBMonth, 0, ',', '.');
 
         // Card 5: Batal
         $dataBatal = (clone $query)->where('status', 'Batal');
@@ -928,14 +807,11 @@ class PenjualanTokabeController extends Controller
             'status' => 'success',
             'periodLabel' => $periodLabel,
             'card4MonthName' => $card4MonthName,
-            'card1' => ['nominal' => $valCard1, 'count' => $jlhInvoiceNonPo],
-            'card2' => ['nominal' => $valCard2, 'count' => $lunasNonPo],
-            'card3' => ['nominal' => $valCard3, 'count' => $belumLunasNonPo],
-            'card4' => ['nominal' => $valCard4, 'count' => $belumLunasMonthNonPo],
-            'cardPo1' => ['nominal' => $valPo1, 'count' => $countInvPo],
-            'cardPo2' => ['nominal' => $valPo2, 'count' => $countPo2],
-            'cardPo3' => ['nominal' => $valPo3, 'count' => $countPo3],
-            'cardPo4' => ['nominal' => $valPo4, 'count' => $countPo4],
+            'card1' => ['nominal' => $valCard1, 'count' => $jlhInvoice],
+            'card2' => ['nominal' => $valCard2, 'count' => $lunasCount],
+            'card3' => ['nominal' => $valCard3, 'count' => $belumLunasCount],
+            'card4' => ['nominal' => $valCard4, 'count' => $terbayarBulanCount],
+            'cardBulanBelum' => ['nominal' => $valCardBulanBelum, 'count' => $belumLunasMonthCount],
             'card5' => ['nominal' => $valCard5, 'count' => $batal],
             'cardHapus' => ['nominal' => '0', 'count' => 0],
             'card6' => ['nominal' => number_format($ppnTotal, 0, ',', '.'), 'count' => $ppnTotalCount],
@@ -962,15 +838,17 @@ class PenjualanTokabeController extends Controller
         $hariIni = sprintf('%s-%s-%s', $year, $month, $day);
         $catalogItems = Item::orderBy('nama_item')->get();
         if ($catalogItems->isEmpty()) {
-            $activeBarangs = Barang::where('is_active', 1)->get();
-            foreach ($activeBarangs as $b) {
-                $nama = trim($b->jenis_barang);
-                if ($nama !== '') {
-                    Item::firstOrCreate(
-                        ['nama_item' => $nama],
-                        ['jenis_pajak' => 'tanpa_pajak']
-                    );
-                }
+            $defaultItems = [
+                ['nama_item' => 'Barang', 'jenis_pajak' => 'ppn'],
+                ['nama_item' => 'Barang dan Jasa', 'jenis_pajak' => 'ppn_pph'],
+                ['nama_item' => 'Jasa', 'jenis_pajak' => 'pph'],
+                ['nama_item' => 'Jasa Periklanan', 'jenis_pajak' => 'ppn_pph'],
+            ];
+            foreach ($defaultItems as $row) {
+                Item::firstOrCreate(
+                    ['nama_item' => $row['nama_item']],
+                    ['jenis_pajak' => $row['jenis_pajak']]
+                );
             }
             $catalogItems = Item::orderBy('nama_item')->get();
         }
@@ -982,7 +860,12 @@ class PenjualanTokabeController extends Controller
         } catch (\Throwable $e) {
             $rekenings = collect();
         }
-        return view('pages.invoices.tokabe.addInvoice', compact('invoice', 'admin', 'order', 'no_invoice', 'hariIni', 'formatJam', 'kontak', 'jenisBarang', 'rekenings'));
+        try {
+            $kategoriInvoices = KategoriInvoice::where('is_active', true)->orderBy('nama_kategori')->get();
+        } catch (\Throwable $e) {
+            $kategoriInvoices = collect();
+        }
+        return view('pages.invoices.tokabe.addInvoice', compact('invoice', 'admin', 'order', 'no_invoice', 'hariIni', 'formatJam', 'kontak', 'jenisBarang', 'rekenings', 'kategoriInvoices'));
     }
 
     public function addInvoiceCustom()
@@ -1000,15 +883,17 @@ class PenjualanTokabeController extends Controller
         $hariIni = sprintf('%s-%s-%s', $year, $month, $day);
         $catalogItems = Item::orderBy('nama_item')->get();
         if ($catalogItems->isEmpty()) {
-            $activeBarangs = Barang::where('is_active', 1)->get();
-            foreach ($activeBarangs as $b) {
-                $nama = trim($b->jenis_barang);
-                if ($nama !== '') {
-                    Item::firstOrCreate(
-                        ['nama_item' => $nama],
-                        ['jenis_pajak' => 'tanpa_pajak']
-                    );
-                }
+            $defaultItems = [
+                ['nama_item' => 'Barang', 'jenis_pajak' => 'ppn'],
+                ['nama_item' => 'Barang dan Jasa', 'jenis_pajak' => 'ppn_pph'],
+                ['nama_item' => 'Jasa', 'jenis_pajak' => 'pph'],
+                ['nama_item' => 'Jasa Periklanan', 'jenis_pajak' => 'ppn_pph'],
+            ];
+            foreach ($defaultItems as $row) {
+                Item::firstOrCreate(
+                    ['nama_item' => $row['nama_item']],
+                    ['jenis_pajak' => $row['jenis_pajak']]
+                );
             }
             $catalogItems = Item::orderBy('nama_item')->get();
         }
@@ -1020,7 +905,12 @@ class PenjualanTokabeController extends Controller
         } catch (\Throwable $e) {
             $rekenings = collect();
         }
-        return view('pages.invoices.tokabe.addInvoiceCustom', compact('invoice', 'admin', 'order', 'no_invoice', 'hariIni', 'formatJam', 'kontak', 'jenisBarang', 'rekenings'));
+        try {
+            $kategoriInvoices = KategoriInvoice::where('is_active', true)->orderBy('nama_kategori')->get();
+        } catch (\Throwable $e) {
+            $kategoriInvoices = collect();
+        }
+        return view('pages.invoices.tokabe.addInvoiceCustom', compact('invoice', 'admin', 'order', 'no_invoice', 'hariIni', 'formatJam', 'kontak', 'jenisBarang', 'rekenings', 'kategoriInvoices'));
     }
 
     public function generateNoInvoice($tanggal = null)
@@ -1065,10 +955,26 @@ class PenjualanTokabeController extends Controller
 
     public function getUpdatedInvoiceNumber(Request $request)
     {
-        $tanggal = $request->input('tanggal'); // Tanggal yang dipilih user
+        $tanggal = $request->input('tanggal') ?: $request->input('date');
+        $kategoriId = $request->input('kategori_invoice_id');
+
+        if (!empty($kategoriId)) {
+            $kat = KategoriInvoice::find($kategoriId);
+            if ($kat && $kat->use_custom_format) {
+                $newInvoice = $kat->generateNomorInvoice($tanggal);
+                return response()->json([
+                    'no_invoice' => $newInvoice,
+                    'invoiceNumber' => $newInvoice,
+                ]);
+            }
+        }
+
         $newInvoice = $this->generateNoInvoice($tanggal);
 
-        return response()->json(['no_invoice' => $newInvoice]);
+        return response()->json([
+            'no_invoice' => $newInvoice,
+            'invoiceNumber' => $newInvoice,
+        ]);
     }
 
     public function storeInvoiceTokabe(Request $request)
@@ -1081,8 +987,9 @@ class PenjualanTokabeController extends Controller
             'order'       => ['required', 'string'],
             'tgl_jual'    => ['required', 'string'],
             'jam'         => ['required', 'string'],
-            'tgl_selesai' => ['required', 'string'],
-            'jns_pem'     => ['required', 'string', 'max:50'],
+            'tgl_selesai'  => ['required', 'string'],
+            'jns_pem'      => ['required', 'string', 'max:50'],
+            'is_padi_umkm' => ['nullable', 'in:0,1,Ya,Tidak'],
         ];
 
         $messages = [
@@ -1104,6 +1011,26 @@ class PenjualanTokabeController extends Controller
         if ($request->filled('is_custom') || $request->filled('nomor_invoice_custom')) {
             $rules['nomor_invoice_custom'] = ['required', 'string', 'max:255'];
             $messages['nomor_invoice_custom.required'] = 'Nomor invoice custom wajib diisi.';
+        }
+
+        if ($request->has('item_id') && is_array($request->item_id)) {
+            $resolvedItems = [];
+            foreach ($request->item_id as $k => $val) {
+                $rawVal = trim((string) $val);
+                if ($rawVal !== '' && !is_numeric($rawVal)) {
+                    $customName = trim(preg_replace('/^custom:/i', '', $rawVal));
+                    if ($customName !== '') {
+                        $itemObj = Item::firstOrCreate(
+                            ['nama_item' => $customName],
+                            ['jenis_pajak' => 'tanpa_pajak']
+                        );
+                        $resolvedItems[$k] = $itemObj->id;
+                        continue;
+                    }
+                }
+                $resolvedItems[$k] = $val;
+            }
+            $request->merge(['item_id' => $resolvedItems]);
         }
 
         if ($request->has('item_id')) {
@@ -1180,7 +1107,34 @@ class PenjualanTokabeController extends Controller
         ? Invoice::find($request->inv)
         : (Invoice::where('nama_invoice', $request->inv)->first() ?? Invoice::where('nama_invoice', 'LIKE', '%TKB%')->first() ?? Invoice::first());
     
-    // Penanganan nomor invoice: jika custom, gunakan nomor yang diinputkan user
+    $kategoriInvoiceObj = null;
+    if ($request->boolean('save_as_category') && $request->filled('new_category_name')) {
+        $prefix = strtoupper(trim((string) ($request->input('inline_custom_prefix', 'INV'))));
+        $formatNomor = trim((string) $request->input('inline_custom_format', '{PREFIX}/{YEAR}/{NUMBER}'));
+        $padding = (int) ($request->input('inline_custom_padding', 3));
+        $kategoriInvoiceObj = KategoriInvoice::create([
+            'nama_kategori'     => trim($request->input('new_category_name')),
+            'keterangan'        => 'Dibuat saat pembuatan invoice baru',
+            'use_custom_format' => true,
+            'prefix'            => $prefix,
+            'format_nomor'      => $formatNomor,
+            'padding_digit'     => $padding,
+            'reset_periode'     => 'yearly',
+            'template_settings' => [
+                'judul_invoice'    => 'INVOICE',
+                'subjudul_invoice' => '',
+                'label_penerima'   => 'Kepada Yth.',
+                'tampilkan_npwp'   => true,
+                'tampilkan_termin' => true,
+                'catatan_kaki'     => '',
+            ],
+            'is_active'         => true,
+        ]);
+    } elseif ($request->filled('kategori_invoice_id')) {
+        $kategoriInvoiceObj = KategoriInvoice::find($request->input('kategori_invoice_id'));
+    }
+
+    // Penanganan nomor invoice: jika custom, gunakan nomor yang diinputkan user; jika kategori punya custom format, generate dari kategori
     if ($request->filled('nomor_invoice_custom')) {
         $nmr_inv = trim($request->input('nomor_invoice_custom'));
         // Cek duplikasi nomor invoice (termasuk yang soft-deleted)
@@ -1191,6 +1145,8 @@ class PenjualanTokabeController extends Controller
                 'message' => "Nomor invoice '{$nmr_inv}' sudah pernah digunakan. Silakan gunakan format nomor lain."
             ], 400);
         }
+    } elseif ($kategoriInvoiceObj && $kategoriInvoiceObj->use_custom_format) {
+        $nmr_inv = $kategoriInvoiceObj->generateNomorInvoice($request->tgl_jual);
     } else {
         $nmr_inv = $this->generateNoInvoice($request->tgl_jual);
     }
@@ -1290,6 +1246,10 @@ class PenjualanTokabeController extends Controller
         if ($request->filled('is_custom')) {
             $existingPenjualan->is_custom = 1;
         }
+        if ($kategoriInvoiceObj) {
+            $existingPenjualan->kategori_invoice_id = $kategoriInvoiceObj->id;
+        }
+        $existingPenjualan->is_padi_umkm = in_array($request->input('is_padi_umkm'), [1, '1', 'Ya', true], true) ? 1 : 0;
         $existingPenjualan->save();
 
         foreach ($request->input('barang_id', []) as $key => $value) {
@@ -1378,6 +1338,10 @@ class PenjualanTokabeController extends Controller
         $penjualan->approval = 'Lock';
         $penjualan->approved_at = null;
         $penjualan->is_custom = $request->filled('is_custom') ? 1 : 0;
+        if ($kategoriInvoiceObj) {
+            $penjualan->kategori_invoice_id = $kategoriInvoiceObj->id;
+        }
+        $penjualan->is_padi_umkm = in_array($request->input('is_padi_umkm'), [1, '1', 'Ya', true], true) ? 1 : 0;
         $penjualan->save();
 
         foreach ($request->input('barang_id', []) as $key => $value) {
@@ -1542,19 +1506,21 @@ class PenjualanTokabeController extends Controller
         $order = Order::all();
         $penjualan_barang = PenjualanJasaTokabe::where('penjualan_id', $id)->get();
         $jenisBarang = Barang::with('kategori_item')->where('is_active', 1)->get();
-        $items = Item::orderBy('nama_item')->get();
+        $items = Item::orderBy('id')->get();
         if ($items->isEmpty()) {
-            $activeBarangs = Barang::where('is_active', 1)->get();
-            foreach ($activeBarangs as $b) {
-                $nama = trim($b->jenis_barang);
-                if ($nama !== '') {
-                    Item::firstOrCreate(
-                        ['nama_item' => $nama],
-                        ['jenis_pajak' => 'tanpa_pajak']
-                    );
-                }
+            $defaultItems = [
+                ['nama_item' => 'Barang', 'jenis_pajak' => 'ppn'],
+                ['nama_item' => 'Barang dan Jasa', 'jenis_pajak' => 'ppn_pph'],
+                ['nama_item' => 'Jasa', 'jenis_pajak' => 'pph'],
+                ['nama_item' => 'Jasa Periklanan', 'jenis_pajak' => 'ppn_pph'],
+            ];
+            foreach ($defaultItems as $row) {
+                Item::firstOrCreate(
+                    ['nama_item' => $row['nama_item']],
+                    ['jenis_pajak' => $row['jenis_pajak']]
+                );
             }
-            $items = Item::orderBy('nama_item')->get();
+            $items = Item::orderBy('id')->get();
         }
         $jam = (!empty($inv->tgl_penjualan) && strlen($inv->tgl_penjualan) >= 16) ? substr($inv->tgl_penjualan, 11, 5) : date('H:i');
         $nomor_unik = $inv->nomor_invoice;
@@ -1584,13 +1550,18 @@ class PenjualanTokabeController extends Controller
         } catch (\Throwable $e) {
             $rekenings = collect();
         }
+        try {
+            $kategoriInvoices = KategoriInvoice::where('is_active', true)->orderBy('nama_kategori')->get();
+        } catch (\Throwable $e) {
+            $kategoriInvoices = collect();
+        }
         $isOwner = Auth::check() && Auth::user()->role === 'Pemilik';
         $isAdmin = Auth::check() && Auth::user()->role === 'Admin';
         $isLocked = ($inv->approval !== 'Unlock') && !$isOwner;
         $latestApprovalRequest = $inv->latestApprovalRequest;
 
         // Material untuk form edit
-        return view('pages.invoices.tokabe.edit-invoicesTokabe', compact('inv', 'jam', 'nomor_unik', 'perusahaan', 'admin', 'order', 'sales', 'jenisBarang', 'items', 'nama_adm', 'barang', 'invoice', 'penjualan_barang', 'rekenings', 'isLocked', 'isOwner', 'isAdmin', 'latestApprovalRequest'));
+        return view('pages.invoices.tokabe.edit-invoicesTokabe', compact('inv', 'jam', 'nomor_unik', 'perusahaan', 'admin', 'order', 'sales', 'jenisBarang', 'items', 'nama_adm', 'barang', 'invoice', 'penjualan_barang', 'rekenings', 'kategoriInvoices', 'isLocked', 'isOwner', 'isAdmin', 'latestApprovalRequest'));
     }
 
     public function updateInvoice(Request $request, $id)
@@ -1604,11 +1575,33 @@ class PenjualanTokabeController extends Controller
             return redirect()->route('list_invoice_tokabe');
         }
 
+        if ($request->has('item_id') && is_array($request->item_id)) {
+            $resolvedItems = [];
+            foreach ($request->item_id as $k => $val) {
+                $rawVal = trim((string) $val);
+                if ($rawVal !== '' && !is_numeric($rawVal)) {
+                    $customName = trim(preg_replace('/^custom:/i', '', $rawVal));
+                    if ($customName !== '') {
+                        $itemObj = Item::firstOrCreate(
+                            ['nama_item' => $customName],
+                            ['jenis_pajak' => 'tanpa_pajak']
+                        );
+                        $resolvedItems[$k] = $itemObj->id;
+                        continue;
+                    }
+                }
+                $resolvedItems[$k] = $val;
+            }
+            $request->merge(['item_id' => $resolvedItems]);
+        }
+
         // 1. VALIDASI INPUT TERLEBIH DAHULU (Penting agar data tidak hilang!)
         $request->validate([
             'item_id.*' => ['nullable', 'integer', 'exists:items,id'],
             'npwp' => ['nullable', 'string', 'max:50'],
             'no_faktur_pajak' => ['nullable', 'string', 'max:50'],
+            'is_padi_umkm' => ['nullable', 'in:0,1,Ya,Tidak'],
+            'kategori_invoice_id' => ['nullable', 'integer', 'exists:kategori_invoice,id'],
         ]);
         $selectedItems = $request->input('item_id', []) + $request->input('barang_id', []);
         if (!empty($selectedItems)) {
@@ -1746,6 +1739,12 @@ class PenjualanTokabeController extends Controller
         $penjualan->total_pembayaran = $tot_pem > 0 ? $tot_pem : $penjualan->total_pembayaran;
         $penjualan->sisa_pembayaran = $sisa_pem;
         $penjualan->npwp = $request->filled('npwp') ? trim($request->input('npwp')) : $penjualan->npwp;
+        if ($request->has('kategori_invoice_id')) {
+            $penjualan->kategori_invoice_id = $request->input('kategori_invoice_id') ?: null;
+        }
+        if ($request->has('is_padi_umkm')) {
+            $penjualan->is_padi_umkm = in_array($request->input('is_padi_umkm'), [1, '1', 'Ya', true], true) ? 1 : 0;
+        }
 
         $fakturInput = trim((string)$request->input('no_faktur_pajak'));
         if ($fakturInput !== '') {

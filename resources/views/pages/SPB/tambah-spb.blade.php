@@ -14,11 +14,12 @@
         border-radius: 12px !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
         margin-bottom: 24px;
-        overflow: hidden;
+        overflow: visible;
     }
     .card-form-spb .card-header {
         background-color: #181E26 !important;
         border-bottom: 1px solid #232A35 !important;
+        border-radius: 12px 12px 0 0 !important;
         padding: 16px 20px !important;
     }
     .col-form-label {
@@ -101,7 +102,7 @@
         margin-bottom: 0 !important;
         border: 1px solid #282E37 !important;
         border-radius: 8px !important;
-        overflow: hidden;
+        overflow: visible;
         width: 100% !important;
     }
     .table-spb-items thead th {
@@ -385,7 +386,7 @@
                                                 <th scope="row" class="product-id text-center text-muted fw-semibold">1</th>
                                                 <td class="text-start">
                                                     <div class="mb-2">
-                                                        <select class="form-select @error('barang_id[]') is-invalid @enderror" data-choices data-choices-sorting="true" id="productName-1" name="barang_id[]">
+                                                        <select class="form-select searchable-item-select @error('barang_id[]') is-invalid @enderror" id="productName-1" name="barang_id[]">
                                                             <option value="" selected disabled>Pilih Item</option>
                                                             @foreach ($barang as $item)
                                                                 <option value="{{ $item->id }}" {{ old('barang_id.0') == $item->id ? 'selected' : '' }}>
@@ -446,6 +447,12 @@
                                             </tr>
                                         </tbody>
                                     </table>
+                                    <select id="template-options-spb" class="d-none" aria-hidden="true">
+                                        <option value="" selected disabled>Pilih Item</option>
+                                        @foreach ($barang as $item)
+                                            <option value="{{ $item->id }}">{{ $item->nama_kategori }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
 
@@ -471,5 +478,6 @@
 <script src="{{asset('vendor/jsvalidation/js/jsvalidation.js')}}"></script>
 {!! app('jsvalidator')->formRequest('App\Http\Requests\SPBRequest', '#spb_form') !!}
 <script src="{{asset('libs/cleave.js/cleave.min.js')}}"></script>
+<script src="{{asset('js/halaman/searchable-item-select.js')}}"></script>
 <script src="{{asset('js/halaman/spb.js')}}"></script>
 @endsection

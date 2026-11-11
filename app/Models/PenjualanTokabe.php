@@ -42,10 +42,21 @@ class PenjualanTokabe extends Model
         'approved_by',
         'alasan_batal',
         'is_custom',
+        'is_padi_umkm',
+        'kategori_invoice_id',
         'npwp',
         'no_faktur_pajak',
         'faktur_pajak_status',
     ];
+
+    protected $casts = [
+        'is_padi_umkm' => 'boolean',
+    ];
+
+    public function kategoriInvoice()
+    {
+        return $this->belongsTo(KategoriInvoice::class, 'kategori_invoice_id');
+    }
 
     public function invoice()
     {

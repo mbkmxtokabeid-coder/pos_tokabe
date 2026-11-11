@@ -31,11 +31,12 @@
         border: 1px solid #282E37 !important;
         border-radius: 12px !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
-        overflow: hidden;
+        overflow: visible;
     }
     .table-container-card .card-header {
         background-color: #181E26 !important;
         border-bottom: 1px solid #232A35 !important;
+        border-radius: 12px 12px 0 0 !important;
         padding: 16px 20px !important;
     }
     .table-custom {
@@ -67,13 +68,99 @@
     .table-custom tbody td {
         border: none !important;
         border-bottom: 1px solid #21262D !important;
-        padding: 12px 14px !important;
+        padding: 10px 14px !important;
         vertical-align: middle !important;
         font-size: 13.5px !important;
         color: #CBD5E1 !important;
+        height: 58px;
     }
     .table-custom tbody tr:last-child td {
         border-bottom: none !important;
+    }
+    .pembelian-desc-box {
+        max-width: 310px;
+    }
+    .pembelian-desc-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-height: 28px;
+    }
+    .pembelian-desc-first {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+        color: #F1F5F9;
+    }
+    .pembelian-desc-full {
+        display: none;
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid #2A3241;
+        border-radius: 8px;
+        padding: 8px 10px;
+    }
+    .pembelian-desc-box.is-expanded {
+        max-width: 380px;
+    }
+    .pembelian-desc-box.is-expanded .pembelian-desc-summary {
+        display: none;
+    }
+    .pembelian-desc-box.is-expanded .pembelian-desc-full {
+        display: block;
+    }
+    .pembelian-desc-item {
+        font-size: 12.5px;
+        color: #E2E8F0;
+        padding: 3px 0;
+        border-bottom: 1px dashed rgba(148, 163, 184, 0.14);
+        line-height: 1.4;
+        word-break: break-word;
+    }
+    .pembelian-desc-item:last-of-type {
+        border-bottom: none;
+    }
+    .btn-toggle-desc {
+        background: rgba(99, 102, 241, 0.14);
+        border: 1px solid rgba(99, 102, 241, 0.32);
+        color: #A5B4FC;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        white-space: nowrap;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: all 120ms ease;
+        flex-shrink: 0;
+    }
+    .btn-toggle-desc:hover {
+        background: rgba(99, 102, 241, 0.25);
+        color: #FFFFFF;
+    }
+    .btn-toggle-all-desc {
+        background-color: #212529 !important;
+        border: 1px solid #383E45 !important;
+        color: #CBD5E1 !important;
+        border-radius: 8px !important;
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        height: 31px !important;
+        padding: 0 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        transition: all 120ms ease !important;
+    }
+    .btn-toggle-all-desc:hover {
+        background-color: #2A3037 !important;
+        color: #FFFFFF !important;
+        border-color: #4A525D !important;
     }
     .num-tabular {
         font-variant-numeric: tabular-nums;
@@ -160,6 +247,11 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
         padding: 6px !important;
         min-width: 190px !important;
+        z-index: 1060 !important;
+    }
+    .table-responsive .dropdown-menu.show {
+        position: fixed !important;
+        z-index: 1060 !important;
     }
     .dropdown-item {
         color: #CBD5E1 !important;
@@ -437,15 +529,19 @@
                     </span>
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-2">
-                    <div class="position-relative" style="min-width: 180px;">
-                        <input type="text" id="searchPembelianInput" class="form-control form-control-sm ps-4 pe-4" placeholder="Cari invoice..." style="background-color: #212529; border: 1px solid #383E45; border-radius: 8px; color: #F8F9FA; font-size: 13px;">
+                    <button type="button" id="btnToggleAllDesc" class="btn-toggle-all-desc" onclick="toggleAllPembelianDesc()" title="Buka atau tutup semua rincian deskripsi barang">
+                        <i class="ri-expand-up-down-line"></i>
+                        <span>Buka Semua Rincian</span>
+                    </button>
+                    <div class="position-relative" style="min-width: 210px;">
+                        <input type="text" id="searchPembelianInput" class="form-control form-control-sm ps-4 pe-4" placeholder="Cari invoice / barang..." style="background-color: #212529; border: 1px solid #383E45; border-radius: 8px; color: #F8F9FA; font-size: 13px;">
                         <i class="ri-search-line position-absolute top-50 start-0 translate-middle-y ms-2 text-muted fs-13"></i>
                     </div>
                     <select id="filterStatusPembelian" class="form-select form-select-sm" style="width: 150px; background-color: #212529; border: 1px solid #383E45; border-radius: 8px; color: #F8F9FA; font-size: 13px;" title="Filter status pembayaran">
                         <option value="all">Semua Status</option>
                         <option value="Lunas">Lunas</option>
                         <option value="Cicil">Termin</option>
-                        </select>
+                    </select>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -455,6 +551,7 @@
                             <tr>
                                 <th class="text-center" style="width: 50px;">No.</th>
                                 <th>No. Invoice</th>
+                                <th style="min-width: 220px;">Deskripsi Barang / Keterangan</th>
                                 <th class="text-center">Tanggal Pembelian</th>
                                 <th class="text-center">Tanggal JTO</th>
                                 <th class="text-center">Status Bayar</th>
@@ -480,14 +577,80 @@
 
                                 // Pesan Request Unlock ke Owner via WhatsApp
                                 $pesanUnlock = urlencode("Halo, saya ingin meminta approval untuk membuka akses riwayat pembelian *#{$item->nomor_inv}* dari vendor *{$vendor->nama_vendor}*. Mohon untuk segera ditinjau.\n\nKlik tautan berikut untuk membuka halaman persetujuan:\n" . url("/pembelian-approval/{$item->id}"));
+                                $deskripsiSearch = $item->barang->pluck('deskripsi')->filter()->implode(' ');
                             @endphp
-                            <tr class="pembelian-row" data-invoice="{{ strtolower($item->nomor_inv) }}" data-status="{{ $item->status }}">
+                            <tr class="pembelian-row" data-invoice="{{ strtolower($item->nomor_inv . ' ' . $deskripsiSearch) }}" data-status="{{ $item->status }}">
                                 <td class="text-center text-muted fs-13 row-number">{{ $loop->iteration }}</td>
-                                <td class="fw-semibold text-white fs-13.5">{{ $item->nomor_inv }}</td>
+                                <td>
+                                    <div class="fw-semibold text-white fs-13.5">{{ $item->nomor_inv }}</div>
+                                    <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                                        <span class="badge py-0.5 px-1.5 fs-10 fw-medium" style="background: rgba(148, 163, 184, 0.12); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.25);">
+                                            {{ $item->jenis_invoice ?? 'Barang' }}
+                                        </span>
+                                        @if(($item->ppn_nominal ?? 0) > 0)
+                                            <span class="badge py-0.5 px-1.5 fs-10 fw-medium" style="background: rgba(56, 189, 248, 0.1); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.25);" title="PPN {{ $item->ppn_persen }}%">
+                                                PPN +Rp {{ number_format($item->ppn_nominal, 0, ',', '.') }}
+                                            </span>
+                                        @endif
+                                        @if(($item->pph_nominal ?? 0) > 0)
+                                            <span class="badge py-0.5 px-1.5 fs-10 fw-medium" style="background: rgba(244, 63, 94, 0.1); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.25);" title="PPh {{ $item->pph_persen }}%">
+                                                PPh -Rp {{ number_format($item->pph_nominal, 0, ',', '.') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    @if($item->barang && $item->barang->isNotEmpty())
+                                        @php
+                                            $firstBrg = $item->barang->first();
+                                            $totalBrg = $item->barang->count();
+                                            $extraCount = $totalBrg - 1;
+                                        @endphp
+                                        <div class="pembelian-desc-box">
+                                            <div class="pembelian-desc-summary" onclick="togglePembelianDesc(this)" style="cursor: pointer;" title="Klik untuk membuka/menutup rincian lengkap">
+                                                <div class="pembelian-desc-first">
+                                                    <span class="text-muted me-1">&bull;</span>{{ $firstBrg->deskripsi ?: '-' }}
+                                                    @if(($firstBrg->qty ?? 0) > 0)
+                                                        <small class="text-muted ms-1">({{ $firstBrg->qty }} {{ $firstBrg->satuan ?: 'Pcs' }})</small>
+                                                    @endif
+                                                </div>
+                                                <button type="button" class="btn-toggle-desc" onclick="event.stopPropagation(); togglePembelianDesc(this);">
+                                                    @if($extraCount > 0)
+                                                        <span>+{{ $extraCount }} lainnya</span>
+                                                    @else
+                                                        <span>Detail</span>
+                                                    @endif
+                                                    <i class="ri-arrow-down-s-line"></i>
+                                                </button>
+                                            </div>
+                                            <div class="pembelian-desc-full">
+                                                @foreach($item->barang as $brg)
+                                                    <div class="pembelian-desc-item">
+                                                        <span class="text-muted mt-0.5">&bull;</span>
+                                                        <div>
+                                                            <span class="text-white">{{ $brg->deskripsi ?: '-' }}</span>
+                                                            @if(($brg->qty ?? 0) > 0)
+                                                                <small class="text-muted ms-1">({{ $brg->qty }} {{ $brg->satuan ?: 'Pcs' }})</small>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                                <div class="mt-1">
+                                                    <button type="button" class="btn-toggle-desc" onclick="togglePembelianDesc(this)">
+                                                        <span>Tutup rincian</span>
+                                                        <i class="ri-arrow-up-s-line"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <span class="text-muted fs-12">-</span>
+                                    @endif
+                                </td>
                                 <td class="text-center fs-13">{{ optional($item->tanggal)->translatedFormat('d M Y') }}</td>
                                 <td class="text-center fs-13">{{ optional($item->effective_tanggal_jto)->translatedFormat('d M Y') ?: '-' }}</td>
                                 <td class="text-center">
-                                    <div class="d-flex flex-column align-items-center gap-1">
+                                    <div class="d-inline-flex flex-wrap align-items-center justify-content-center gap-1">
                                         @if($item->status === 'Lunas')
                                             <span class="badge-status-lunas">Lunas</span>
                                         @else
@@ -526,7 +689,7 @@
                                 <td class="text-end fw-semibold num-tabular" style="color: {{ $item->sisa > 0 ? '#FB7185' : '#94A3B8' }};">{{ number_format($item->sisa, 0, ',', '.') }}</td>
                                 <td class="text-center">
                                     <div class="dropdown">
-                                        <button class="btn btn-action-more" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Aksi">
+                                        <button class="btn btn-action-more" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false" title="Menu Aksi">
                                             <i class="ri-more-fill fs-16"></i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-lg">
@@ -648,7 +811,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-5">
+                                <td colspan="11" class="text-center text-muted py-5">
                                     <div class="d-flex flex-column align-items-center justify-content-center">
                                         <i class="ri-inbox-line fs-36 text-muted mb-2" style="opacity: 0.5;"></i>
                                         <span class="fs-14">Belum ada transaksi pembelian untuk vendor ini.</span>
@@ -840,6 +1003,10 @@
                                         <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3);">
                                             <i class="ri-time-line"></i> Menunggu Approval
                                         </span>
+                                    @elseif(str_contains($pby->catatan ?? '', '[Dibatalkan Owner]'))
+                                        <span class="badge" style="background: rgba(148, 163, 184, 0.15); color: #CBD5E1; border: 1px solid rgba(148, 163, 184, 0.3);">
+                                            <i class="ri-arrow-go-back-line"></i> Dibatalkan
+                                        </span>
                                     @else
                                         <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3);">
                                             <i class="ri-close-line"></i> Ditolak
@@ -872,6 +1039,13 @@
                                                 <i class="ri-whatsapp-line"></i> Hubungi Owner
                                             </a>
                                         @endif
+                                    @elseif($pby->status_approval === 'Approved' && $isOwner)
+                                        <form action="{{ route('pembelian.cicilan.cancel', $pby->id) }}" method="POST" class="d-inline" onsubmit="event.preventDefault(); confirmBatalCicilan(this, '{{ $pby->cicilan_ke }}', '{{ number_format($pby->jumlah_bayar, 0, ',', '.') }}');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2 fs-11" title="Batalkan Termin yang sudah disetujui">
+                                                <i class="ri-arrow-go-back-line"></i> Batalkan
+                                            </button>
+                                        </form>
                                     @else
                                         <span class="text-muted fs-11">-</span>
                                     @endif
@@ -996,6 +1170,39 @@
         if (statusSelect) statusSelect.addEventListener('change', filterPembelianTable);
     });
 
+    function togglePembelianDesc(el) {
+        const box = el.closest('.pembelian-desc-box');
+        if (!box) return;
+        box.classList.toggle('is-expanded');
+        syncToggleAllDescButton();
+    }
+
+    function toggleAllPembelianDesc() {
+        const boxes = Array.from(document.querySelectorAll('.pembelian-desc-box'));
+        if (!boxes.length) return;
+        const anyCollapsed = boxes.some(b => !b.classList.contains('is-expanded'));
+        boxes.forEach(b => {
+            if (anyCollapsed) {
+                b.classList.add('is-expanded');
+            } else {
+                b.classList.remove('is-expanded');
+            }
+        });
+        syncToggleAllDescButton();
+    }
+
+    function syncToggleAllDescButton() {
+        const btn = document.getElementById('btnToggleAllDesc');
+        if (!btn) return;
+        const boxes = Array.from(document.querySelectorAll('.pembelian-desc-box'));
+        const allExpanded = boxes.length > 0 && boxes.every(b => b.classList.contains('is-expanded'));
+        btn.classList.toggle('is-active', allExpanded);
+        const span = btn.querySelector('span');
+        if (span) {
+            span.textContent = allExpanded ? 'Tutup Semua Rincian' : 'Buka Semua Rincian';
+        }
+    }
+
     function confirmLunasi(url) {
         Swal.fire({
             title: 'Konfirmasi Pelunasan',
@@ -1021,6 +1228,23 @@
             showCancelButton: true,
             confirmButtonText: 'Ya, Hapus Data',
             cancelButtonText: 'Batal',
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#212529',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
+    function confirmBatalCicilan(form, cicilanKe, nominal) {
+        Swal.fire({
+            title: 'Batalkan Termin Ke-' + cicilanKe + '?',
+            html: 'Pembayaran termin sebesar <strong>Rp ' + nominal + '</strong> yang sudah disetujui akan dibatalkan.<br><small class="text-muted">Saldo kas akan dikembalikan dan sisa tagihan vendor akan disesuaikan kembali.</small>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Batalkan Termin',
+            cancelButtonText: 'Tutup',
             confirmButtonColor: '#EF4444',
             cancelButtonColor: '#212529',
         }).then((result) => {

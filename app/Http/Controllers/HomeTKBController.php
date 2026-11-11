@@ -193,7 +193,11 @@ class HomeTKBController extends Controller
                 ])->values();
         } catch (\Throwable $e) {}
 
-        return view('pages.welcomeTKB', compact('jumlahPerBulan', 'jumlahPerTahun', 'dateArray','dateArrayLastYear', 'monthArray','monthArrayLastYear', 'totalHarianArray','totalHarianArrayLastYear', 'totalBulananArray','totalBulananArrayLastYear', 'hourArray', 'totalJamArray', 'weekArray', 'totalMingguanArray', 'jumlahPerHari', 'jumlahPerMinggu', 'datasInWeek', 'percentageInWeek', 'percentageNotPaidWeek', 'percentageCanceledWeek', 'datasInMonth', 'percentageInMonth', 'percentageNotPaidMonth', 'percentageCanceledMonth', 'datasInYear', 'percentageInYear', 'percentageNotPaidYear', 'percentageCanceledYear', 'datasInLastYear', 'percentageInLastYear', 'percentageNotPaidLastYear', 'percentageCanceledLastYear', 'jumlahBBPerBulan', 'jumlahBBPerTahun', 'dataPembelianBarang', 'dataPembelianInvoice', 'daftarTagihanVendor', 'availableYears'));
+        $netIncomeData = Cache::remember('tkb_dashboard_net_income_' . Carbon::now()->format('Y-m-d'), 30, function () {
+            return $this->getNetIncomeBreakdownData();
+        });
+
+        return view('pages.welcomeTKB', compact('jumlahPerBulan', 'jumlahPerTahun', 'dateArray','dateArrayLastYear', 'monthArray','monthArrayLastYear', 'totalHarianArray','totalHarianArrayLastYear', 'totalBulananArray','totalBulananArrayLastYear', 'hourArray', 'totalJamArray', 'weekArray', 'totalMingguanArray', 'jumlahPerHari', 'jumlahPerMinggu', 'datasInWeek', 'percentageInWeek', 'percentageNotPaidWeek', 'percentageCanceledWeek', 'datasInMonth', 'percentageInMonth', 'percentageNotPaidMonth', 'percentageCanceledMonth', 'datasInYear', 'percentageInYear', 'percentageNotPaidYear', 'percentageCanceledYear', 'datasInLastYear', 'percentageInLastYear', 'percentageNotPaidLastYear', 'percentageCanceledLastYear', 'jumlahBBPerBulan', 'jumlahBBPerTahun', 'dataPembelianBarang', 'dataPembelianInvoice', 'daftarTagihanVendor', 'availableYears', 'netIncomeData'));
     }
 
     public function getPembelianByJenisBarang($timeframe = 'year', $groupBy = 'jenis', $customParams = [], $taxFilter = 'all')
@@ -414,11 +418,310 @@ class HomeTKBController extends Controller
         ]);
     }
 
+    /**
+     * Helper: Query Pendapatan Kas Masuk Aktual dari penjualan_tokabe (tanpa duplikasi nomor_invoice,
+     * hanya menghitung uang yang benar-benar diterima: Lunas = total_pembayaran, Belum Lunas = dp).
+     */
+    private function queryPendapatanByDateRange(string $startDate, string $endDate): array
+    {
+        $sql = "SELECT
+                tanggal,
+                SUM(kas_masuk) AS total_harian
+            FROM (
+                SELECT
+                    nomor_invoice,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d') AS tanggal,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS kas_masuk
+                FROM penjualan_tokabe
+                WHERE jenis_pembayaran <> 'PO'
+                    AND status <> 'Batal'
+                    AND deleted_at IS NULL
+                    AND DATE(tgl_penjualan) BETWEEN ? AND ?
+                GROUP BY nomor_invoice
+            ) AS dedup
+            GROUP BY tanggal
+            ORDER BY tanggal ASC";
+
+        $rows = DB::select($sql, [$startDate, $endDate]);
+        $map = [];
+        foreach ($rows as $r) {
+            $map[$r->tanggal] = (float) $r->total_harian;
+        }
+        return $map;
+    }
+
+    private static ?bool $hasBebanBelanjaTable = null;
+    private static ?bool $hasSptMasaTable = null;
+
+    /**
+     * Helper: Query Beban Belanja Aktual dari tabel beban_belanja per tanggal.
+     */
+    private function queryBebanBelanjaByDateRange(string $startDate, string $endDate): array
+    {
+        $map = [];
+        try {
+            if (self::$hasBebanBelanjaTable === null) {
+                self::$hasBebanBelanjaTable = Schema::hasTable('beban_belanja');
+            }
+            if (!self::$hasBebanBelanjaTable) {
+                return $map;
+            }
+            $rows = DB::table('beban_belanja')
+                ->whereNull('deleted_at')
+                ->whereBetween(DB::raw('DATE(tanggal)'), [$startDate, $endDate])
+                ->selectRaw("DATE_FORMAT(tanggal, '%Y-%m-%d') as tanggal, SUM(COALESCE(nominal, 0)) as total_beban")
+                ->groupBy(DB::raw("DATE_FORMAT(tanggal, '%Y-%m-%d')"))
+                ->get();
+            foreach ($rows as $r) {
+                $map[$r->tanggal] = (float) $r->total_beban;
+            }
+        } catch (\Throwable $e) {}
+        return $map;
+    }
+
+    /**
+     * Helper: Query Beban SPT Masa yang SUDAH DIBAYARKAN (status = 'Lunas') per tanggal pembayaran.
+     */
+    private function queryBebanSptByDateRange(string $startDate, string $endDate): array
+    {
+        $map = [];
+        try {
+            if (self::$hasSptMasaTable === null) {
+                self::$hasSptMasaTable = Schema::hasTable('spt_masa');
+            }
+            if (!self::$hasSptMasaTable) {
+                return $map;
+            }
+            $rows = DB::table('spt_masa')
+                ->whereNull('deleted_at')
+                ->where('status', 'Lunas')
+                ->whereBetween(
+                    DB::raw("COALESCE(DATE(tgl_bayar), STR_TO_DATE(CONCAT(masa_pajak_tahun, '-', LPAD(masa_pajak_bulan, 2, '0'), '-01'), '%Y-%m-%d'))"),
+                    [$startDate, $endDate]
+                )
+                ->selectRaw("DATE_FORMAT(COALESCE(DATE(tgl_bayar), STR_TO_DATE(CONCAT(masa_pajak_tahun, '-', LPAD(masa_pajak_bulan, 2, '0'), '-01'), '%Y-%m-%d')), '%Y-%m-%d') as tanggal, SUM(COALESCE(nominal_pajak, 0)) as total_spt")
+                ->groupBy('tanggal')
+                ->get();
+            foreach ($rows as $r) {
+                $map[$r->tanggal] = (float) $r->total_spt;
+            }
+        } catch (\Throwable $e) {}
+        return $map;
+    }
+
+    /**
+     * Build complete Net Income breakdown for a list of dates (YYYY-MM-DD).
+     */
+    private function buildDailyNetIncomeDataset(array $dateList): array
+    {
+        if (empty($dateList)) {
+            return [
+                'categories' => [],
+                'pendapatan' => [],
+                'beban_belanja' => [],
+                'beban_spt' => [],
+                'pengeluaran' => [],
+                'pendapatan_bersih' => [],
+                'summary' => [
+                    'total_pendapatan' => 0,
+                    'total_beban_belanja' => 0,
+                    'total_beban_spt' => 0,
+                    'total_pengeluaran' => 0,
+                    'pendapatan_bersih' => 0,
+                ],
+            ];
+        }
+
+        $startDate = reset($dateList);
+        $endDate = end($dateList);
+
+        $pendapatanMap = $this->queryPendapatanByDateRange($startDate, $endDate);
+        $belanjaMap = $this->queryBebanBelanjaByDateRange($startDate, $endDate);
+        $sptMap = $this->queryBebanSptByDateRange($startDate, $endDate);
+
+        $pendapatanArr = [];
+        $belanjaArr = [];
+        $sptArr = [];
+        $pengeluaranArr = [];
+        $bersihArr = [];
+
+        foreach ($dateList as $d) {
+            $inc = (float) ($pendapatanMap[$d] ?? 0);
+            $bel = (float) ($belanjaMap[$d] ?? 0);
+            $spt = (float) ($sptMap[$d] ?? 0);
+            $exp = $bel + $spt;
+            $net = $inc - $exp;
+
+            $pendapatanArr[] = $inc;
+            $belanjaArr[] = $bel;
+            $sptArr[] = $spt;
+            $pengeluaranArr[] = $exp;
+            $bersihArr[] = $net;
+        }
+
+        $totalPendapatan = array_sum($pendapatanArr);
+        $totalBelanja = array_sum($belanjaArr);
+        $totalSpt = array_sum($sptArr);
+        $totalPengeluaran = $totalBelanja + $totalSpt;
+        $totalBersih = $totalPendapatan - $totalPengeluaran;
+
+        return [
+            'categories' => array_values($dateList),
+            'pendapatan' => $pendapatanArr,
+            'beban_belanja' => $belanjaArr,
+            'beban_spt' => $sptArr,
+            'pengeluaran' => $pengeluaranArr,
+            'pendapatan_bersih' => $bersihArr,
+            'summary' => [
+                'total_pendapatan' => $totalPendapatan,
+                'total_beban_belanja' => $totalBelanja,
+                'total_beban_spt' => $totalSpt,
+                'total_pengeluaran' => $totalPengeluaran,
+                'pendapatan_bersih' => $totalBersih,
+            ],
+        ];
+    }
+
+    /**
+     * Build complete Net Income breakdown for a target Year (grouped by month YYYY-MM).
+     */
+    private function buildMonthlyNetIncomeDataset(int $targetYear, int $maxMonth = 12): array
+    {
+        $startDate = sprintf('%04d-01-01', $targetYear);
+        $endDate = Carbon::createFromDate($targetYear, $maxMonth, 1)->endOfMonth()->toDateString();
+
+        $pendapatanDaily = $this->queryPendapatanByDateRange($startDate, $endDate);
+        $belanjaDaily = $this->queryBebanBelanjaByDateRange($startDate, $endDate);
+        $sptDaily = $this->queryBebanSptByDateRange($startDate, $endDate);
+
+        $categories = [];
+        $pendapatanMonthMap = [];
+        $belanjaMonthMap = [];
+        $sptMonthMap = [];
+
+        for ($m = 1; $m <= $maxMonth; $m++) {
+            $key = sprintf('%04d-%02d', $targetYear, $m);
+            $categories[] = $key;
+            $pendapatanMonthMap[$key] = 0.0;
+            $belanjaMonthMap[$key] = 0.0;
+            $sptMonthMap[$key] = 0.0;
+        }
+
+        foreach ($pendapatanDaily as $dt => $val) {
+            $ym = substr($dt, 0, 7);
+            if (isset($pendapatanMonthMap[$ym])) {
+                $pendapatanMonthMap[$ym] += $val;
+            }
+        }
+        foreach ($belanjaDaily as $dt => $val) {
+            $ym = substr($dt, 0, 7);
+            if (isset($belanjaMonthMap[$ym])) {
+                $belanjaMonthMap[$ym] += $val;
+            }
+        }
+        foreach ($sptDaily as $dt => $val) {
+            $ym = substr($dt, 0, 7);
+            if (isset($sptMonthMap[$ym])) {
+                $sptMonthMap[$ym] += $val;
+            }
+        }
+
+        $pendapatanArr = [];
+        $belanjaArr = [];
+        $sptArr = [];
+        $pengeluaranArr = [];
+        $bersihArr = [];
+
+        foreach ($categories as $ym) {
+            $inc = (float) $pendapatanMonthMap[$ym];
+            $bel = (float) $belanjaMonthMap[$ym];
+            $spt = (float) $sptMonthMap[$ym];
+            $exp = $bel + $spt;
+            $net = $inc - $exp;
+
+            $pendapatanArr[] = $inc;
+            $belanjaArr[] = $bel;
+            $sptArr[] = $spt;
+            $pengeluaranArr[] = $exp;
+            $bersihArr[] = $net;
+        }
+
+        $totalPendapatan = array_sum($pendapatanArr);
+        $totalBelanja = array_sum($belanjaArr);
+        $totalSpt = array_sum($sptArr);
+        $totalPengeluaran = $totalBelanja + $totalSpt;
+        $totalBersih = $totalPendapatan - $totalPengeluaran;
+
+        return [
+            'categories' => $categories,
+            'pendapatan' => $pendapatanArr,
+            'beban_belanja' => $belanjaArr,
+            'beban_spt' => $sptArr,
+            'pengeluaran' => $pengeluaranArr,
+            'pendapatan_bersih' => $bersihArr,
+            'summary' => [
+                'total_pendapatan' => $totalPendapatan,
+                'total_beban_belanja' => $totalBelanja,
+                'total_beban_spt' => $totalSpt,
+                'total_pengeluaran' => $totalPengeluaran,
+                'pendapatan_bersih' => $totalBersih,
+            ],
+        ];
+    }
+
+    /**
+     * Precompute Net Income breakdown for all 5 default dashboard tabs (day, week, month, year, lastYear).
+     */
+    public function getNetIncomeBreakdownData(): array
+    {
+        $now = Carbon::now();
+        $todayStr = $now->toDateString();
+
+        // 1. Day (Hari Ini)
+        $dayData = $this->buildDailyNetIncomeDataset([$todayStr]);
+
+        // 2. Week (Minggu Ini: Senin s/d hari ini)
+        $startOfWeek = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $weekDates = [];
+        $cursor = $startOfWeek->copy();
+        while ($cursor->lte($now)) {
+            $weekDates[] = $cursor->toDateString();
+            $cursor->addDay();
+        }
+        $weekData = $this->buildDailyNetIncomeDataset($weekDates);
+
+        // 3. Month (Bulan Ini: Tgl 1 s/d hari ini)
+        $monthDates = [];
+        for ($d = 1; $d <= $now->day; $d++) {
+            $monthDates[] = sprintf('%04d-%02d-%02d', $now->year, $now->month, $d);
+        }
+        $monthData = $this->buildDailyNetIncomeDataset($monthDates);
+
+        // 4. Year (Tahun Ini: Jan s/d bulan berjalan)
+        $yearData = $this->buildMonthlyNetIncomeDataset($now->year, $now->month);
+
+        // 5. Last Year (Tahun Lalu: Jan s/d Des)
+        $lastYearData = $this->buildMonthlyNetIncomeDataset($now->year - 1, 12);
+
+        return [
+            'day' => $dayData,
+            'week' => $weekData,
+            'month' => $monthData,
+            'year' => $yearData,
+            'lastYear' => $lastYearData,
+        ];
+    }
+
+
     public function getPaymentChartDataAjax(Request $request)
     {
         Carbon::setLocale('id');
 
-        $filterType = $request->input('filter_type', 'date'); // 'date', 'month', 'year'
+        $filterType = $request->input('filter_type', 'date'); // 'date', 'month', 'year', 'range'
         $date = $request->input('date');
         $month = (int)$request->input('month');
         $year = (int)$request->input('year');
@@ -427,79 +730,43 @@ class HomeTKBController extends Controller
 
         if ($filterType === 'range' && !empty($startDate) && !empty($endDate)) {
             $periodLabel = 'Rentang ' . Carbon::parse($startDate)->format('d/m/Y') . ' - ' . Carbon::parse($endDate)->format('d/m/Y');
-            $sql = "SELECT DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS tanggal, SUM(total_pembayaran) AS total_harian
-                FROM penjualan_tokabe WHERE jenis_pembayaran <> 'PO' AND status <> 'Batal' AND deleted_at IS NULL
-                AND DATE(tgl_penjualan) BETWEEN ? AND ? GROUP BY DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') ORDER BY tanggal ASC";
-            $results = DB::select($sql, [$startDate, $endDate]);
-            $totals = [];
-            $total = 0;
-            foreach ($results as $row) {
-                $totals[] = (float) $row->total_harian;
-                $total += (float) $row->total_harian;
+            $dateList = [];
+            $cursor = Carbon::parse($startDate);
+            $endObj = Carbon::parse($endDate);
+            while ($cursor->lte($endObj) && count($dateList) <= 366) {
+                $dateList[] = $cursor->toDateString();
+                $cursor->addDay();
             }
-            return response()->json(['status' => 'success', 'filter_type' => 'range', 'period_label' => $periodLabel,
-                'data' => ['dates' => array_map(fn ($row) => $row->tanggal, $results), 'totals' => $totals, 'total_transaksi' => $total]]);
+            $dataset = $this->buildDailyNetIncomeDataset($dateList);
+
+            return response()->json([
+                'status' => 'success',
+                'filter_type' => 'range',
+                'period_label' => $periodLabel,
+                'data' => array_merge($dataset, [
+                    'dates' => $dataset['categories'],
+                    'totals' => $dataset['pendapatan'],
+                    'total_transaksi' => $dataset['summary']['total_pendapatan'],
+                ]),
+            ]);
         } elseif ($filterType === 'date' && !empty($date)) {
             $periodLabel = 'Tanggal ' . Carbon::parse($date)->locale('id')->isoFormat('D MMMM YYYY');
-
-            $sql = "SELECT
-                DATE_FORMAT(tgl_penjualan, '%Y-%m-%d %H:%i') AS jam_penjualan,
-                SUM(total_pembayaran) AS total_perjam
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <> 'PO'
-                AND status <> 'Batal'
-                AND deleted_at IS NULL
-                AND DATE(tgl_penjualan) = ?
-            GROUP BY jam_penjualan
-            ORDER BY jam_penjualan ASC";
-
-            $results = DB::select($sql, [$date]);
-
-            $hours = [];
-            $totals = [];
-            $totalHari = 0;
-
-            foreach ($results as $row) {
-                $time = date('H:i', strtotime($row->jam_penjualan));
-                $hours[] = $time;
-                $val = (float)$row->total_perjam;
-                $totals[] = $val;
-                $totalHari += $val;
-            }
+            $cleanDate = Carbon::parse($date)->toDateString();
+            $dataset = $this->buildDailyNetIncomeDataset([$cleanDate]);
 
             return response()->json([
                 'status' => 'success',
                 'filter_type' => 'date',
                 'period_label' => $periodLabel,
-                'data' => [
-                    'hours' => $hours,
-                    'totals' => $totals,
-                    'total_transaksi' => $totalHari,
-                    'formatted_total' => 'Rp. ' . number_format($totalHari, 0, ',', '.'),
-                ]
+                'data' => array_merge($dataset, [
+                    'hours' => [$cleanDate],
+                    'totals' => $dataset['pendapatan'],
+                    'total_transaksi' => $dataset['summary']['total_pendapatan'],
+                    'formatted_total' => 'Rp. ' . number_format($dataset['summary']['total_pendapatan'], 0, ',', '.'),
+                ]),
             ]);
         } elseif ($filterType === 'month' && !empty($month) && !empty($year)) {
             $periodLabel = 'Bulan ' . Carbon::createFromDate($year, $month, 1)->locale('id')->isoFormat('MMMM YYYY');
-
-            $sql = "SELECT
-                DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS tanggal,
-                SUM(total_pembayaran) AS total_harian
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <> 'PO'
-                AND status <> 'Batal'
-                AND deleted_at IS NULL
-                AND MONTH(tgl_penjualan) = ?
-                AND YEAR(tgl_penjualan) = ?
-            GROUP BY DATE_FORMAT(tgl_penjualan, '%Y-%m-%d')
-            ORDER BY tanggal ASC";
-
-            $results = DB::select($sql, [$month, $year]);
-
-            $totalsByDate = [];
-            foreach ($results as $row) {
-                $totalsByDate[$row->tanggal] = (float)$row->total_harian;
-            }
-
             $now = Carbon::now();
             if ($year === $now->year && $month === $now->month) {
                 $daysInMonth = $now->day;
@@ -507,72 +774,78 @@ class HomeTKBController extends Controller
                 $daysInMonth = Carbon::createFromDate($year, $month, 1)->daysInMonth;
             }
 
+            $dateList = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dateList[] = sprintf('%04d-%02d-%02d', $year, $month, $d);
+            }
+            $dataset = $this->buildDailyNetIncomeDataset($dateList);
+            $totalsByDate = [];
+            foreach ($dataset['categories'] as $idx => $dt) {
+                $totalsByDate[$dt] = $dataset['pendapatan'][$idx] ?? 0;
+            }
+
             return response()->json([
                 'status' => 'success',
                 'filter_type' => 'month',
                 'period_label' => $periodLabel,
-                'data' => [
+                'data' => array_merge($dataset, [
                     'year' => $year,
                     'month' => sprintf('%02d', $month),
                     'days_in_month' => $daysInMonth,
                     'totals_by_date' => $totalsByDate,
-                ]
+                ]),
             ]);
         } elseif ($filterType === 'year' && !empty($year)) {
             $periodLabel = 'Tahun ' . $year;
-
-            $sql = "SELECT
-                MONTH(tgl_penjualan) AS bulan,
-                SUM(total_pembayaran) AS total_bulanan
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <> 'PO'
-                AND status <> 'Batal'
-                AND deleted_at IS NULL
-                AND YEAR(tgl_penjualan) = ?
-            GROUP BY MONTH(tgl_penjualan)
-            ORDER BY bulan ASC";
-
-            $results = DB::select($sql, [$year]);
+            $now = Carbon::now();
+            $maxMonth = ($year === $now->year) ? $now->month : 12;
+            $dataset = $this->buildMonthlyNetIncomeDataset($year, $maxMonth);
 
             $totalsByMonth = [];
-            foreach ($results as $row) {
-                $totalsByMonth[(int)$row->bulan] = (float)$row->total_bulanan;
+            foreach ($dataset['categories'] as $idx => $ym) {
+                $mNum = (int) substr($ym, 5, 2);
+                $totalsByMonth[$mNum] = $dataset['pendapatan'][$idx] ?? 0;
             }
-
-            $now = Carbon::now();
 
             return response()->json([
                 'status' => 'success',
                 'filter_type' => 'year',
                 'period_label' => $periodLabel,
-                'data' => [
+                'data' => array_merge($dataset, [
                     'year' => $year,
                     'is_current_year' => ($year === $now->year),
                     'current_month' => $now->month,
                     'current_date' => $now->day,
                     'totals_by_month' => $totalsByMonth,
-                ]
+                ]),
             ]);
         }
 
         return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid']);
     }
 
-
-
     public function getPenjualan()
     {
         try {
             $sql = "SELECT
-            DATE_FORMAT(tgl_penjualan, '%Y-%m-%d%H:%i') AS jam_penjualan,
-            -- DATE_FORMAT(tgl_penjualan, '%Y-%m-%d %H') AS jam_penjualan,
-            SUM(total_pembayaran) AS total_perjam
-
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <> 'PO'
-            AND status <> 'Batal'
-            AND deleted_at IS NULL
-            AND DATE(tgl_penjualan) = CURDATE()
+                jam_penjualan,
+                SUM(kas_masuk) AS total_perjam
+            FROM (
+                SELECT
+                    nomor_invoice,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d %H:%i') AS jam_penjualan,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS kas_masuk
+                FROM penjualan_tokabe
+                WHERE jenis_pembayaran <> 'PO'
+                AND status <> 'Batal'
+                AND deleted_at IS NULL
+                AND DATE(tgl_penjualan) = CURDATE()
+                GROUP BY nomor_invoice
+            ) AS dedup
             GROUP BY jam_penjualan
             ORDER BY jam_penjualan DESC";
 
@@ -585,7 +858,7 @@ class HomeTKBController extends Controller
                     $datetime = date('H:i', strtotime($row->jam_penjualan));
                     $datetime_with_offset = date('Y-m-d H:i', strtotime($datetime . ' +7 hours'));
                     $jam_penjualan[] = $datetime_with_offset;
-                    $total_perjam[] = $row->total_perjam;
+                    $total_perjam[] = (float) $row->total_perjam;
                 }
                 return [
                     'jamPenjualan' => $jam_penjualan,
@@ -605,30 +878,42 @@ class HomeTKBController extends Controller
             ];
         }
     }
-        
+
     public function getDataPenjualan()
     {
         try {
             $sql = "SELECT
-            tanggal_penjualan,
-            bulan_penjualan,
-            SUM(total_harian) AS total_harian,
-            SUM(total_bulanan) AS total_bulanan
+                tanggal_penjualan,
+                bulan_penjualan,
+                SUM(total_harian) AS total_harian,
+                SUM(total_bulanan) AS total_bulanan
             FROM (
                 SELECT
-                    DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS tanggal_penjualan,
-                    DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS bulan_penjualan,
-                    total_pembayaran AS total_harian,
-                    CASE WHEN MONTH(tgl_penjualan) AND YEAR(tgl_penjualan) = YEAR(NOW()) THEN total_pembayaran ELSE 0 END AS total_bulanan
+                    nomor_invoice,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d') AS tanggal_penjualan,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d') AS bulan_penjualan,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS total_harian,
+                    CASE WHEN MONTH(MAX(tgl_penjualan)) = MONTH(NOW()) AND YEAR(MAX(tgl_penjualan)) = YEAR(NOW()) THEN
+                        MAX(CASE
+                            WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                            WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                            ELSE 0
+                        END)
+                    ELSE 0 END AS total_bulanan
                 FROM penjualan_tokabe
                 WHERE jenis_pembayaran <> 'PO'
                 AND status <> 'Batal'
                 AND deleted_at IS NULL
                 AND MONTH(tgl_penjualan) = MONTH(NOW())
+                AND YEAR(tgl_penjualan) = YEAR(NOW())
+                GROUP BY nomor_invoice
             ) AS subquery
             GROUP BY tanggal_penjualan, bulan_penjualan
             ORDER BY tanggal_penjualan DESC";
-
 
             $results = DB::select($sql);
 
@@ -639,10 +924,9 @@ class HomeTKBController extends Controller
                 $total_bulanan = [];
 
                 foreach ($results as $row) {
-
                     $tanggal_penjualan[] = $row->bulan_penjualan;
-                    $total_harian[] = $row->total_harian;
-                    $total_bulanan[] = $row->total_bulanan;
+                    $total_harian[] = (float) $row->total_harian;
+                    $total_bulanan[] = (float) $row->total_bulanan;
                 }
 
                 return [
@@ -659,65 +943,76 @@ class HomeTKBController extends Controller
                     'totalBulanan' => [],
                 ];
             }
-            // dd($sql);
         } catch (\PDOException $e) {
-            // dd($e->getMessage());
             return 'Error';
         }
     }
+
     public function getDataPenjualanLastYear()
-{
-    try {
-        $sql = "SELECT
-            tanggal_penjualan,
-            bulan_penjualan,
-            SUM(total_harian) AS total_harian,
-            SUM(total_bulanan) AS total_bulanan
-        FROM (
-            SELECT
-                DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS tanggal_penjualan,
-                DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS bulan_penjualan,
-                total_pembayaran AS total_harian,
-                CASE WHEN MONTH(tgl_penjualan) AND YEAR(tgl_penjualan) = YEAR(NOW()) - 1 THEN total_pembayaran ELSE 0 END AS total_bulanan
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <> 'PO'
-            AND status <> 'Batal'
-            AND deleted_at IS NULL
-            AND MONTH(tgl_penjualan) <= MONTH(NOW())
-            AND YEAR(tgl_penjualan) = YEAR(NOW()) - 1
-        ) AS subquery
-        GROUP BY tanggal_penjualan, bulan_penjualan
-        ORDER BY tanggal_penjualan DESC";
+    {
+        try {
+            $sql = "SELECT
+                tanggal_penjualan,
+                bulan_penjualan,
+                SUM(total_harian) AS total_harian,
+                SUM(total_bulanan) AS total_bulanan
+            FROM (
+                SELECT
+                    nomor_invoice,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d') AS tanggal_penjualan,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d') AS bulan_penjualan,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS total_harian,
+                    CASE WHEN MONTH(MAX(tgl_penjualan)) <= MONTH(NOW()) AND YEAR(MAX(tgl_penjualan)) = YEAR(NOW()) - 1 THEN
+                        MAX(CASE
+                            WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                            WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                            ELSE 0
+                        END)
+                    ELSE 0 END AS total_bulanan
+                FROM penjualan_tokabe
+                WHERE jenis_pembayaran <> 'PO'
+                AND status <> 'Batal'
+                AND deleted_at IS NULL
+                AND MONTH(tgl_penjualan) <= MONTH(NOW())
+                AND YEAR(tgl_penjualan) = YEAR(NOW()) - 1
+                GROUP BY nomor_invoice
+            ) AS subquery
+            GROUP BY tanggal_penjualan, bulan_penjualan
+            ORDER BY tanggal_penjualan DESC";
 
-        $results = DB::select($sql);
+            $results = DB::select($sql);
 
-        if (!empty($results)) {
-            $tanggal_penjualan = [];
-            $total_harian = [];
-            $total_bulanan = [];
+            if (!empty($results)) {
+                $tanggal_penjualan = [];
+                $total_harian = [];
+                $total_bulanan = [];
 
-            foreach ($results as $row) {
-                $tanggal_penjualan[] = $row->bulan_penjualan;
-                $total_harian[] = $row->total_harian;
-                $total_bulanan[] = $row->total_bulanan;
+                foreach ($results as $row) {
+                    $tanggal_penjualan[] = $row->bulan_penjualan;
+                    $total_harian[] = (float) $row->total_harian;
+                    $total_bulanan[] = (float) $row->total_bulanan;
+                }
+
+                return [
+                    'tanggalPenjualanLastYear' => $tanggal_penjualan,
+                    'totalHarianLastYear' => $total_harian,
+                    'totalBulananLastYear' => $total_bulanan,
+                ];
+            } else {
+                return [
+                    'tanggalPenjualanLastYear' => [],
+                    'totalHarianLastYear' => [],
+                    'totalBulananLastYear' => [],
+                ];
             }
-
-            return [
-                'tanggalPenjualanLastYear' => $tanggal_penjualan,
-                'totalHarianLastYear' => $total_harian,
-                'totalBulananLastYear' => $total_bulanan,
-            ];
-        } else {
-            return [
-                'tanggalPenjualanLastYear' => [],
-                'totalHarianLastYear' => [],
-                'totalBulananLastYear' => [],
-            ];
+        } catch (\PDOException $e) {
+            return 'Error';
         }
-    } catch (\PDOException $e) {
-        return 'Error';
     }
-}
 
     public function getPerminggu()
     {
@@ -725,19 +1020,25 @@ class HomeTKBController extends Controller
             $sql = "SELECT
                 tanggal_penjualan,
                 SUM(total_harian) AS total_harian
-                FROM (
-                    SELECT
-                        DATE_FORMAT(tgl_penjualan, '%Y-%m-%d') AS tanggal_penjualan,
-                        total_pembayaran AS total_harian
-                    FROM penjualan_tokabe
-                    WHERE jenis_pembayaran <> 'PO'
-                    AND status <> 'Batal'
-                    AND deleted_at IS NULL
-                    AND tgl_penjualan >= DATE(NOW() - INTERVAL (DAYOFWEEK(NOW()) - 2) DAY) -- Start of current week (Monday)
-                    AND tgl_penjualan <= DATE(NOW() - INTERVAL (DAYOFWEEK(NOW()) - 8) DAY) -- End of current week (Saturday)
-                ) AS subquery
-                GROUP BY tanggal_penjualan
-                ORDER BY tanggal_penjualan DESC";
+            FROM (
+                SELECT
+                    nomor_invoice,
+                    DATE_FORMAT(MAX(tgl_penjualan), '%Y-%m-%d') AS tanggal_penjualan,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS total_harian
+                FROM penjualan_tokabe
+                WHERE jenis_pembayaran <> 'PO'
+                AND status <> 'Batal'
+                AND deleted_at IS NULL
+                AND tgl_penjualan >= DATE(NOW() - INTERVAL (DAYOFWEEK(NOW()) - 2) DAY)
+                AND tgl_penjualan <= DATE(NOW() - INTERVAL (DAYOFWEEK(NOW()) - 8) DAY)
+                GROUP BY nomor_invoice
+            ) AS subquery
+            GROUP BY tanggal_penjualan
+            ORDER BY tanggal_penjualan DESC";
 
             $results = DB::select($sql);
 
@@ -747,7 +1048,7 @@ class HomeTKBController extends Controller
 
                 foreach ($results as $row) {
                     $tanggal_penjualan[] = $row->tanggal_penjualan;
-                    $total_harian[] = $row->total_harian;
+                    $total_harian[] = (float) $row->total_harian;
                 }
 
                 return [
@@ -758,33 +1059,37 @@ class HomeTKBController extends Controller
                 return [
                     'tanggalPenjualan' => [],
                     'totalHarian' => [],
-
                 ];
             }
         } catch (\PDOException $e) {
-            // dd($e->getMessage());
             return 'Error';
         }
     }
-
-
 
     function getPerbulan()
     {
         try {
             $sql = "SELECT
-            DATE_FORMAT(tgl_penjualan, '%Y-%m') AS bulan_penjualan,
-            SUM(total_pembayaran) AS total_bulanan
-        FROM (
-            SELECT DISTINCT nomor_invoice, tgl_penjualan, total_pembayaran
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <> 'PO'
-            AND status <> 'Batal'
-            AND deleted_at IS NULL
+                DATE_FORMAT(tgl_penjualan, '%Y-%m') AS bulan_penjualan,
+                SUM(kas_masuk) AS total_bulanan
+            FROM (
+                SELECT
+                    nomor_invoice,
+                    MAX(tgl_penjualan) AS tgl_penjualan,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS kas_masuk
+                FROM penjualan_tokabe
+                WHERE jenis_pembayaran <> 'PO'
+                AND status <> 'Batal'
+                AND deleted_at IS NULL
                 AND YEAR(tgl_penjualan) = YEAR(NOW())
-        ) AS subquery
-        GROUP BY DATE_FORMAT(tgl_penjualan, '%Y-%m')
-        ORDER BY bulan_penjualan DESC";
+                GROUP BY nomor_invoice
+            ) AS subquery
+            GROUP BY DATE_FORMAT(tgl_penjualan, '%Y-%m')
+            ORDER BY bulan_penjualan DESC";
 
             $results = DB::select($sql);
 
@@ -794,7 +1099,7 @@ class HomeTKBController extends Controller
 
                 foreach ($results as $row) {
                     $bulan_penjualan[] = $row->bulan_penjualan;
-                    $total_bulanan[] = $row->total_bulanan;
+                    $total_bulanan[] = (float) $row->total_bulanan;
                 }
 
                 return [
@@ -817,52 +1122,59 @@ class HomeTKBController extends Controller
     }
     
     function getPerbulanLastYear()
-{
-    try {
-        $sql = "SELECT
-            DATE_FORMAT(tgl_penjualan, '%Y-%m') AS bulan_penjualan,
-            SUM(total_pembayaran) AS total_bulanan
-        FROM (
-            SELECT DISTINCT nomor_invoice, tgl_penjualan, total_pembayaran
-            FROM penjualan_tokabe
-            WHERE jenis_pembayaran <>'PO' AND
-            status <> 'Batal'
-            AND deleted_at IS NULL
+    {
+        try {
+            $sql = "SELECT
+                DATE_FORMAT(tgl_penjualan, '%Y-%m') AS bulan_penjualan,
+                SUM(kas_masuk) AS total_bulanan
+            FROM (
+                SELECT
+                    nomor_invoice,
+                    MAX(tgl_penjualan) AS tgl_penjualan,
+                    MAX(CASE
+                        WHEN status = 'Lunas' THEN COALESCE(total_pembayaran, 0)
+                        WHEN status = 'Belum Lunas' THEN COALESCE(dp, 0)
+                        ELSE 0
+                    END) AS kas_masuk
+                FROM penjualan_tokabe
+                WHERE jenis_pembayaran <> 'PO'
+                AND status <> 'Batal'
+                AND deleted_at IS NULL
                 AND YEAR(tgl_penjualan) = YEAR(NOW()) - 1
-        ) AS subquery
-        GROUP BY DATE_FORMAT(tgl_penjualan, '%Y-%m')
-        ORDER BY bulan_penjualan ASC";
+                GROUP BY nomor_invoice
+            ) AS subquery
+            GROUP BY DATE_FORMAT(tgl_penjualan, '%Y-%m')
+            ORDER BY bulan_penjualan ASC";
 
-        $results = DB::select($sql);
+            $results = DB::select($sql);
 
-        if (!empty($results)) {
-            $bulan_penjualan_last_year = [];
-            $total_bulanan_last_year = [];
+            if (!empty($results)) {
+                $bulan_penjualan_last_year = [];
+                $total_bulanan_last_year = [];
 
-            foreach ($results as $row) {
-                $bulan_penjualan_last_year[] = $row->bulan_penjualan;
-                $total_bulanan_last_year[] = $row->total_bulanan;
+                foreach ($results as $row) {
+                    $bulan_penjualan_last_year[] = $row->bulan_penjualan;
+                    $total_bulanan_last_year[] = (float) $row->total_bulanan;
+                }
+
+                return [
+                    'bulanPenjualanLastYear' => $bulan_penjualan_last_year,
+                    'totalBulananLastYear' => $total_bulanan_last_year,
+                ];
+            } else {
+                return [
+                    'bulanPenjualanLastYear' => [],
+                    'totalBulananLastYear' => [],
+                ];
             }
-
-            return [
-                'bulanPenjualanLastYear' => $bulan_penjualan_last_year,
-                'totalBulananLastYear' => $total_bulanan_last_year,
-            ];
-        } else {
+        } catch (\Exception $e) {
+            \Log::error('Error in getPerbulanLastYear: ' . $e->getMessage());
             return [
                 'bulanPenjualanLastYear' => [],
                 'totalBulananLastYear' => [],
             ];
         }
-    } catch (\Exception $e) {
-        \Log::error('Error in getPerbulanLastYear: ' . $e->getMessage());
-        return [
-            'bulanPenjualanLastYear' => [],
-            'totalBulananLastYear' => [],
-        ];
     }
-}
-
 
     function getTotalPerMinggu()
     {

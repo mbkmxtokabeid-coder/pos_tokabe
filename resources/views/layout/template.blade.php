@@ -22,6 +22,14 @@
         background-color: var(--bg-app, #0C0F14) !important;
         color-scheme: dark !important;
     }
+    html, body {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    #layout-wrapper, .main-content {
+        max-width: 100% !important;
+        overflow-x: clip !important;
+    }
     .footer {
         background-color: var(--bg-app, #0C0F14) !important;
         color: var(--text-tertiary, #94A3B8) !important;
@@ -83,9 +91,7 @@
       "urls": [
         "/welcomeTKB",
         "/list-invoice/tokabe",
-        "/list-invoice/custom",
         "/addInvoiceTokabe",
-        "/addInvoiceTokabeCustom",
         "/daftar-spb",
         "/daftar-spj",
         "/pembelian",
@@ -1362,18 +1368,20 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link menu-link {{ (Request::is('list-invoice/tokabe*') || Request::is('list_invoice*') || Request::is('addInvoiceTokabe')) && !Request::is('*custom*') ? 'active' : '' }}" href="{{ route('list_invoice_tokabe') }}">
+                        <a class="nav-link menu-link {{ Request::is('list-invoice/tokabe*') || Request::is('list_invoice*') || Request::is('addInvoiceTokabe*') ? 'active' : '' }}" href="{{ route('list_invoice_tokabe') }}">
                             <span class="icon-box"><i class="las la-file-invoice-dollar menu-icon"></i></span>
                             <span class="menu-text" data-key="t-invoices">Invoice Keluar</span>
                         </a>
                     </li>
 
+                    @if (Auth::user()->role == 'Pemilik')
                     <li class="nav-item">
-                        <a class="nav-link menu-link {{ Request::is('list-invoice/custom*') || Request::is('addInvoiceTokabeCustom*') ? 'active' : '' }}" href="{{ route('list_invoice_tokabe_custom') }}">
-                            <span class="icon-box"><i class="las la-file-signature menu-icon"></i></span>
-                            <span class="menu-text" data-key="t-invoices-custom">Invoice Keluar Custom</span>
+                        <a class="nav-link menu-link {{ Request::is('kategori-invoice*') ? 'active' : '' }}" href="{{ route('kategori-invoice.index') }}">
+                            <span class="icon-box"><i class="las la-folder-open menu-icon"></i></span>
+                            <span class="menu-text">Kategori Invoice</span>
                         </a>
                     </li>
+                    @endif
 
                     <li class="nav-item">
                         <a class="nav-link menu-link {{ Request::is('items*') ? 'active' : '' }}" href="{{ route('item.index') }}">
@@ -1393,6 +1401,13 @@
                         <a class="nav-link menu-link {{ Request::is('beban-belanja*') ? 'active' : '' }}" href="{{ route('beban-belanja.index') }}">
                             <span class="icon-box"><i class="las la-wallet menu-icon"></i></span>
                             <span class="menu-text">Beban Belanja</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link menu-link {{ Request::is('spt-masa*') ? 'active' : '' }}" href="{{ route('spt-masa.index') }}">
+                            <span class="icon-box"><i class="las la-balance-scale menu-icon"></i></span>
+                            <span class="menu-text">SPT Masa</span>
                         </a>
                     </li>
 

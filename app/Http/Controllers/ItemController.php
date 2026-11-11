@@ -10,7 +10,22 @@ class ItemController extends Controller
 {
     public function index()
     {
-        $items = Item::orderBy('nama_item')->get();
+        if (Item::count() === 0) {
+            $defaultItems = [
+                ['nama_item' => 'Barang', 'jenis_pajak' => 'ppn'],
+                ['nama_item' => 'Barang dan Jasa', 'jenis_pajak' => 'ppn_pph'],
+                ['nama_item' => 'Jasa', 'jenis_pajak' => 'pph'],
+                ['nama_item' => 'Jasa Periklanan', 'jenis_pajak' => 'ppn_pph'],
+            ];
+            foreach ($defaultItems as $row) {
+                Item::firstOrCreate(
+                    ['nama_item' => $row['nama_item']],
+                    ['jenis_pajak' => $row['jenis_pajak']]
+                );
+            }
+        }
+
+        $items = Item::orderBy('id')->get();
 
         return view('pages.items.index', compact('items'));
     }

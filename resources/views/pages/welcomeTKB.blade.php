@@ -546,17 +546,6 @@ body,
 @endsection
 
 @section('content')
-{{-- @include('layout.loading-overlay') --}}
-{{--
-    @extends('layout.menu')
-
-    <!-- ============================================================== -->
-    <!-- Start right Content here -->
-    <!-- ============================================================== -->
-    @section('content')
-    <div class="main-content">
-
-
         {{-- @extends('layout.pagetitle') --}}
 
         <div class="page-content">
@@ -1289,8 +1278,6 @@ body,
                 <!-- container-fluid -->
             </div>
             <!-- End Page-content -->
-        {{-- </div> --}}
-        <!-- end main content-->
         @endsection
 
 
@@ -1426,6 +1413,7 @@ body,
         window.dataPembelianInvoiceJS = {!! json_encode($dataPembelianInvoice) !!};
         window.daftarTagihanVendorJS = {!! json_encode($daftarTagihanVendor ?? []) !!};
         window.vendorPembelianOptionsJS = [...new Set(window.daftarTagihanVendorJS.map(row => row.nama_vendor).filter(Boolean))].sort();
+        window.netIncomeDataJS = {!! json_encode($netIncomeData ?? []) !!};
 
         // Local aliases for backwards compatibility in this script block
         var hourArrayJS = window.hourArrayJS;

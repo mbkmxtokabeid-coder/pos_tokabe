@@ -17,6 +17,8 @@ use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\BebanBelanjaController;
 use App\Http\Controllers\KategoriBebanController;
+use App\Http\Controllers\SptMasaController;
+use App\Http\Controllers\KategoriInvoiceController;
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TokenController;
@@ -134,6 +136,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/pembelian/{id}/cicilan', [PembelianController::class, 'bayarCicilan'])->name('pembelian.cicilan.store');
             Route::post('/pembelian-cicilan/{id}/approve', [PembelianController::class, 'approveCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.approve');
             Route::post('/pembelian-cicilan/{id}/reject', [PembelianController::class, 'rejectCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.reject');
+            Route::post('/pembelian-cicilan/{id}/cancel', [PembelianController::class, 'cancelCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.cancel');
             // APPROVAL PEMBELIAN (LOCK / UNLOCK - HANYA PEMILIK)
             Route::post('/ubah-status-unlock-pembelian/{id}', [PembelianController::class, 'unlock'])->middleware('role:Pemilik')->name('pembelian.unlock');
             Route::get('/ubah-status-lock-pembelian/{id}', [PembelianController::class, 'lock'])->middleware('role:Pemilik')->name('pembelian.lock');
@@ -150,6 +153,9 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/beban-belanja', [BebanBelanjaController::class, 'store'])->name('beban-belanja.store');
             Route::put('/beban-belanja/{id}', [BebanBelanjaController::class, 'update'])->name('beban-belanja.update');
             Route::delete('/beban-belanja/{id}', [BebanBelanjaController::class, 'destroy'])->name('beban-belanja.destroy');
+            Route::post('/beban-belanja/{id}/request-unlock', [BebanBelanjaController::class, 'requestUnlock'])->name('beban-belanja.request-unlock');
+            Route::post('/beban-belanja/{id}/unlock', [BebanBelanjaController::class, 'unlock'])->middleware('role:Pemilik')->name('beban-belanja.unlock');
+            Route::post('/beban-belanja/{id}/lock', [BebanBelanjaController::class, 'lock'])->middleware('role:Pemilik')->name('beban-belanja.lock');
             Route::get('/beban-belanja-export', [BebanBelanjaController::class, 'export'])->name('beban-belanja.export');
             Route::get('/beban-belanja-pdf', [BebanBelanjaController::class, 'exportPdf'])->name('beban-belanja.export-pdf');
 
@@ -157,6 +163,25 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/kategori-beban', [KategoriBebanController::class, 'store'])->name('kategori-beban.store');
             Route::put('/kategori-beban/{id}', [KategoriBebanController::class, 'update'])->name('kategori-beban.update');
             Route::delete('/kategori-beban/{id}', [KategoriBebanController::class, 'destroy'])->name('kategori-beban.destroy');
+
+            // ROUTE SPT MASA
+            Route::get('/spt-masa', [SptMasaController::class, 'index'])->name('spt-masa.index');
+            Route::get('/spt-masa/tarik-data-transaksi', [SptMasaController::class, 'tarikDataTransaksiAjax'])->name('spt-masa.tarik-data');
+            Route::post('/spt-masa', [SptMasaController::class, 'store'])->name('spt-masa.store');
+            Route::put('/spt-masa/{id}', [SptMasaController::class, 'update'])->name('spt-masa.update');
+            Route::post('/spt-masa/{id}/bayar', [SptMasaController::class, 'bayar'])->name('spt-masa.bayar');
+            Route::delete('/spt-masa/{id}', [SptMasaController::class, 'destroy'])->name('spt-masa.destroy');
+            Route::post('/spt-masa/{id}/request-unlock', [SptMasaController::class, 'requestUnlock'])->name('spt-masa.request-unlock');
+            Route::post('/spt-masa/{id}/unlock', [SptMasaController::class, 'unlock'])->middleware('role:Pemilik')->name('spt-masa.unlock');
+            Route::post('/spt-masa/{id}/lock', [SptMasaController::class, 'lock'])->middleware('role:Pemilik')->name('spt-masa.lock');
+
+            // ROUTE KATEGORI INVOICE (MANAJEMEN HANYA PEMILIK)
+            Route::get('/kategori-invoice', [KategoriInvoiceController::class, 'index'])->middleware('role:Pemilik')->name('kategori-invoice.index');
+            Route::post('/kategori-invoice', [KategoriInvoiceController::class, 'store'])->middleware('role:Pemilik')->name('kategori-invoice.store');
+            Route::put('/kategori-invoice/{id}', [KategoriInvoiceController::class, 'update'])->middleware('role:Pemilik')->name('kategori-invoice.update');
+            Route::post('/kategori-invoice/{id}/toggle-status', [KategoriInvoiceController::class, 'toggleStatus'])->middleware('role:Pemilik')->name('kategori-invoice.toggle-status');
+            Route::delete('/kategori-invoice/{id}', [KategoriInvoiceController::class, 'destroy'])->middleware('role:Pemilik')->name('kategori-invoice.destroy');
+            Route::get('/kategori-invoice/generate-number', [KategoriInvoiceController::class, 'generateNumberAjax'])->name('kategori-invoice.generate-number');
 
             // ROUTE SPJ
             Route::get('/daftar-spj', [SpjController::class, 'index'])->name('spj.index');

@@ -1,6 +1,7 @@
+@extends('layout.template')
+
 @section('head')
 
-<script src="https://cdn.lordicon.com/bhenfmcm.js" defer></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
 
 <style>
@@ -323,8 +324,13 @@
         padding: 3px;
         gap: 2px;
     }
-    .segmented-item {
-        border: none;
+    .segmented-item,
+    button.segmented-item {
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
+        border: 1px solid transparent !important;
         background: transparent;
         color: var(--text-secondary, #94A3B8);
         font-size: 13px;
@@ -332,37 +338,50 @@
         padding: 5px 12px;
         border-radius: 6px;
         cursor: pointer;
+        user-select: none;
         transition: all 120ms ease;
     }
-    .segmented-item:hover {
+    .segmented-item:hover,
+    button.segmented-item:hover {
         color: var(--text-primary, #F1F5F9);
-        background: rgba(255, 255, 255, 0.04);
+        background: rgba(255, 255, 255, 0.08) !important;
     }
-    .segmented-item.active {
-        background: linear-gradient(135deg, #7C3AED, #6366F1);
-        color: #ffffff;
+    .segmented-item.active,
+    button.segmented-item.active {
+        background: linear-gradient(135deg, #7C3AED, #6366F1) !important;
+        color: #ffffff !important;
         font-weight: 600;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        border-color: rgba(99, 102, 241, 0.5) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
     }
 
-    .btn-custom-filter {
+    .btn-custom-filter,
+    button.btn-custom-filter {
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
         display: inline-flex;
         align-items: center;
         gap: 6px;
         padding: 6px 14px;
         font-size: 13px;
         font-weight: 500;
-        color: var(--text-secondary, #CBD5E1);
-        background: var(--bg-surface-2, #1E293B);
-        border: 1px solid var(--border-subtle, #334155);
+        color: var(--text-secondary, #CBD5E1) !important;
+        background: var(--bg-surface-2, #1E293B) !important;
+        border: 1px solid var(--border-subtle, #334155) !important;
         border-radius: 8px;
         cursor: pointer;
+        user-select: none;
         transition: all 120ms ease;
     }
-    .btn-custom-filter:hover, .btn-custom-filter.active {
-        color: #DDD6FE;
-        border-color: rgba(168, 85, 247, 0.5);
-        background: rgba(168, 85, 247, 0.12);
+    .btn-custom-filter:hover,
+    button.btn-custom-filter:hover,
+    .btn-custom-filter.active,
+    button.btn-custom-filter.active {
+        color: #DDD6FE !important;
+        border-color: rgba(168, 85, 247, 0.5) !important;
+        background: rgba(168, 85, 247, 0.18) !important;
     }
 
     /* Quick Filter Tab Pill */
@@ -409,6 +428,14 @@
         background: var(--bg-surface, #0F172A) !important;
         border-bottom: 1px solid var(--border-subtle, #1E293B) !important;
         width: 100% !important;
+    }
+
+    #scroll-horizontal-custom_wrapper,
+    #scroll-horizontal-custom_wrapper .table-responsive {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
     }
 
     #scroll-horizontal-custom_wrapper .dataTables_length {
@@ -512,7 +539,7 @@
        ========================================================================== */
     #scroll-horizontal-custom {
         width: 100% !important;
-        min-width: 1915px !important;
+        min-width: 2135px !important;
         table-layout: fixed !important;
         margin-bottom: 0 !important;
         border-collapse: separate !important;
@@ -618,6 +645,7 @@
     }
 
     /* Lebar Kolom Definitif (14 Kolom Lengkap Sesuai DESIGN.md §13) */
+    /* Lebar Kolom Definitif (15 Kolom Lengkap Sesuai DESIGN.md §13) */
     #scroll-horizontal-custom th:nth-child(1), #scroll-horizontal-custom td:nth-child(1) { width: 45px; text-align: center !important; }
     #scroll-horizontal-custom th:nth-child(2), #scroll-horizontal-custom td:nth-child(2) { width: 190px; text-align: left !important; }
     #scroll-horizontal-custom th:nth-child(3), #scroll-horizontal-custom td:nth-child(3) { width: 220px; text-align: left !important; }
@@ -626,15 +654,16 @@
     #scroll-horizontal-custom th:nth-child(6), #scroll-horizontal-custom td:nth-child(6) { width: 140px; min-width: 135px; text-align: center !important; white-space: nowrap !important; }
     #scroll-horizontal-custom th:nth-child(7), #scroll-horizontal-custom td:nth-child(7) { width: 130px; text-align: left !important; }
     #scroll-horizontal-custom th:nth-child(8), #scroll-horizontal-custom td:nth-child(8) { width: 240px !important; min-width: 230px !important; max-width: 260px !important; text-align: center !important; }
-    #scroll-horizontal-custom th:nth-child(9), #scroll-horizontal-custom td:nth-child(9) { width: 260px !important; min-width: 260px !important; max-width: 260px !important; text-align: left !important; box-sizing: border-box !important; }
+    #scroll-horizontal-custom th:nth-child(9), #scroll-horizontal-custom td:nth-child(9) { width: 320px; min-width: 280px; max-width: 450px; text-align: left !important; box-sizing: border-box !important; }
     #scroll-horizontal-custom th:nth-child(10), #scroll-horizontal-custom td:nth-child(10) { width: 130px; text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap !important; }
     #scroll-horizontal-custom th:nth-child(11), #scroll-horizontal-custom td:nth-child(11) { width: 155px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap !important; }
     #scroll-horizontal-custom th:nth-child(12), #scroll-horizontal-custom td:nth-child(12) { width: 150px; min-width: 140px; text-align: center !important; white-space: nowrap !important; }
-    #scroll-horizontal-custom th:nth-child(13), #scroll-horizontal-custom td:nth-child(13) { width: 130px; text-align: left !important; }
+    #scroll-horizontal-custom th:nth-child(13), #scroll-horizontal-custom td:nth-child(13) { width: 155px; min-width: 145px; text-align: center !important; white-space: nowrap !important; }
+    #scroll-horizontal-custom th:nth-child(14), #scroll-horizontal-custom td:nth-child(14) { width: 130px; text-align: left !important; }
 
-    /* Kolom Aksi Sticky di Kanan — Akses Cepat Tanpa Perlu Scroll Horizontal */
-    #scroll-horizontal-custom th:nth-child(14),
-    #scroll-horizontal-custom td:nth-child(14) {
+    /* Kolom Aksi Sticky di Kanan (Kolom 15) — Akses Cepat Tanpa Perlu Scroll Horizontal */
+    #scroll-horizontal-custom th:nth-child(15),
+    #scroll-horizontal-custom td:nth-child(15) {
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
@@ -645,26 +674,27 @@
         box-shadow: -4px 0 10px rgba(0, 0, 0, 0.45) !important;
         z-index: 10 !important;
     }
-    #scroll-horizontal-custom thead th:nth-child(14) {
+    #scroll-horizontal-custom thead th:nth-child(15) {
         z-index: 25 !important;
         background: var(--bg-surface-2, #1E293B) !important;
     }
-    #scroll-horizontal-custom tbody tr:hover td:nth-child(14) {
+    #scroll-horizontal-custom tbody tr:hover td:nth-child(15) {
         background: #1b2332 !important;
     }
-    #scroll-horizontal-custom tbody tr.is-expanded td:nth-child(14) {
+    #scroll-horizontal-custom tbody tr.is-expanded td:nth-child(15) {
         background: #161c28 !important;
     }
 
     /* Stacking Context Dropdown agar Selalu di Atas Sticky Baris Lainnya */
-    #scroll-horizontal-custom tbody td:nth-child(14):has(.show),
-    #scroll-horizontal-custom tbody td:nth-child(14):focus-within {
+    #scroll-horizontal-custom tbody td:nth-child(15):has(.show),
+    #scroll-horizontal-custom tbody td:nth-child(15):focus-within {
         z-index: 1050 !important;
     }
 
     #scroll-horizontal-custom thead th:nth-child(6),
     #scroll-horizontal-custom thead th:nth-child(8),
-    #scroll-horizontal-custom thead th:nth-child(12) {
+    #scroll-horizontal-custom thead th:nth-child(12),
+    #scroll-horizontal-custom thead th:nth-child(13) {
         text-align: center !important;
         padding-left: 20px !important;
         padding-right: 28px !important;
@@ -688,7 +718,7 @@
     #scroll-horizontal-custom tbody td:nth-child(2),
     #scroll-horizontal-custom tbody td:nth-child(3),
     #scroll-horizontal-custom tbody td:nth-child(4),
-    #scroll-horizontal-custom tbody td:nth-child(13) {
+    #scroll-horizontal-custom tbody td:nth-child(14) {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -716,29 +746,36 @@
     }
 
     /* Row Expand Indicator */
-    .row-expand-indicator {
+    .row-expand-indicator,
+    button.row-expand-indicator {
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
         display: inline-flex;
-        width: 24px;
-        height: 24px;
-        flex: 0 0 24px;
+        width: 26px;
+        height: 26px;
+        flex: 0 0 26px;
         align-items: center;
         justify-content: center;
         margin-right: 8px;
         padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 6px;
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-secondary, #CBD5E1);
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-secondary, #CBD5E1) !important;
         font-size: 14px;
         cursor: pointer;
         transition: all 150ms ease;
     }
-    .row-expand-indicator:hover {
-        background: rgba(139, 92, 246, 0.2);
-        border-color: rgba(139, 92, 246, 0.4);
-        color: #DDD6FE;
+    .row-expand-indicator:hover,
+    button.row-expand-indicator:hover {
+        background: rgba(139, 92, 246, 0.2) !important;
+        border-color: rgba(139, 92, 246, 0.4) !important;
+        color: #DDD6FE !important;
     }
-    .row-expand-indicator.expanded i {
+    .row-expand-indicator.expanded i,
+    button.row-expand-indicator.expanded i {
         transform: rotate(90deg);
     }
 
@@ -917,8 +954,24 @@
     .description-extra-container {
         display: none;
     }
+    #scroll-horizontal-custom tbody tr.is-expanded td {
+        background-color: #172336 !important;
+    }
+    #scroll-horizontal-custom tbody tr.is-expanded .table-cell-collapsible {
+        overflow: visible !important;
+    }
+    #scroll-horizontal-custom tbody tr.is-expanded .description-extra-container,
     tr.is-expanded .description-extra-container {
-        display: block;
+        display: block !important;
+    }
+    #scroll-horizontal-custom tbody tr.is-expanded .table-cell-collapsible li {
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        text-overflow: clip !important;
+    }
+    #scroll-horizontal-custom tbody tr.is-expanded .badge-more-items {
+        display: none !important;
     }
 
     /* Scrollbar Halus Modern Gelap — Menggantikan Scrollbar Abu Bawaan */
@@ -964,8 +1017,6 @@
 </style>
 
 @endsection
-
-@extends('layout.template')
 
 @section('content')
 
@@ -1109,20 +1160,20 @@
           </div>
       </div>
 
-      <!-- SECTION 1: CARD INVOICE NON PO (4 Cards) -->
+      <!-- SECTION 1: RINGKASAN STATISTIK INVOICE TAHUNAN & BULANAN (5 Transaction Cards) -->
       <div class="kpi-section-header">
           <span class="kpi-section-badge kpi-section-badge--brand" aria-hidden="true">
-              <i class="ri-receipt-line"></i> NON PO
+              <i class="ri-bar-chart-box-line"></i> Ringkasan Invoice Custom
           </span>
-          <p class="kpi-section-title">Ringkasan Invoice Regular (Cash / Transfer)</p>
+          <p class="kpi-section-title">Statistik Nilai Invoice Periode Tahunan & Bulanan</p>
       </div>
-      <div class="row g-3 mb-1">
-          {{-- Card 1: Jumlah Seluruh Non PO --}}
-          <div class="col-xl-3 col-md-6">
+      <div class="row g-3 mb-2">
+          {{-- Card 1: Total Invoice Tahun Ini --}}
+          <div class="col-xl-4 col-md-6">
               <div class="kpi-card kpi-card--brand">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-title-1">Jumlah Seluruh Non PO Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__overline" id="custom-card-title-1">Total Invoice Tahun Ini</p>
                           <div class="kpi-card__icon" aria-hidden="true">
                               <i class="ri-file-text-line"></i>
                           </div>
@@ -1130,18 +1181,18 @@
                       <p class="kpi-card__value" id="custom-card-val-1">Rp {{ number_format($jumlahPerTahun, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="custom-card-count-1">{{ $jlhInvoice }}</span>
-                          <p class="kpi-card__label" id="custom-card-desc-1">Invoice Non PO Dibuat Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="custom-card-desc-1">Invoice Dibuat Tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 2: Jumlah Non PO Terbayar --}}
-          <div class="col-xl-3 col-md-6">
+          {{-- Card 2: Total Invoice Lunas Tahun Ini --}}
+          <div class="col-xl-4 col-md-6">
               <div class="kpi-card kpi-card--success">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-title-2">Non PO Terbayar Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__overline" id="custom-card-title-2">Total Invoice Lunas Tahun Ini</p>
                           <div class="kpi-card__icon" aria-hidden="true">
                               <i class="ri-checkbox-circle-line"></i>
                           </div>
@@ -1149,18 +1200,18 @@
                       <p class="kpi-card__value" id="custom-card-val-2">Rp {{ number_format($totalLunasThn, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="custom-card-count-2">{{ $lunas }}</span>
-                          <p class="kpi-card__label" id="custom-card-desc-2">Invoice Non PO Lunas Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="custom-card-desc-2">Invoice Berstatus Lunas Tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 3: Jumlah Non PO Belum Terbayar Tahun --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--danger">
+          {{-- Card 3: Total Invoice Belum Lunas Tahun Ini --}}
+          <div class="col-xl-4 col-md-12">
+              <div class="kpi-card kpi-card--warning">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-title-3">Non PO Belum Terbayar Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__overline" id="custom-card-title-3">Total Invoice Belum Lunas Tahun Ini</p>
                           <div class="kpi-card__icon" aria-hidden="true">
                               <i class="ri-time-line"></i>
                           </div>
@@ -1168,111 +1219,45 @@
                       <p class="kpi-card__value" id="custom-card-val-3">Rp {{ number_format($jumlahBBPerTahun, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="custom-card-count-3">{{ $belumLunas }}</span>
-                          <p class="kpi-card__label">Invoice Non PO Belum Lunas</p>
+                          <p class="kpi-card__label" id="custom-card-desc-3">Sisa Tagihan Belum Lunas Tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 4: Jumlah Non PO Belum Terbayar Bulan --}}
-          <div class="col-xl-3 col-md-6">
+          {{-- Card 4: Total Terbayar Bulan Ini --}}
+          <div class="col-xl-6 col-md-6">
+              <div class="kpi-card kpi-card--info">
+                  <div class="kpi-card__body">
+                      <div class="kpi-card__header">
+                          <p class="kpi-card__overline" id="custom-card-title-4">Total Terbayar Bulan Ini</p>
+                          <div class="kpi-card__icon" aria-hidden="true">
+                              <i class="ri-wallet-3-line"></i>
+                          </div>
+                      </div>
+                      <p class="kpi-card__value" id="custom-card-val-4">Rp {{ number_format($totalTerbayarBulan ?? 0, 0, ',', '.') }}</p>
+                      <div class="kpi-card__footer">
+                          <span class="kpi-badge" id="custom-card-count-4">{{ $terbayarBulanCount ?? 0 }}</span>
+                          <p class="kpi-card__label" id="custom-card-desc-4">Pembayaran Diterima Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          {{-- Card 5: Total Belum Terbayar Bulan Ini --}}
+          <div class="col-xl-6 col-md-6">
               <div class="kpi-card kpi-card--danger">
                   <div class="kpi-card__body">
                       <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-title-4">Non PO Belum Terbayar Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
+                          <p class="kpi-card__overline" id="custom-card-title-bulan-belum">Total Belum Terbayar Bulan Ini</p>
                           <div class="kpi-card__icon" aria-hidden="true">
                               <i class="ri-calendar-close-line"></i>
                           </div>
                       </div>
-                      <p class="kpi-card__value" id="custom-card-val-4">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
+                      <p class="kpi-card__value" id="custom-card-val-bulan-belum">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="custom-card-count-4">{{ $belumLunasMonth }}</span>
-                          <p class="kpi-card__label">Invoice Non PO Belum Lunas</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- SECTION 2: CARD INVOICE PURCHASE ORDER (PO) (4 Cards) -->
-      <div class="kpi-section-header">
-          <span class="kpi-section-badge kpi-section-badge--warning" aria-hidden="true">
-              <i class="ri-file-list-3-line"></i> Purchase Order (PO)
-          </span>
-          <p class="kpi-section-title">Ringkasan Invoice Khusus Purchase Order</p>
-      </div>
-      <div class="row g-3 mb-1">
-          {{-- Card PO 1: Jumlah Seluruh PO --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--info">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-po-title-1">Jumlah Seluruh PO</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-bank-card-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="custom-card-po-val-1">Rp {{ number_format($jumlahPO, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="custom-card-po-count-1">{{ $countAllInvPO }}</span>
-                          <p class="kpi-card__label" id="custom-card-po-desc-1">Invoice PO Aktif</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card PO 2: Jumlah PO Lunas Tahun Ini --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--success">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-po-title-2">Jumlah PO Lunas Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-checkbox-circle-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="custom-card-po-val-2">Rp {{ number_format($jumlahPOLunas, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="custom-card-po-count-2">{{ $countAllSettledPO }}</span>
-                          <p class="kpi-card__label" id="custom-card-po-desc-2">Invoice PO Lunas Tahun {{ date('Y') }}</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card PO 3: Jumlah PO Belum Lunas Tahun Ini --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--warning">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-po-title-3">PO Belum Lunas Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-error-warning-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="custom-card-po-val-3">Rp {{ number_format($jumlahPOBlmLunas, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="custom-card-po-count-3">{{ $countAllOutstandingPO }}</span>
-                          <p class="kpi-card__label">Invoice PO Belum Lunas</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card PO 4: Jumlah PO Belum Lunas Bulan Ini --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--warning">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="custom-card-po-title-4">PO Belum Lunas Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-hourglass-2-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="custom-card-po-val-4">Rp {{ number_format($jumlahBBPerBulanPO, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="custom-card-po-count-4">{{ $blmLunasPO }}</span>
-                          <p class="kpi-card__label">Invoice PO Belum Lunas</p>
+                          <span class="kpi-badge" id="custom-card-count-bulan-belum">{{ $belumLunasMonth }}</span>
+                          <p class="kpi-card__label" id="custom-card-desc-bulan-belum">Sisa Tagihan Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
                       </div>
                   </div>
               </div>
@@ -1456,14 +1441,22 @@
                           </button>
                       </div>
 
-                      <div class="d-flex align-items-center gap-2">
+                      <div class="d-flex flex-wrap align-items-center gap-2">
+                          <div class="d-inline-flex align-items-center gap-2">
+                              <label for="filter-custom-jenis-transaksi" class="mb-0 text-muted" style="font-size: 12px; font-weight: 600;">Jenis Transaksi:</label>
+                              <select id="filter-custom-jenis-transaksi" class="form-select form-select-sm dash-select" style="min-width: 155px; height: 32px; font-size: 12.5px;" onchange="filterCustomTableJenisTransaksi(this.value)">
+                                  <option value="">Semua Transaksi</option>
+                                  <option value="PADI UMKM">PADI UMKM ({{ $penjualan->where('is_padi_umkm', true)->count() }})</option>
+                                  <option value="Non-PADI UMKM">Non-PADI UMKM ({{ $penjualan->where('is_padi_umkm', false)->count() }})</option>
+                              </select>
+                          </div>
                           <button type="button" id="btn-toggle-all-custom-rows" class="btn btn-sm" style="background: rgba(139, 92, 246, 0.15); color: #DDD6FE; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 8px;">
                               <i class="ri-expand-diagonal-line me-1"></i><span id="text-toggle-all-custom">Buka Semua Rincian</span>
                           </button>
                       </div>
                   </div>
 
-                  <div class="card-body p-0">
+                  <div class="card-body p-0" style="overflow-x: auto; width: 100%; max-width: 100%;">
                       @if($penjualan->isEmpty())
                           <div class="text-center py-5 px-3">
                               <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(139, 92, 246, 0.12); color: #A78BFA; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 16px;">
@@ -1493,6 +1486,7 @@
                                       <th scope="col" class="text-end">Panjar (DP)</th>
                                       <th scope="col" class="text-end">Total Pembayaran</th>
                                       <th scope="col" class="text-center">Tipe Pembayaran</th>
+                                      <th scope="col" class="text-center">Jenis Transaksi</th>
                                       <th scope="col">Admin</th>
                                       <th scope="col" class="text-center">Aksi</th>
                                   </tr>
@@ -1641,6 +1635,15 @@
                                                   <span class="badge badge-payment--po">{{ $inv->jenis_pembayaran }}</span>
                                               @else
                                                   <span class="badge badge--neutral">{{ $inv->jenis_pembayaran }}</span>
+                                              @endif
+                                          </td>
+
+                                          <!-- Jenis Transaksi (PADI UMKM) -->
+                                          <td class="text-center" data-order="{{ $inv->is_padi_umkm ? 'PADI UMKM' : 'Non-PADI UMKM' }}" data-search="{{ $inv->is_padi_umkm ? 'PADI UMKM' : 'Non-PADI UMKM' }}">
+                                              @if ($inv->is_padi_umkm)
+                                                  <span class="badge" style="background: rgba(16, 185, 129, 0.14); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 10px; border-radius: 6px; font-weight: 600;">PADI UMKM</span>
+                                              @else
+                                                  <span class="badge" style="background: rgba(148, 163, 184, 0.12); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.25); padding: 4px 10px; border-radius: 6px; font-weight: 500;">Non-PADI UMKM</span>
                                               @endif
                                           </td>
 
@@ -1911,10 +1914,10 @@
                 bSort: true,
                 order: [[4, 'desc']], // Urutkan tanggal penjualan descending
                 columnDefs: [
-                    { orderable: false, targets: [0, 3, 6, 8, 13] },
+                    { orderable: false, targets: [0, 3, 6, 8, 14] },
                     { width: '240px', targets: 7, className: 'text-center' },
                     { width: '260px', targets: 8 },
-                    { width: '80px', targets: 13, className: 'text-center' }
+                    { width: '80px', targets: 14, className: 'text-center' }
                 ],
                 dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
                 pageLength: 25,
@@ -1939,10 +1942,12 @@
                 }
             });
 
-            // Nomor urut 1, 2, 3... selalu rapi berurutan saat sort/search
-            customDataTable.on('order.dt search.dt', function () {
+            // Nomor urut 1, 2, 3... selalu rapi berurutan saat sort/search dan paginasi
+            customDataTable.on('order.dt search.dt draw.dt', function () {
+                const pageInfo = customDataTable.page.info();
+                const start = pageInfo ? pageInfo.start : 0;
                 customDataTable.column(0, {search:'applied', order:'applied'}).nodes().each(function (cell, i) {
-                    cell.innerHTML = i + 1;
+                    cell.innerHTML = start + i + 1;
                 });
             });
         }
@@ -1988,6 +1993,16 @@
                 customDataTable.column(5).search('^' + status + '$', true, false).draw();
             } else {
                 customDataTable.column(5).search('').draw();
+            }
+        }
+    }
+
+    function filterCustomTableJenisTransaksi(jenis) {
+        if (customDataTable) {
+            if (jenis) {
+                customDataTable.column(12).search('^' + jenis + '$', true, false).draw();
+            } else {
+                customDataTable.column(12).search('').draw();
             }
         }
     }
@@ -2064,50 +2079,36 @@
                     let label = res.periodLabel;
                     $('#custom-badge-active-period').text(label);
 
-                    // Section 1: Non-PO
+                    // Section 1: 5 Transaction Cards Statistik Invoice
                     if (res.card1) {
                         $('#custom-card-val-1').text('Rp ' + res.card1.nominal);
-                        $('#custom-card-title-1').text('JUMLAH SELURUH NON PO ' + label);
+                        $('#custom-card-title-1').text('TOTAL INVOICE ' + label);
                         $('#custom-card-count-1').text(res.card1.count);
-                        $('#custom-card-desc-1').text('Invoice Non PO Dibuat ' + label);
+                        $('#custom-card-desc-1').text('Invoice Dibuat ' + label);
                     }
                     if (res.card2) {
                         $('#custom-card-val-2').text('Rp ' + res.card2.nominal);
-                        $('#custom-card-title-2').text('NON PO TERBAYAR ' + label);
+                        $('#custom-card-title-2').text('TOTAL INVOICE LUNAS ' + label);
                         $('#custom-card-count-2').text(res.card2.count);
-                        $('#custom-card-desc-2').text('Invoice Non PO Lunas ' + label);
+                        $('#custom-card-desc-2').text('Invoice Berstatus Lunas ' + label);
                     }
                     if (res.card3) {
                         $('#custom-card-val-3').text('Rp ' + res.card3.nominal);
-                        $('#custom-card-title-3').text('NON PO BELUM TERBAYAR ' + label);
+                        $('#custom-card-title-3').text('TOTAL INVOICE BELUM LUNAS ' + label);
                         $('#custom-card-count-3').text(res.card3.count);
+                        $('#custom-card-desc-3').text('Sisa Tagihan Belum Lunas ' + label);
                     }
                     if (res.card4) {
                         $('#custom-card-val-4').text('Rp ' + res.card4.nominal);
-                        $('#custom-card-title-4').text('NON PO BELUM TERBAYAR BULAN ' + res.card4MonthName);
+                        $('#custom-card-title-4').text('TOTAL TERBAYAR BULAN ' + res.card4MonthName);
                         $('#custom-card-count-4').text(res.card4.count);
+                        $('#custom-card-desc-4').text('Pembayaran Diterima Bulan ' + res.card4MonthName);
                     }
-
-                    // Section 2: Purchase Order (PO)
-                    if (res.cardPo1) {
-                        $('#custom-card-po-val-1').text('Rp ' + res.cardPo1.nominal);
-                        $('#custom-card-po-count-1').text(res.cardPo1.count);
-                    }
-                    if (res.cardPo2) {
-                        $('#custom-card-po-val-2').text('Rp ' + res.cardPo2.nominal);
-                        $('#custom-card-po-title-2').text('JUMLAH PO LUNAS ' + label);
-                        $('#custom-card-po-count-2').text(res.cardPo2.count);
-                        $('#custom-card-po-desc-2').text('Invoice PO Lunas ' + label);
-                    }
-                    if (res.cardPo3) {
-                        $('#custom-card-po-val-3').text('Rp ' + res.cardPo3.nominal);
-                        $('#custom-card-po-title-3').text('PO BELUM LUNAS ' + label);
-                        $('#custom-card-po-count-3').text(res.cardPo3.count);
-                    }
-                    if (res.cardPo4) {
-                        $('#custom-card-po-val-4').text('Rp ' + res.cardPo4.nominal);
-                        $('#custom-card-po-title-4').text('PO BELUM LUNAS BULAN ' + res.card4MonthName);
-                        $('#custom-card-po-count-4').text(res.cardPo4.count);
+                    if (res.cardBulanBelum) {
+                        $('#custom-card-val-bulan-belum').text('Rp ' + res.cardBulanBelum.nominal);
+                        $('#custom-card-title-bulan-belum').text('TOTAL BELUM TERBAYAR BULAN ' + res.card4MonthName);
+                        $('#custom-card-count-bulan-belum').text(res.cardBulanBelum.count);
+                        $('#custom-card-desc-bulan-belum').text('Sisa Tagihan Bulan ' + res.card4MonthName);
                     }
 
                     // Section 3: Batal

@@ -497,6 +497,8 @@
                                             <span class="pill-badge pill-lunas fs-11 py-0.5">Disetujui</span>
                                         @elseif($pby->status_approval === 'Pending')
                                             <span class="pill-badge pill-belum-lunas fs-11 py-0.5">Menunggu Approval</span>
+                                        @elseif(str_contains($pby->catatan ?? '', '[Dibatalkan Owner]'))
+                                            <span class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-50 fs-11">Dibatalkan</span>
                                         @else
                                             <span class="badge bg-danger bg-opacity-20 text-danger border border-danger border-opacity-25 fs-11">Ditolak</span>
                                         @endif
@@ -517,6 +519,13 @@
                                                     </button>
                                                 </form>
                                             </div>
+                                        @elseif($pby->status_approval === 'Approved')
+                                            <form action="{{ route('pembelian.cicilan.cancel', $pby->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Batalkan Termin Ke-{{ $pby->cicilan_ke }} (Rp {{ number_format($pby->jumlah_bayar, 0, ',', '.') }})? Saldo kas dan sisa tagihan vendor akan dikembalikan.')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2 fs-11 fw-semibold" title="Batalkan Termin yang sudah disetujui">
+                                                    <i class="ri-arrow-go-back-line"></i> Batalkan
+                                                </button>
+                                            </form>
                                         @else
                                             <span class="text-muted fs-11">-</span>
                                         @endif

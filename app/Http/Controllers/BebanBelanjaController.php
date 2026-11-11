@@ -25,6 +25,12 @@ class BebanBelanjaController extends Controller
         $endOfMonth = $now->copy()->endOfMonth()->toDateString();
         $today = $now->copy()->toDateString();
 
+        // Auto-lock beban belanja yang sudah dibuka (Unlock) lebih dari 6 jam
+        BebanBelanja::where('approval', 'Unlock')
+            ->whereNotNull('approved_at')
+            ->where('approved_at', '<', now()->subHours(6))
+            ->update(['approval' => 'Lock', 'approved_at' => null]);
+
         // 1. KPI Statistics (Bulan Berjalan & Hari Ini)
         $totalBulanIni = BebanBelanja::whereBetween('tanggal', [$startOfMonth, $endOfMonth])->sum('nominal');
         $totalTransaksiBulanIni = BebanBelanja::whereBetween('tanggal', [$startOfMonth, $endOfMonth])->count();
@@ -169,6 +175,8 @@ class BebanBelanjaController extends Controller
                 'bukti_struk' => $buktiPath,
                 'keterangan'  => $request->keterangan,
                 'admin_id'    => Auth::id(),
+                'approval'    => 'Lock',
+                'approved_at' => null,
             ]);
 
             if ($request->filled('anggaran_id')) {
@@ -183,6 +191,12 @@ class BebanBelanjaController extends Controller
     public function update(Request $request, $id)
     {
         $beban = BebanBelanja::findOrFail($id);
+
+        $role = Auth::user()->role ?? null;
+        if ($role === 'Admin' && $beban->approval !== 'Unlock') {
+            Alert::error('Akses Terkunci', 'Akses edit beban belanja terkunci. Silakan minta persetujuan (request) ke Owner terlebih dahulu.');
+            return redirect()->route('beban-belanja.index');
+        }
 
         if ($request->has('nominal')) {
             $cleanNominal = preg_replace('/[^0-9]/', '', (string)$request->nominal);
@@ -249,16 +263,74 @@ class BebanBelanjaController extends Controller
             $beban->rekening_id = $request->rekening_id ?: null;
             $beban->penerima    = $request->penerima;
             $beban->keterangan  = $request->keterangan;
+            $beban->approval    = 'Lock';
+            $beban->approved_at = null;
             $beban->save();
         });
 
-        Alert::success('Berhasil', 'Data beban belanja berhasil diperbarui.');
+        Alert::success('Berhasil', 'Data beban belanja berhasil diperbarui dan akses telah dikunci kembali.');
         return redirect()->route('beban-belanja.index');
+    }
+
+    public function requestUnlock($id)
+    {
+        $beban = BebanBelanja::findOrFail($id);
+        if ($beban->approval === 'Unlock') {
+            Alert::info('Info', 'Akses beban belanja ini sudah terbuka.');
+            return redirect()->back();
+        }
+
+        $beban->update([
+            'approval' => 'Pending',
+        ]);
+
+        Alert::success('Permintaan Terkirim', 'Permintaan izin buka kunci (edit/hapus) untuk #' . $beban->nomor_beban . ' telah dikirim ke Owner.');
+        return redirect()->back();
+    }
+
+    public function unlock($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik (Owner) yang dapat membuka kunci beban belanja.');
+            return redirect()->back();
+        }
+
+        $beban = BebanBelanja::findOrFail($id);
+        $beban->update([
+            'approval'    => 'Unlock',
+            'approved_at' => now(),
+        ]);
+
+        Alert::success('Akses Dibuka', 'Akses edit/hapus untuk #' . $beban->nomor_beban . ' berhasil dibuka untuk Admin.');
+        return redirect()->back();
+    }
+
+    public function lock($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            Alert::error('Akses Ditolak', 'Hanya Pemilik (Owner) yang dapat mengunci beban belanja.');
+            return redirect()->back();
+        }
+
+        $beban = BebanBelanja::findOrFail($id);
+        $beban->update([
+            'approval'    => 'Lock',
+            'approved_at' => null,
+        ]);
+
+        Alert::success('Akses Dikunci', 'Akses edit/hapus untuk #' . $beban->nomor_beban . ' berhasil dikunci kembali.');
+        return redirect()->back();
     }
 
     public function destroy($id)
     {
         $beban = BebanBelanja::findOrFail($id);
+
+        $role = Auth::user()->role ?? null;
+        if ($role === 'Admin' && $beban->approval !== 'Unlock') {
+            Alert::error('Akses Terkunci', 'Akses hapus beban belanja terkunci. Silakan minta persetujuan (request) ke Owner terlebih dahulu.');
+            return redirect()->route('beban-belanja.index');
+        }
 
         DB::transaction(function () use ($beban) {
             if ($beban->anggaran_id) {

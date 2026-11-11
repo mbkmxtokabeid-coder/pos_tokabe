@@ -178,14 +178,24 @@
             <thead>
                 <tr>
                     <th class="text-center" style="width: 40px;">No</th>
+                    <th class="text-center" style="width: 35px;">No</th>
                     <th>No. Invoice</th>
                     <th class="text-center" style="width: 110px;">Tanggal Pembelian</th>
                     <th class="text-center" style="width: 110px;">Tanggal JTO</th>
+                    <th class="text-center" style="width: 95px;">Jenis</th>
+                    <th class="text-center" style="width: 95px;">Tgl Beli</th>
+                    <th class="text-center" style="width: 95px;">Tgl JTO</th>
                     <th>Nama Vendor</th>
                     <th class="text-end" style="width: 130px;">Total Transaksi</th>
                     <th class="text-end" style="width: 130px;">Total Terbayar</th>
                     <th class="text-end" style="width: 130px;">Sisa Tagihan</th>
                     <th class="text-center" style="width: 95px;">Status</th>
+                    <th class="text-end" style="width: 100px;">PPN</th>
+                    <th class="text-end" style="width: 100px;">PPh</th>
+                    <th class="text-end" style="width: 115px;">Total Bayar</th>
+                    <th class="text-end" style="width: 115px;">Terbayar</th>
+                    <th class="text-end" style="width: 115px;">Sisa Tagihan</th>
+                    <th class="text-center" style="width: 85px;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -193,9 +203,12 @@
                 <tr>
                     <td class="text-center">{{ $loop->iteration }}</td>
                     <td class="fw-bold">{{ $item->nomor_inv ?: '-' }}</td>
+                    <td class="text-center">{{ $item->jenis_invoice ?: 'Barang' }}</td>
                     <td class="text-center">{{ optional($item->tanggal)->translatedFormat('d M Y') }}</td>
                     <td class="text-center">{{ optional($item->effective_tanggal_jto)->translatedFormat('d M Y') ?: '-' }}</td>
                     <td>{{ optional($item->vendor)->nama_vendor ?: '-' }}</td>
+                    <td class="text-end">Rp {{ number_format($item->ppn_nominal ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($item->pph_nominal ?? 0, 0, ',', '.') }}</td>
                     <td class="text-end">Rp {{ number_format($item->jumlah_harga ?? 0, 0, ',', '.') }}</td>
                     <td class="text-end" style="color: #059669;">Rp {{ number_format($item->terbayar ?? 0, 0, ',', '.') }}</td>
                     <td class="text-end" style="color: #dc2626;">Rp {{ number_format($item->sisa ?? 0, 0, ',', '.') }}</td>
@@ -212,6 +225,7 @@
                 @empty
                 <tr>
                     <td colspan="9" class="text-center" style="padding: 30px; color: #6b7280;">
+                    <td colspan="12" class="text-center" style="padding: 30px; color: #6b7280;">
                         Tidak ada data transaksi pembelian untuk filter yang dipilih.
                     </td>
                 </tr>
@@ -221,6 +235,9 @@
             <tfoot>
                 <tr>
                     <td colspan="5" class="text-end" style="letter-spacing: 0.5px;">GRAND TOTAL :</td>
+                    <td colspan="6" class="text-end" style="letter-spacing: 0.5px;">GRAND TOTAL :</td>
+                    <td class="text-end">Rp {{ number_format($pembelian->sum('ppn_nominal'), 0, ',', '.') }}</td>
+                    <td class="text-end">Rp {{ number_format($pembelian->sum('pph_nominal'), 0, ',', '.') }}</td>
                     <td class="text-end">Rp {{ number_format($grandTotalTransaksi, 0, ',', '.') }}</td>
                     <td class="text-end" style="color: #059669;">Rp {{ number_format($grandTotalTerbayar, 0, ',', '.') }}</td>
                     <td class="text-end" style="color: #dc2626;">Rp {{ number_format($grandTotalSisa, 0, ',', '.') }}</td>

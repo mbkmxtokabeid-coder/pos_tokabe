@@ -25,10 +25,13 @@ class BebanBelanja extends Model
         'bukti_struk',
         'keterangan',
         'admin_id',
+        'approval',
+        'approved_at',
     ];
 
     protected $dates = [
         'tanggal',
+        'approved_at',
         'created_at',
         'updated_at',
         'deleted_at',

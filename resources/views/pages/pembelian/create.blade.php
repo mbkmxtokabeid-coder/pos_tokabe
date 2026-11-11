@@ -324,35 +324,36 @@
                     <option value="Barang" {{ old('jenis_invoice', 'Barang') === 'Barang' ? 'selected' : '' }}>Barang</option>
                     <option value="Jasa" {{ old('jenis_invoice') === 'Jasa' ? 'selected' : '' }}>Jasa</option>
                     <option value="Barang dan Jasa" {{ old('jenis_invoice') === 'Barang dan Jasa' ? 'selected' : '' }}>Barang dan Jasa</option>
+                    <option value="Jasa Iklan" {{ old('jenis_invoice') === 'Jasa Iklan' ? 'selected' : '' }}>Jasa Iklan</option>
                     <option value="Tanpa Pajak" {{ old('jenis_invoice') === 'Tanpa Pajak' ? 'selected' : '' }}>Tanpa Pajak</option>
                   </select>
                   @error('jenis_invoice')<span class="error-help-block">{{ $message }}</span>@enderror
                 </div>
               </div>
 
-              {{-- PPN (Dinamis: Barang atau Barang dan Jasa) --}}
+                            {{-- PPN (Dinamis: Barang, Barang dan Jasa, atau Jasa Iklan) --}}
               <div class="mb-3 row" id="ppn-container">
                 <label class="col-lg-4 col-form-label pt-2">PPN (%)</label>
                 <div class="col-lg-8">
                   <div class="input-group">
                     <input type="number" name="ppn_persen" id="ppn_persen" class="form-control" value="{{ old('ppn_persen', 11) }}" min="0" max="100" step="0.1" oninput="hitungRingkasan()">
                     <span class="input-group-text">%</span>
-                    <span class="input-group-text fw-semibold" id="ppn-nominal-badge">Rp 0</span>
+                    <span class="input-group-text fw-semibold" id="ppn-nominal-badge">+ Rp 0</span>
                   </div>
                   <small class="text-helper">Nominal PPN ditambahkan ke Total Pembayaran</small>
                 </div>
               </div>
 
-              {{-- PPh (Dinamis: Jasa atau Barang dan Jasa) --}}
+              {{-- PPh (Dinamis: Jasa, Barang dan Jasa, atau Jasa Iklan) --}}
               <div class="mb-3 row" id="pph-container" style="display: none;">
                 <label class="col-lg-4 col-form-label pt-2">PPh (%)</label>
                 <div class="col-lg-8">
                   <div class="input-group">
                     <input type="number" name="pph_persen" id="pph_persen" class="form-control" value="{{ old('pph_persen', 2) }}" min="0" max="100" step="0.1" oninput="hitungRingkasan()">
                     <span class="input-group-text">%</span>
-                    <span class="input-group-text fw-semibold" id="pph-nominal-badge">Rp 0</span>
+                    <span class="input-group-text fw-semibold" id="pph-nominal-badge">- Rp 0</span>
                   </div>
-                  <small class="text-helper">Nominal PPh (Pajak Penghasilan potong jasa)</small>
+                  <small class="text-helper">Nominal PPh (potongan Pajak Penghasilan dari pembayaran ke vendor)</small>
                 </div>
               </div>
             </div>
@@ -454,19 +455,19 @@
                 <table class="table w-100" id="summary-table">
                   <tbody>
                     <tr>
-                      <td class="summary-label" style="width: 45%;">Subtotal</td>
+                      <td class="summary-label" style="width: 50%;">Nilai Transaksi (DPP)</td>
                       <td class="text-end summary-value fw-semibold" id="summary-subtotal">Rp 0</td>
                     </tr>
                     <tr id="summary-ppn-row">
-                      <td class="summary-label">PPN</td>
-                      <td class="text-end summary-value" id="summary-ppn">Rp 0</td>
+                      <td class="summary-label">PPN (+)</td>
+                      <td class="text-end summary-value" id="summary-ppn">+ Rp 0</td>
                     </tr>
                     <tr id="summary-pph-row" style="display: none;">
-                      <td class="summary-label">PPh</td>
-                      <td class="text-end summary-value" id="summary-pph">Rp 0</td>
+                      <td class="summary-label">PPh (-)</td>
+                      <td class="text-end summary-value" style="color: #FB7185;" id="summary-pph">- Rp 0</td>
                     </tr>
                     <tr class="summary-highlight">
-                      <td class="summary-label">Jumlah Total</td>
+                      <td class="summary-label">Total Pembayaran</td>
                       <td class="text-end summary-value" id="summary-total">Rp 0</td>
                     </tr>
                     <tr>
@@ -620,7 +621,7 @@
       pphContainer.style.display = 'flex';
       ppnRow.style.display = 'none';
       pphRow.style.display = 'table-row';
-    } else if (jenis === 'Barang dan Jasa') {
+    } else if (jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan') {
       ppnContainer.style.display = 'flex';
       pphContainer.style.display = 'flex';
       ppnRow.style.display = 'table-row';
@@ -639,17 +640,20 @@
     const subtotal = getSubtotalHarga();
     const jenis = document.getElementById('jenis_invoice').value;
 
-    let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa')
+    let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan')
       ? (parseFloat(document.getElementById('ppn_persen').value) || 0) : 0;
-    let pphPersen = (jenis === 'Jasa' || jenis === 'Barang dan Jasa')
+    let pphPersen = (jenis === 'Jasa' || jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan')
       ? (parseFloat(document.getElementById('pph_persen').value) || 0) : 0;
 
     let ppnNominal = Math.round(subtotal * ppnPersen / 100);
     let pphNominal = Math.round(subtotal * pphPersen / 100);
-    let total = subtotal + ppnNominal;
+    let total = Math.max(0, subtotal + ppnNominal - pphNominal);
 
-    document.getElementById('ppn-nominal-badge').textContent = 'Rp ' + formatRp(ppnNominal);
-    document.getElementById('pph-nominal-badge').textContent = 'Rp ' + formatRp(pphNominal);
+    const ppnBadge = document.getElementById('ppn-nominal-badge');
+    if (ppnBadge) ppnBadge.textContent = '+ Rp ' + formatRp(ppnNominal);
+
+    const pphBadge = document.getElementById('pph-nominal-badge');
+    if (pphBadge) pphBadge.textContent = '- Rp ' + formatRp(pphNominal);
 
     // Update status & terbayar
     const statusEl = document.getElementById('status_pembelian');
@@ -675,13 +679,23 @@
     const sisa = Math.max(0, total - terbayar);
 
     // Update ringkasan tabel bawah
-    document.getElementById('summary-subtotal').textContent = 'Rp ' + formatRp(subtotal);
-    document.getElementById('summary-ppn').textContent = 'Rp ' + formatRp(ppnNominal);
-    document.getElementById('summary-pph').textContent = 'Rp ' + formatRp(pphNominal);
-    document.getElementById('summary-total').textContent = 'Rp ' + formatRp(total);
+    const subtotalEl = document.getElementById('summary-subtotal');
+    if (subtotalEl) subtotalEl.textContent = 'Rp ' + formatRp(subtotal);
+
+    const ppnSummaryEl = document.getElementById('summary-ppn');
+    if (ppnSummaryEl) ppnSummaryEl.textContent = '+ Rp ' + formatRp(ppnNominal);
+
+    const pphSummaryEl = document.getElementById('summary-pph');
+    if (pphSummaryEl) pphSummaryEl.textContent = '- Rp ' + formatRp(pphNominal);
+
+    const totalSummaryEl = document.getElementById('summary-total');
+    if (totalSummaryEl) totalSummaryEl.textContent = 'Rp ' + formatRp(total);
+
     const sisaEl = document.getElementById('summary-sisa');
-    sisaEl.textContent = 'Rp ' + formatRp(sisa);
-    sisaEl.style.color = sisa > 0 ? '#FB7185' : '#34D399';
+    if (sisaEl) {
+      sisaEl.textContent = 'Rp ' + formatRp(sisa);
+      sisaEl.style.color = sisa > 0 ? '#FB7185' : '#34D399';
+    }
   }
 
   function handleStatusChange() {
@@ -689,10 +703,13 @@
     const status = statusEl ? statusEl.value : 'Cicil';
     const subtotal = getSubtotalHarga();
     const jenis = document.getElementById('jenis_invoice').value;
-    let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa')
+    let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan')
       ? (parseFloat(document.getElementById('ppn_persen').value) || 0) : 0;
+    let pphPersen = (jenis === 'Jasa' || jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan')
+      ? (parseFloat(document.getElementById('pph_persen').value) || 0) : 0;
     let ppnNominal = Math.round(subtotal * ppnPersen / 100);
-    let total = subtotal + ppnNominal;
+    let pphNominal = Math.round(subtotal * pphPersen / 100);
+    let total = Math.max(0, subtotal + ppnNominal - pphNominal);
 
     const terbayarInput = document.getElementById('terbayar');
 
@@ -722,10 +739,13 @@
   function handleTerbayarChange() {
     const subtotal = getSubtotalHarga();
     const jenis = document.getElementById('jenis_invoice').value;
-    let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa')
+    let ppnPersen = (jenis === 'Barang' || jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan')
       ? (parseFloat(document.getElementById('ppn_persen').value) || 0) : 0;
+    let pphPersen = (jenis === 'Jasa' || jenis === 'Barang dan Jasa' || jenis === 'Jasa Iklan')
+      ? (parseFloat(document.getElementById('pph_persen').value) || 0) : 0;
     let ppnNominal = Math.round(subtotal * ppnPersen / 100);
-    let total = subtotal + ppnNominal;
+    let pphNominal = Math.round(subtotal * pphPersen / 100);
+    let total = Math.max(0, subtotal + ppnNominal - pphNominal);
 
     const terbayarInput = document.getElementById('terbayar');
     let terbayar = terbayarInput ? parseRibuan(terbayarInput.value) : 0;
@@ -737,8 +757,10 @@
 
     const sisa = Math.max(0, total - terbayar);
     const sisaEl = document.getElementById('summary-sisa');
-    sisaEl.textContent = 'Rp ' + formatRp(sisa);
-    sisaEl.style.color = sisa > 0 ? '#FB7185' : '#34D399';
+    if (sisaEl) {
+      sisaEl.textContent = 'Rp ' + formatRp(sisa);
+      sisaEl.style.color = sisa > 0 ? '#FB7185' : '#34D399';
+    }
 
     const statusEl = document.getElementById('status_pembelian');
     if (statusEl) {

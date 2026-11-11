@@ -44,6 +44,30 @@ class SpbController extends Controller
         return view('pages.SPB.tambah-spb', compact('customer', 'perusahaan', 'barang','namaPerusahaan'));
     }
 
+    private function resolveKategoriBarang($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $raw = trim((string) $value);
+        if (stripos($raw, 'custom:') === 0) {
+            $customName = trim(substr($raw, 7));
+            if ($customName !== '') {
+                return KategoriBarang::firstOrCreate(['nama_kategori' => $customName]);
+            }
+        }
+
+        if (is_numeric($raw)) {
+            $found = KategoriBarang::find((int) $raw);
+            if ($found) {
+                return $found;
+            }
+        }
+
+        return KategoriBarang::firstOrCreate(['nama_kategori' => $raw]);
+    }
+
     public function storeSPB(Request $request)
     {
         $request->validate([
@@ -76,11 +100,10 @@ class SpbController extends Controller
         if (empty($request->barang_id)) {
             Alert::error('error', 'SPB gagal ditambahkan');
             return redirect('tambah-spb');
-            // return redirect('tambah-spb')->with('error', 'SPB gagal ditambahkan');
         }
 
         foreach ($request->barang_id as $key => $value) {
-            $kategori_brg = KategoriBarang::find($value);
+            $kategori_brg = $this->resolveKategoriBarang($value);
             if (!$kategori_brg) {
                 continue;
             }
@@ -121,6 +144,9 @@ class SpbController extends Controller
 
         foreach ($brg_spb as $barang) {
             $kategoriBrg = KategoriBarang::where('id', $barang->barang_id)->get();
+            if ($kategoriBrg->isEmpty()) {
+                $kategoriBrg = collect([(object)['id' => $barang->barang_id, 'nama_kategori' => (string) $barang->barang_id]]);
+            }
             $barangs[] = $kategoriBrg;
         }
         return view('pages.SPB.cetak', compact('spb', 'brg_spb', 'barangs', 'formatTanggal'));
@@ -138,6 +164,9 @@ class SpbController extends Controller
 
         foreach ($brg_spb as $barang) {
             $kategoriItem = KategoriBarang::where('id', $barang->barang_id)->get();
+            if ($kategoriItem->isEmpty()) {
+                $kategoriItem = collect([(object)['id' => $barang->barang_id, 'nama_kategori' => (string) $barang->barang_id]]);
+            }
             $barangs[] = $kategoriItem;
         }
         // dd($brg_spb);
@@ -180,15 +209,19 @@ class SpbController extends Controller
         BarangSpb::where('spb', $id)->delete();
 
         foreach ($request->barang_id as $key => $value) {
+            $kategori_brg = $this->resolveKategoriBarang($value);
+            if (!$kategori_brg) {
+                continue;
+            }
             $barangs = new BarangSpb();
             $keterangan = (!empty($request->keterangan[$key])) ? $request->keterangan[$key] : '-------------------';
 
 
-            $barangs->barang_id = $value;
+            $barangs->barang_id = $kategori_brg->id;
             $barangs->spb = $spb->id;
-            $barangs->deskripsi = $request->deskripsi_item[$key];
-            $barangs->satuan = $request->satuan[$key];
-            $barangs->qty = $request->qty[$key];
+            $barangs->deskripsi = $request->deskripsi_item[$key] ?? '';
+            $barangs->satuan = $request->satuan[$key] ?? 'Pcs';
+            $barangs->qty = $request->qty[$key] ?? 1;
             $barangs->keterangan = $keterangan;
             $barangs->save();
         }

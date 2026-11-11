@@ -251,14 +251,166 @@ var options, charts,
         options
       )).render());
 
+
+// Helper untuk merender Grafik Perbandingan Pendapatan, Pengeluaran, & Pendapatan Bersih + Ringkasan Nominal
+function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
+  const safeData = dataset || {};
+  const categories = Array.isArray(safeData.categories) ? safeData.categories : [];
+  const pendapatanArr = Array.isArray(safeData.pendapatan) ? safeData.pendapatan.map(Number) : [];
+  const pengeluaranArr = Array.isArray(safeData.pengeluaran) ? safeData.pengeluaran.map(Number) : [];
+  const bersihArr = Array.isArray(safeData.pendapatan_bersih) ? safeData.pendapatan_bersih.map(Number) : [];
+
+  const summary = safeData.summary || {};
+  const totalPendapatan = Number(summary.total_pendapatan ?? pendapatanArr.reduce((a, b) => a + b, 0));
+  const totalBebanBelanja = Number(summary.total_beban_belanja ?? 0);
+  const totalBebanSpt = Number(summary.total_beban_spt ?? 0);
+  const totalPengeluaran = Number(summary.total_pengeluaran ?? (totalBebanBelanja + totalBebanSpt));
+  const pendapatanBersih = Number(summary.pendapatan_bersih ?? (totalPendapatan - totalPengeluaran));
+
+  const bulanIndoList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const allVals = [...pendapatanArr, ...pengeluaranArr, ...bersihArr, 0];
+  const minVal = Math.min(...allVals, 0);
+  const maxVal = Math.max(...allVals, 1000000);
+
+  if (chart) {
+    try {
+      chart.updateOptions({
+        dataLabels: { enabled: false },
+        series: [
+          {
+            name: 'Pendapatan',
+            data: pendapatanArr,
+            color: '#34C28B',
+          },
+          {
+            name: 'Pengeluaran (Belanja + SPT)',
+            data: pengeluaranArr,
+            color: '#E5586B',
+          },
+          {
+            name: 'Pendapatan Bersih',
+            data: bersihArr,
+            color: '#6B73F0',
+          }
+        ],
+        xaxis: {
+          type: 'category',
+          categories: categories,
+          labels: {
+            formatter: function (value) {
+              if (!value || typeof value !== 'string') return value || '';
+              if (axisMode === 'month_year' && /^\d{4}-\d{2}$/.test(value)) {
+                const mIdx = parseInt(value.split('-')[1], 10) - 1;
+                return bulanIndoList[mIdx] || value;
+              }
+              if (axisMode === 'day_of_month' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return value.split('-')[2];
+              }
+              if (axisMode === 'short_date' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                const parts = value.split('-');
+                const mIdx = parseInt(parts[1], 10) - 1;
+                return `${parts[2]} ${bulanIndoList[mIdx] || parts[1]}`;
+              }
+              return value;
+            },
+            style: { colors: '#9AA4B2', fontSize: '11px' }
+          }
+        },
+        yaxis: {
+          min: minVal < 0 ? minVal * 1.1 : 0,
+          max: maxVal * 1.15,
+          tickAmount: 6,
+          forceNiceScale: true,
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          labels: {
+            show: true,
+            formatter: function (val) {
+              return formatRupiahCompact(val);
+            },
+            style: { colors: '#6B7686', fontSize: '11px' }
+          }
+        },
+        plotOptions: {
+          bar: {
+            distributed: false,
+            borderRadius: 4,
+            columnWidth: categories.length <= 2 ? '32%' : '55%',
+            colors: {
+              ranges: []
+            }
+          }
+        },
+        legend: {
+          show: true,
+          position: 'top',
+          horizontalAlign: 'right',
+          fontSize: '12px',
+          fontFamily: 'inherit',
+          labels: { colors: '#CBD5E1' },
+          markers: { radius: 12, width: 8, height: 8 },
+          itemMargin: { horizontal: 8, vertical: 0 }
+        },
+        tooltip: {
+          theme: 'dark',
+          shared: true,
+          intersect: false,
+          y: {
+            formatter: function (val) {
+              return formatRupiah(val);
+            }
+          }
+        },
+        annotations: { points: [], xaxis: [], yaxis: [] }
+      });
+    } catch (chartErr) {
+      console.error('Gagal memperbarui grafik pendapatan bersih:', chartErr);
+    }
+  }
+
+  const heroEl = document.getElementById('hero-pendapatan-akumulasi');
+  if (heroEl) {
+    animateCountUp(heroEl, totalPendapatan);
+  }
+
+  const elementHarga = document.getElementById('harga');
+  if (elementHarga) {
+    const netColor = pendapatanBersih < 0 ? '#E5586B' : 'var(--brand)';
+    elementHarga.innerHTML = `
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted fs-13">Total Pendapatan (${periodLabelText})</span>
+          <span class="fw-semibold tabular-nums fs-13" style="color: #34C28B;">${formatRupiah(totalPendapatan)}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted fs-12 ps-2">• Beban Belanja</span>
+          <span class="text-light tabular-nums fs-12">${formatRupiah(totalBebanBelanja)}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted fs-12 ps-2">• Beban SPT Masa (Lunas)</span>
+          <span class="text-light tabular-nums fs-12">${formatRupiah(totalBebanSpt)}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted fs-13">Total Pengeluaran (${periodLabelText})</span>
+          <span class="fw-semibold tabular-nums fs-13" style="color: #E5586B;">${formatRupiah(totalPengeluaran)}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
+          <span class="text-muted fs-13">Pendapatan Bersih (${periodLabelText})</span>
+          <span class="fw-bold tabular-nums fs-14" style="color: ${netColor};">${formatRupiah(pendapatanBersih)}</span>
+        </div>
+      </div>
+    `;
+  }
+}
+
 // TimeFrame untuk button
 function timeFrame(period) {
-  if (!chart && document.querySelector("#stacked_column_chart") && typeof ApexCharts !== 'undefined') {
-    chart = new ApexCharts(document.querySelector("#stacked_column_chart"), options);
+  if (!chart && document.querySelector('#stacked_column_chart') && typeof ApexCharts !== 'undefined') {
+    chart = new ApexCharts(document.querySelector('#stacked_column_chart'), options);
     chart.render();
   }
-  const elementHarga = document.getElementById('harga');
-  const buttons = document.querySelectorAll('#card-aktivitas-pembayaran .segmented-item');
+
+  const buttons = document.querySelectorAll('#card-aktivitas-pembayaran .segmented-item.tombol');
   buttons.forEach(b => b.classList.remove('active'));
   const selectedButton = document.getElementById('btn-' + period);
   if (selectedButton) {
@@ -277,606 +429,27 @@ function timeFrame(period) {
   updatePaymentPeriodBadgeText(period);
 
   const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 24, 0);
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 1, 0, 0);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const endOfYear = new Date(now.getFullYear(), 10, 31, 23, 59, 59);
   const currentYear = now.getFullYear();
-  const currentMonth = ("0" + (now.getMonth() + 1)).slice(-2);
+  const lastYear = currentYear - 1;
+  const netStore = window.netIncomeDataJS || {};
 
-// Kondisi Hari Ini
-if (period === 'day') {
-  chart.updateOptions({
-    dataLabels: { enabled: false },
-    labels: hourArrayJS,
-    series: [
-      {
-        name: "Pendapatan",
-        data: totalJamArrayJS.map((value, index) => {
-          let utcTime = new Date(hourArrayJS[index]);
-          let localTime = new Date(utcTime.setHours(utcTime.getHours() + 7));
-          return { x: localTime.toISOString().slice(11, 16), y: value };
-        }),
-        color: '#6B73F0',
-      },
-    ],
-    xaxis: {
-      type: 'category',
-      categories: hourArrayJS.map(time => {
-        let utcTime = new Date(time);
-        let localTime = new Date(utcTime.setHours(utcTime.getHours()));
-        return localTime.toISOString().slice(11, 16);
-      }),
-      labels: {
-        formatter: function (val) {
-          return val;
-        },
-        style: { colors: '#9AA4B2', fontSize: '11px' }
-      },
-    },
-    yaxis: {
-      min: 0,
-      max: 5000000,
-      tickAmount: 5,
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: {
-        show: true,
-        formatter: function (val) {
-          return formatRupiahCompact(val);
-        },
-        style: { colors: '#6B7686', fontSize: '11px' }
-      },
-    },
-    plotOptions: {
-      bar: {
-        distributed: true,
-        borderRadius: 4,
-        columnWidth: "48%",
-      },
-    },
-    legend: { show: false },
-    tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: function (val) {
-          return formatRupiah(val);
-        }
-      }
-    }
-  });
-
-  const heroEl = document.getElementById('hero-pendapatan-akumulasi');
-  if (heroEl) {
-    animateCountUp(heroEl, totalPerHari || 0);
+  if (period === 'day') {
+    renderNetIncomeChartAndSummary(netStore.day, 'Hari Ini', 'short_date');
+  } else if (period === 'week') {
+    renderNetIncomeChartAndSummary(netStore.week, 'Minggu Ini', 'short_date');
+  } else if (period === 'month') {
+    renderNetIncomeChartAndSummary(netStore.month, 'Bulan Ini', 'day_of_month');
+  } else if (period === 'year') {
+    renderNetIncomeChartAndSummary(netStore.year, String(currentYear), 'month_year');
+  } else if (period === 'lastYear') {
+    renderNetIncomeChartAndSummary(netStore.lastYear, String(lastYear), 'month_year');
   }
-
-  if (elementHarga) {
-    elementHarga.innerHTML = `
-      <div class="d-flex flex-column gap-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Pendapatan (Hari Ini)</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalPerHari || 0)}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Beban (Hari Ini)</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">Rp 0</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-          <span class="text-muted fs-13">Pendapatan Bersih (Hari Ini)</span>
-          <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(totalPerHari || 0)}</span>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// Kondisi Minggu Ini
-else if (period === 'week') {
-  let today = new Date();
-  let dayOfWeek = today.getDay();
-
-  let startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  startOfWeek.setHours(0, 0, 0, 0);
-  startOfWeek.setTime(startOfWeek.getTime() + (7 * 60 * 60 * 1000));
-
-  let endOfWeek = new Date(today);
-  endOfWeek.setHours(23, 59, 59, 999);
-  endOfWeek.setTime(endOfWeek.getTime() + (7 * 60 * 60 * 1000));
-
-  let fullWeekDates = [];
-  let currentDate = new Date(startOfWeek);
-
-  while (currentDate <= endOfWeek) {
-    let formattedDate = currentDate.toISOString().split("T")[0];
-    fullWeekDates.push(formattedDate);
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  let dataMap = new Map(weekArrayJS.map((date, index) => [date, Number(totalMingguanArrayJS[index])]));
-
-  let totalTransaksiAsli = fullWeekDates.reduce((total, date) => {
-    return total + (dataMap.get(date) ?? 0);
-  }, 0);
-
-  let finalWeeklyData = fullWeekDates.map(date => {
-    const transaksi = dataMap.get(date);
-    return transaksi !== undefined ? transaksi - 1000000 : -1000000;
-  });
-
-  let totalPositif = finalWeeklyData.filter(val => val > 0).reduce((acc, val) => acc + val, 0);
-  let totalNegatif = finalWeeklyData.filter(val => val < 0).reduce((acc, val) => acc + val, 0);
-  let netIncome = totalPositif + totalNegatif;
-
-  chart.updateOptions({
-    dataLabels: { enabled: false },
-    labels: fullWeekDates,
-    series: [{
-      name: "Pendapatan Bersih",
-      data: finalWeeklyData,
-    }],
-    xaxis: {
-      type: 'category',
-      categories: fullWeekDates,
-      labels: {
-        format: 'dd MMM',
-        style: { colors: '#9AA4B2', fontSize: '11px' }
-      },
-    },
-    yaxis: {
-      min: -1000000,
-      max: 5000000,
-      tickAmount: 5,
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: {
-        formatter: function (val) {
-          return formatRupiahCompact(val);
-        },
-        style: { colors: '#6B7686', fontSize: '11px' }
-      },
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: "48%",
-        colors: {
-          ranges: [
-            { from: -Infinity, to: 0, color: '#E5586B' },
-            { from: 0.001, to: Infinity, color: '#6B73F0' }
-          ]
-        }
-      }
-    },
-    legend: { show: false },
-    tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: function (val) {
-          return formatRupiah(val);
-        }
-      }
-    }
-  });
-
-  const heroEl = document.getElementById('hero-pendapatan-akumulasi');
-  if (heroEl) {
-    animateCountUp(heroEl, totalTransaksiAsli);
-  }
-
-  if (elementHarga) {
-    elementHarga.innerHTML = `
-      <div class="d-flex flex-column gap-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Pendapatan (Minggu Ini)</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalTransaksiAsli)}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Beban (Minggu Ini)</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(Math.abs(totalNegatif))}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-          <span class="text-muted fs-13">Pendapatan Bersih (Minggu Ini)</span>
-          <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(netIncome)}</span>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// Kondisi Bulan Ini
-else if (period === 'month') {
-  let now = new Date();
-  let currentYear = now.getFullYear();
-  let currentMonth = ("0" + (now.getMonth() + 1)).slice(-2);
-
-  let fullDateArray = Array.from({ length: now.getDate() }, (_, i) =>
-    `${currentYear}-${currentMonth}-${("0" + (i + 1)).slice(-2)}`
-  );
-
-  let dataMap = new Map(dateArrayJS.map((date, index) => [date, Number(totalHarianArrayJS[index])]));
-
-  let totalTransaksiAsli = fullDateArray.reduce((total, date) => {
-    return total + (dataMap.get(date) ?? 0);
-  }, 0);
-
-  let filteredTotalHarianArray = fullDateArray.map(date => {
-    const transaksi = dataMap.get(date);
-    return transaksi !== undefined ? (transaksi - 1000000) : -1000000;
-  });
-
-  let totalPositif = filteredTotalHarianArray
-    .filter(val => val > 0)
-    .reduce((acc, val) => acc + val, 0);
-
-  let totalNegatif = filteredTotalHarianArray
-    .filter(val => val < 0)
-    .reduce((acc, val) => acc + val, 0);
-
-  let totalIncome = totalPositif + totalNegatif;
-
-  chart.updateOptions({
-    series: [{
-      name: "Pendapatan Bersih",
-      data: filteredTotalHarianArray
-    }],
-    xaxis: {
-      type: 'category',
-      categories: fullDateArray,
-      labels: {
-        formatter: function (value) {
-          return value.split("-")[2];
-        },
-        style: { colors: '#9AA4B2', fontSize: '11px' }
-      }
-    },
-    yaxis: {
-      min: -1000000,
-      max: 5000000,
-      tickAmount: 6,
-      forceNiceScale: true,
-      labels: {
-        formatter: function (val) {
-          return formatRupiahCompact(val);
-        },
-        style: { colors: '#6B7686', fontSize: '11px' }
-      }
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: "48%",
-        colors: {
-          ranges: [
-            { from: -Infinity, to: 0, color: '#E5586B' },
-            { from: 0.001, to: Infinity, color: '#6B73F0' }
-          ]
-        }
-      }
-    },
-    legend: { show: false },
-    tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: function (val) {
-          return formatRupiah(val);
-        }
-      }
-    },
-    dataLabels: { enabled: false }
-  });
-
-  const heroEl = document.getElementById('hero-pendapatan-akumulasi');
-  if (heroEl) {
-    animateCountUp(heroEl, totalTransaksiAsli);
-  }
-
-  if (elementHarga) {
-    elementHarga.innerHTML = `
-      <div class="d-flex flex-column gap-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Pendapatan (Bulan Ini)</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalTransaksiAsli)}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Beban (Bulan Ini)</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(Math.abs(totalNegatif))}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-          <span class="text-muted fs-13">Pendapatan Bersih (Bulan Ini)</span>
-          <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(totalIncome)}</span>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// Kondisi Tahun Ini
-else if (period === 'year') {
-  let now = new Date();
-  let currentYear = now.getFullYear();
-  let currentMonth = now.getMonth() + 1;
-  let currentDate = now.getDate();
-
-  let fullMonthArray = Array.from({ length: currentMonth }, (_, i) =>
-    `${currentYear}-${("0" + (i + 1)).slice(-2)}`
-  );
-
-  let monthlyTotalMap = new Map();
-
-  monthArrayJS.forEach((month, index) => {
-    let year = month.slice(0, 4);
-    let income = Number(totalBulananArrayJS[index]);
-
-    if (isNaN(income) || !/\d{4}-\d{2}/.test(month)) return;
-
-    if (year === String(currentYear)) {
-      if (monthlyTotalMap.has(month)) {
-        monthlyTotalMap.set(month, monthlyTotalMap.get(month) + income);
-      } else {
-        monthlyTotalMap.set(month, income);
-      }
-    }
-  });
-
-  let totalBulananArray = fullMonthArray.map(month => {
-    return monthlyTotalMap.has(month) ? monthlyTotalMap.get(month) : 0;
-  });
-
-  let totalNegatifPerBulan = Array.from({ length: currentMonth }, (_, month) => {
-    let daysInMonth = (month + 1 === currentMonth)
-      ? currentDate
-      : new Date(currentYear, month + 1, 0).getDate();
-
-    let totalNegatif = daysInMonth * -1000000;
-    return totalNegatif;
-  });
-
-  let totalWithFormulaArray = totalBulananArray.map((value, index) =>
-    value + totalNegatifPerBulan[index]
-  );
-
-  const bulanIndoList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-  chart.updateOptions({
-    series: [
-      {
-        name: "Pendapatan Bersih",
-        data: totalWithFormulaArray,
-        color: '#6B73F0',
-      },
-      {
-        name: "Pendapatan Asli",
-        data: totalBulananArray,
-        color: '#34C28B',
-      }
-    ],
-    xaxis: {
-      type: 'category',
-      categories: fullMonthArray,
-      labels: {
-        formatter: function (value) {
-          const mIdx = parseInt(value.split("-")[1], 10) - 1;
-          return bulanIndoList[mIdx] || value;
-        },
-        style: { colors: '#9AA4B2', fontSize: '11px' }
-      }
-    },
-    yaxis: {
-      min: Math.min(...totalWithFormulaArray, 0),
-      max: Math.max(...totalBulananArray, ...totalWithFormulaArray) + 1000000,
-      tickAmount: 6,
-      forceNiceScale: true,
-      labels: {
-        formatter: function (val) {
-          return formatRupiahCompact(val);
-        },
-        style: { colors: '#6B7686', fontSize: '11px' }
-      }
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: "48%",
-        colors: {
-          ranges: [
-            { from: -Infinity, to: -1, color: '#E5586B' }
-          ]
-        }
-      }
-    },
-    legend: {
-      show: true,
-      position: 'top',
-      horizontalAlign: 'right',
-      fontSize: '12px',
-      fontFamily: 'inherit',
-      labels: { colors: '#9AA4B2' },
-      markers: { radius: 12, width: 8, height: 8 },
-      itemMargin: { horizontal: 8, vertical: 0 }
-    },
-    tooltip: {
-      theme: 'dark',
-      y: {
-        formatter: function (val) {
-          return formatRupiah(val);
-        }
-      }
-    },
-    dataLabels: { enabled: false }
-  });
-
-  const totalOriginalTahunIni = totalBulananArray.reduce((acc, val) => acc + val, 0);
-  const totalNegatifTahunIni = totalNegatifPerBulan.reduce((acc, val) => acc + val, 0);
-  const totalWithFormulaTahunIni = totalOriginalTahunIni + totalNegatifTahunIni;
-
-  const heroEl = document.getElementById('hero-pendapatan-akumulasi');
-  if (heroEl) {
-    animateCountUp(heroEl, totalOriginalTahunIni);
-  }
-
-  if (elementHarga) {
-    elementHarga.innerHTML = `
-      <div class="d-flex flex-column gap-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Pendapatan (${currentYear})</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalOriginalTahunIni)}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Beban (${currentYear})</span>
-          <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(Math.abs(totalNegatifTahunIni))}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-          <span class="text-muted fs-13">Pendapatan Bersih (${currentYear})</span>
-          <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(totalWithFormulaTahunIni)}</span>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// Kondisi Tahun Lalu (Default Dashboard)
-else if (period === 'lastYear') {
-  let now = new Date();
-  let lastYear = now.getFullYear() - 1;
-
-  let fullMonthArrayLastYear = Array.from({ length: 12 }, (_, i) =>
-    `${lastYear}-${("0" + (i + 1)).slice(-2)}`
-  );
-
-  let monthlyTotalMapLastYear = new Map();
-  monthArrayLastYearJS.forEach((month, index) => {
-    if (month.startsWith(`${lastYear}-`)) {
-      let income = Number(totalBulananArrayLastYearJS[index]);
-      if (monthlyTotalMapLastYear.has(month)) {
-        monthlyTotalMapLastYear.set(month, monthlyTotalMapLastYear.get(month) + income);
-      } else {
-        monthlyTotalMapLastYear.set(month, income);
-      }
-    }
-  });
-
-  let totalBulananArrayLastYear = fullMonthArrayLastYear.map(month => {
-    return monthlyTotalMapLastYear.get(month) || 0;
-  });
-
-  let totalNegatifPerBulanLastYear = Array.from({ length: 12 }, (_, month) => {
-    let daysInMonth = new Date(lastYear, month + 1, 0).getDate();
-    let totalNegatif = daysInMonth * -500000;
-    return totalNegatif;
-  });
-
-  let totalWithFormulaArrayLastYear = totalBulananArrayLastYear.map((val, index) => 
-    val + totalNegatifPerBulanLastYear[index]
-  );
-
-  const bulanIndoList = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-  try {
-    chart.updateOptions({
-      series: [
-        {
-          name: "Pendapatan Bersih",
-          data: totalWithFormulaArrayLastYear,
-          color: '#6B73F0',
-        },
-        {
-          name: "Pendapatan Asli",
-          data: totalBulananArrayLastYear,
-          color: '#34C28B',
-        }
-      ],
-      xaxis: {
-        categories: fullMonthArrayLastYear,
-        labels: {
-          formatter: value => {
-            const mIdx = parseInt(value.split("-")[1], 10) - 1;
-            return bulanIndoList[mIdx] || value;
-          },
-          style: { colors: '#CBD5E1', fontSize: '11px' }
-        }
-      },
-      yaxis: {
-        min: Math.min(...totalWithFormulaArrayLastYear, 0),
-        max: Math.max(...totalBulananArrayLastYear, ...totalWithFormulaArrayLastYear) + 10000000,
-        tickAmount: 6,
-        forceNiceScale: true,
-        labels: {
-          formatter: val => formatRupiahCompact(val),
-          style: { colors: '#94A3B8', fontSize: '11px' }
-        }
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 4,
-          columnWidth: "48%",
-          colors: {
-            ranges: [{ from: -Infinity, to: -1, color: '#E5586B' }]
-          }
-        }
-      },
-      legend: {
-        show: true,
-        position: 'top',
-        horizontalAlign: 'right',
-        fontSize: '12px',
-        fontFamily: 'inherit',
-        labels: { colors: '#CBD5E1' },
-        markers: { radius: 12, width: 8, height: 8 },
-        itemMargin: { horizontal: 8, vertical: 0 }
-      },
-      tooltip: {
-        theme: 'dark',
-        y: {
-          formatter: function (val) {
-            return formatRupiah(val);
-          }
-        }
-      },
-      annotations: { points: [], xaxis: [], yaxis: [] },
-      dataLabels: { enabled: false }
-    });
-  } catch (chartErr) {
-    console.error("Gagal memperbarui opsi chart lastYear:", chartErr);
-  }
-
-  const totalOriginalTahunLalu = totalBulananArrayLastYear.reduce((acc, val) => acc + val, 0);
-  const totalNegatifTahunLalu = totalNegatifPerBulanLastYear.reduce((acc, val) => acc + val, 0);
-  const totalWithFormulaTahunLalu = totalOriginalTahunLalu + totalNegatifTahunLalu;
-
-  const heroEl = document.getElementById('hero-pendapatan-akumulasi');
-  if (heroEl) {
-    animateCountUp(heroEl, totalOriginalTahunLalu);
-  }
-
-  if (elementHarga) {
-    elementHarga.innerHTML = `
-      <div class="d-flex flex-column gap-2">
-        <div class="d-flex justify-content-between align-items-center">
-          <span style="color: #94A3B8; font-size: 13px;">Total Pendapatan (${lastYear})</span>
-          <span style="color: #F8FAFC; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums;">${formatRupiah(totalOriginalTahunLalu)}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <span style="color: #94A3B8; font-size: 13px;">Total Beban (${lastYear})</span>
-          <span style="color: #F8FAFC; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums;">${formatRupiah(Math.abs(totalNegatifTahunLalu))}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: rgba(255, 255, 255, 0.08) !important;">
-          <span style="color: #94A3B8; font-size: 13px;">Pendapatan Bersih (${lastYear})</span>
-          <span style="color: #6B73F0; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums;">${formatRupiah(totalWithFormulaTahunLalu)}</span>
-        </div>
-      </div>
-    `;
-  }
-}
 }
 
 // ====================================================================
 // PAYMENT ACTIVITY CUSTOM FILTER (TANGGAL, BULAN, TAHUN)
 // ====================================================================
-var currentPaymentCustomMode = 'date'; // 'date', 'month', 'year'
+var currentPaymentCustomMode = 'date'; // 'date', 'month', 'year', 'range'
 
 function updatePaymentPeriodBadgeText(period, customLabel) {
   const badgeText = document.getElementById('badge-payment-period-text');
@@ -920,11 +493,9 @@ function setPaymentCustomFilterMode(mode) {
     const wrapper = document.getElementById('wrapper-payment-filter-' + m);
     if (btn) {
       if (m === mode) {
-        btn.classList.remove('btn-soft-primary');
-        btn.classList.add('btn-primary');
+        btn.classList.add('active');
       } else {
-        btn.classList.remove('btn-primary');
-        btn.classList.add('btn-soft-primary');
+        btn.classList.remove('active');
       }
     }
     if (wrapper) {
@@ -976,7 +547,6 @@ function applyPaymentCustomFilter() {
   const loadingEl = document.getElementById('payment-chart-loading');
   const chartEl = document.getElementById('stacked_column_chart');
   const btnApply = document.getElementById('btn-apply-payment-custom-filter');
-  const elementHarga = document.getElementById('harga');
 
   if (loadingEl) loadingEl.classList.remove('d-none');
   if (chartEl) chartEl.style.display = 'none';
@@ -998,320 +568,23 @@ function applyPaymentCustomFilter() {
   })
   .then(function(result) {
     if (result.status === 'success') {
-      // Update button visual states
-      const buttons = document.getElementsByClassName('tombol');
-      for (let i = 0; i < buttons.length; i++) {
-        buttons[i].classList.remove('btn-info');
-        buttons[i].classList.add('btn-soft-info');
-      }
+      const buttons = document.querySelectorAll('#card-aktivitas-pembayaran .segmented-item.tombol');
+      buttons.forEach(b => b.classList.remove('active'));
       const btnCustom = document.getElementById('btn-payment-custom-toggle');
       if (btnCustom) {
-        btnCustom.classList.remove('btn-soft-warning');
-        btnCustom.classList.add('btn-warning');
+        btnCustom.classList.add('active');
       }
 
       updatePaymentPeriodBadgeText('custom', result.period_label);
 
-      // Render chart according to filter_type
-      if (result.filter_type === 'range') {
-        const d = result.data;
-        const categories = d.dates || [];
-        const totals = d.totals || [];
-        chart.updateOptions({
-          dataLabels: { enabled: false },
-          series: [{ name: 'Pendapatan', data: totals, color: '#6B73F0' }],
-          xaxis: { type: 'category', categories: categories, labels: { style: { colors: '#9AA4B2', fontSize: '11px' } } },
-          yaxis: { labels: { formatter: function (val) { return formatRupiahCompact(val); }, style: { colors: '#6B7686', fontSize: '11px' } } },
-          tooltip: { theme: 'dark', y: { formatter: function(val) { return formatRupiah(val); } } }
-        });
-        if (elementHarga) {
-          elementHarga.innerHTML = `
-            <div class="d-flex flex-column gap-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Total Transaksi Rentang Tanggal</span>
-                <span class="text-white fw-bold tabular-nums fs-14">${formatRupiah(d.total_transaksi || 0)}</span>
-              </div>
-            </div>
-          `;
-        }
-      } else if (result.filter_type === 'date') {
-        const d = result.data;
-        const hours = d.hours && d.hours.length > 0 ? d.hours : ['08:00 - 17:00'];
-        const totals = d.totals && d.totals.length > 0 ? d.totals : [0];
-        const totalTransaksi = d.total_transaksi || 0;
-        const totalPositif = Math.max(0, totalTransaksi - 1000000);
-        const totalNegatif = totalTransaksi < 1000000 ? (1000000 - totalTransaksi) : 0;
-        const netIncome = totalTransaksi - 1000000;
-
-        chart.updateOptions({
-          dataLabels: { enabled: false },
-          labels: hours,
-          series: [
-            {
-              name: "Pendapatan",
-              data: totals,
-              color: '#6B73F0',
-            }
-          ],
-          xaxis: {
-            type: 'category',
-            categories: hours,
-            labels: {
-              formatter: function(val) { return val; },
-              style: { colors: '#9AA4B2', fontSize: '11px' }
-            }
-          },
-          yaxis: {
-            min: 0,
-            max: Math.max(5000000, ...totals) + 1000000,
-            tickAmount: 5,
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-            labels: {
-              show: true,
-              formatter: function (val) {
-                return formatRupiahCompact(val);
-              },
-              style: { colors: '#6B7686', fontSize: '11px' }
-            }
-          },
-          plotOptions: {
-            bar: {
-              distributed: false,
-              borderRadius: 4,
-              columnWidth: "40%",
-            }
-          },
-          tooltip: {
-            theme: 'dark',
-            y: { formatter: function(val) { return formatRupiah(val); } }
-          }
-        });
-
-        if (elementHarga) {
-          elementHarga.innerHTML = `
-            <div class="d-flex flex-column gap-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Total Transaksi</span>
-                <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalTransaksi)}</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Beban Tetap</span>
-                <span class="text-white fw-semibold tabular-nums fs-13">Rp 1.000.000</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-                <span class="text-muted fs-13">Pendapatan Bersih</span>
-                <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(netIncome)}</span>
-              </div>
-            </div>
-          `;
-        }
+      const d = result.data || {};
+      const label = result.period_label || 'Filter Khusus';
+      if (result.filter_type === 'range' || result.filter_type === 'date') {
+        renderNetIncomeChartAndSummary(d, label, 'short_date');
       } else if (result.filter_type === 'month') {
-        const d = result.data;
-        const year = d.year;
-        const month = d.month;
-        const daysInMonth = d.days_in_month;
-        const totalsByDate = d.totals_by_date || {};
-
-        const fullDateArray = Array.from({ length: daysInMonth }, (_, i) => {
-          const dayStr = ("0" + (i + 1)).slice(-2);
-          return `${year}-${month}-${dayStr}`;
-        });
-
-        const totalTransaksiAsli = fullDateArray.reduce((total, date) => {
-          return total + (totalsByDate[date] || 0);
-        }, 0);
-
-        const filteredTotalHarianArray = fullDateArray.map(date => {
-          const transaksi = totalsByDate[date];
-          return transaksi !== undefined ? (transaksi - 1000000) : -1000000;
-        });
-
-        const totalPositif = filteredTotalHarianArray
-          .filter(val => val > 0)
-          .reduce((acc, val) => acc + val, 0);
-
-        const totalNegatif = filteredTotalHarianArray
-          .filter(val => val < 0)
-          .reduce((acc, val) => acc + val, 0);
-
-        const totalIncome = totalPositif + totalNegatif;
-
-        chart.updateOptions({
-          series: [{
-            name: "Pendapatan Bersih",
-            data: filteredTotalHarianArray
-          }],
-          xaxis: {
-            type: 'category',
-            categories: fullDateArray,
-            labels: {
-              formatter: function (value) {
-                return value ? value.split("-")[2] : '';
-              },
-              style: { colors: '#9AA4B2', fontSize: '11px' }
-            }
-          },
-          yaxis: {
-            min: Math.min(-1000000, ...filteredTotalHarianArray),
-            max: Math.max(5000000, ...filteredTotalHarianArray) + 1000000,
-            tickAmount: 6,
-            forceNiceScale: true,
-            labels: {
-              formatter: function (val) {
-                return formatRupiahCompact(val);
-              },
-              style: { colors: '#6B7686', fontSize: '11px' }
-            }
-          },
-          plotOptions: {
-            bar: {
-              borderRadius: 4,
-              columnWidth: "48%",
-              colors: {
-                ranges: [
-                  { from: -Infinity, to: 0, color: '#E5586B' },
-                  { from: 0.0001, to: Infinity, color: '#6B73F0' }
-                ]
-              }
-            }
-          },
-          tooltip: {
-            theme: 'dark',
-            y: { formatter: function(val) { return formatRupiah(val); } }
-          },
-          dataLabels: { enabled: false }
-        });
-
-        if (elementHarga) {
-          elementHarga.innerHTML = `
-            <div class="d-flex flex-column gap-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Total Pendapatan</span>
-                <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalTransaksiAsli)}</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Total Beban</span>
-                <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(Math.abs(totalNegatif))}</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-                <span class="text-muted fs-13">Pendapatan Bersih</span>
-                <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(totalIncome)}</span>
-              </div>
-            </div>
-          `;
-        }
+        renderNetIncomeChartAndSummary(d, label, 'day_of_month');
       } else if (result.filter_type === 'year') {
-        const d = result.data;
-        const targetYear = d.year;
-        const isCurrentYear = d.is_current_year;
-        const currentMonth = d.current_month;
-        const currentDate = d.current_date;
-        const totalsByMonth = d.totals_by_month || {};
-
-        const monthsToDisplay = isCurrentYear ? currentMonth : 12;
-        const fullMonthArray = Array.from({ length: monthsToDisplay }, (_, i) => {
-          return `${targetYear}-${("0" + (i + 1)).slice(-2)}`;
-        });
-
-        const totalBulananArray = fullMonthArray.map((_, i) => {
-          return totalsByMonth[i + 1] || 0;
-        });
-
-        const totalNegatifPerBulan = Array.from({ length: monthsToDisplay }, (_, monthIndex) => {
-          const daysInMonth = (isCurrentYear && monthIndex + 1 === currentMonth)
-            ? currentDate
-            : new Date(targetYear, monthIndex + 1, 0).getDate();
-          return daysInMonth * -1000000;
-        });
-
-        const totalWithFormulaArray = totalBulananArray.map((value, index) =>
-          value + totalNegatifPerBulan[index]
-        );
-
-        const totalOriginalTahunIni = totalBulananArray.reduce((acc, val) => acc + val, 0);
-        const totalNegatifTahunIni = totalNegatifPerBulan.reduce((acc, val) => acc + val, 0);
-        const totalWithFormulaTahunIni = totalOriginalTahunIni + totalNegatifTahunIni;
-
-        chart.updateOptions({
-          series: [
-            {
-              name: `Pendapatan Bersih (${targetYear})`,
-              data: totalWithFormulaArray,
-              color: '#6B73F0',
-            },
-            {
-              name: `Pendapatan Asli (${targetYear})`,
-              data: totalBulananArray,
-              color: '#34C28B',
-            }
-          ],
-          xaxis: {
-            type: 'category',
-            categories: fullMonthArray,
-            labels: {
-              formatter: function (value) {
-                return new Date(value + "-01").toLocaleString('id-ID', { month: 'short' });
-              },
-              style: { colors: '#9AA4B2', fontSize: '11px' }
-            }
-          },
-          yaxis: {
-            min: Math.min(...totalWithFormulaArray, 0),
-            max: Math.max(...totalWithFormulaArray, ...totalBulananArray, 5000000) + 1000000,
-            tickAmount: 6,
-            forceNiceScale: true,
-            labels: {
-              formatter: function (val) {
-                return formatRupiahCompact(val);
-              },
-              style: { colors: '#6B7686', fontSize: '11px' }
-            }
-          },
-          plotOptions: {
-            bar: {
-              borderRadius: 4,
-              columnWidth: "48%",
-              colors: {
-                ranges: [
-                  { from: -Infinity, to: -1, color: '#E5586B' }
-                ]
-              }
-            }
-          },
-          legend: {
-            show: true,
-            position: 'top',
-            horizontalAlign: 'right',
-            fontSize: '12px',
-            fontFamily: 'inherit',
-            labels: { colors: '#9AA4B2' }
-          },
-          tooltip: {
-            theme: 'dark',
-            y: { formatter: function(val) { return formatRupiah(val); } }
-          },
-          dataLabels: { enabled: false }
-        });
-
-        if (elementHarga) {
-          elementHarga.innerHTML = `
-            <div class="d-flex flex-column gap-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Total Pendapatan (${targetYear})</span>
-                <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(totalOriginalTahunIni)}</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="text-muted fs-13">Total Beban (${targetYear})</span>
-                <span class="text-white fw-semibold tabular-nums fs-13">${formatRupiah(Math.abs(totalNegatifTahunIni))}</span>
-              </div>
-              <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-                <span class="text-muted fs-13">Pendapatan Bersih (${targetYear})</span>
-                <span class="fw-bold tabular-nums fs-14" style="color: var(--brand);">${formatRupiah(totalWithFormulaTahunIni)}</span>
-              </div>
-            </div>
-          `;
-        }
+        renderNetIncomeChartAndSummary(d, String(d.year || label), 'month_year');
       }
     }
   })
@@ -1328,6 +601,7 @@ function applyPaymentCustomFilter() {
     }
   });
 }
+
 
 function timeRange(period) {
   if (!charts && document.querySelector("#structure_widget") && typeof ApexCharts !== 'undefined') {

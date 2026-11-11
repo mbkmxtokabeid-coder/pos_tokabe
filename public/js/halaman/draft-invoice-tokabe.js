@@ -41,8 +41,15 @@
             saved_at: new Date().toISOString(),
             header: {
                 inv: $('[name="inv"]').val() || '',
+                opt_mode_penomoran: $('[name="opt_mode_penomoran"]:checked').val() || '',
+                kategori_invoice_id: $('#kategori_invoice_id').val() || '',
+                manual_invoice_input: $('#manual_invoice_input').val() || '',
+                invoicenoInput: $('#invoicenoInput').val() || '',
+                noInvoice: $('#noInvoice').val() || '',
+                noInvoiceCustom: $('#noInvoiceCustom').val() || '',
                 pelanggan: $('[name="pelanggan"]').val() || '',
                 perusahaan: $('[name="perusahaan"]').val() || '',
+                npwp: $('[name="npwp"]').val() || '',
                 tlp: $('[name="tlp"]').val() || '',
                 adm: $('[name="adm"]').val() || '',
                 order: $('[name="order"]').val() || '',
@@ -120,9 +127,31 @@
         var header = data.header;
 
         // Restore Header Inputs
+        if (header.opt_mode_penomoran) {
+            var $modeRadio = $('[name="opt_mode_penomoran"][value="' + header.opt_mode_penomoran + '"]');
+            if ($modeRadio.length) {
+                $modeRadio.prop('checked', true);
+                if (typeof window.switchInvoiceNumberMode === 'function') {
+                    window.switchInvoiceNumberMode(header.opt_mode_penomoran);
+                }
+            }
+        }
+        if (header.kategori_invoice_id && $('#kategori_invoice_id').length) {
+            $('#kategori_invoice_id').val(header.kategori_invoice_id).trigger('change');
+        }
+        if (header.manual_invoice_input && $('#manual_invoice_input').length) {
+            $('#manual_invoice_input').val(header.manual_invoice_input);
+            if (typeof window.applyManualInvoiceNumber === 'function') {
+                window.applyManualInvoiceNumber();
+            }
+        }
         if (header.inv) $('[name="inv"]').val(header.inv).trigger('change');
+        if (header.noInvoiceCustom && $('#noInvoiceCustom').length) {
+            $('#noInvoiceCustom').val(header.noInvoiceCustom);
+        }
         if (header.pelanggan) $('[name="pelanggan"]').val(header.pelanggan).trigger('change');
         if (header.perusahaan) $('[name="perusahaan"]').val(header.perusahaan);
+        if (header.npwp) $('[name="npwp"]').val(header.npwp);
         if (header.tlp) $('[name="tlp"]').val(header.tlp);
         if (header.adm) $('[name="adm"]').val(header.adm).trigger('change');
         if (header.order) $('[name="order"]').val(header.order).trigger('change');
@@ -183,8 +212,39 @@
                 var $row = $rows.eq(itemIdx);
                 if (!$row.length) return;
 
-                if (item.item_id) $row.find('select[name^="item_id"]').val(item.item_id).trigger('change');
-                if (item.barang_id) $row.find('select[name^="barang_id"]').val(item.barang_id).trigger('change');
+                if (item.item_id) {
+                    var $itemSel = $row.find('select[name^="item_id"]');
+                    if ($itemSel.length && String(item.item_id).indexOf('custom:') === 0 && !$itemSel.find('option[value="' + item.item_id.replace(/"/g, '\\"') + '"]').length) {
+                        var customLabel = String(item.item_id).replace(/^custom:/i, '');
+                        $itemSel.append($('<option>', {
+                            value: item.item_id,
+                            text: customLabel,
+                            'data-custom-dynamic': 'true',
+                            'data-custom': 'true',
+                            'data-jenis-pajak': 'tanpa_pajak'
+                        }));
+                    }
+                    $itemSel.val(item.item_id).trigger('change');
+                    if (typeof window.syncSearchableSelect === 'function' && $itemSel[0]) {
+                        window.syncSearchableSelect($itemSel[0]);
+                    }
+                }
+                if (item.barang_id) {
+                    var $brgSel = $row.find('select[name^="barang_id"]');
+                    if ($brgSel.length && String(item.barang_id).indexOf('custom:') === 0 && !$brgSel.find('option[value="' + item.barang_id.replace(/"/g, '\\"') + '"]').length) {
+                        var customBrgLabel = String(item.barang_id).replace(/^custom:/i, '');
+                        $brgSel.append($('<option>', {
+                            value: item.barang_id,
+                            text: customBrgLabel,
+                            'data-custom-dynamic': 'true',
+                            'data-custom': 'true'
+                        }));
+                    }
+                    $brgSel.val(item.barang_id).trigger('change');
+                    if (typeof window.syncSearchableSelect === 'function' && $brgSel[0]) {
+                        window.syncSearchableSelect($brgSel[0]);
+                    }
+                }
                 if (item.deskripsi_item) $row.find('textarea[name^="deskripsi_item"]').val(item.deskripsi_item);
                 if (item.satuan) $row.find('select[name^="satuan"]').val(item.satuan).trigger('change');
                 if (item.hrg) $row.find('input[name^="hrg"]').val(item.hrg).trigger('change').trigger('input');
@@ -268,11 +328,40 @@
             debouncedSave();
         });
 
-        // Add manual reset draft button next to save/update button if not exists
+        // Add manual save draft & reset draft buttons next to save/update button if not exists
         var $submitBtn = $form.find('button[type="submit"]');
+        if ($submitBtn.length && !$('#btn-save-draft').length) {
+            var $saveDraftBtn = $('<button type="button" id="btn-save-draft" class="btn btn-save-draft-tokabe ms-2"><i class="ri-draft-line align-bottom me-1"></i>Simpan Draf</button>');
+            $submitBtn.after($saveDraftBtn);
+        }
+
+        $(document).on('click', '#btn-save-draft', function () {
+            saveDraft();
+            if (typeof Swal !== 'undefined') {
+                var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    timer: 3200,
+                    timerProgressBar: true,
+                    didOpen: function (toast) {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Draf Berhasil Disimpan',
+                    html: 'Data inputan invoice telah disimpan sebagai draf.'
+                });
+            }
+        });
+
         if ($submitBtn.length && !$('#btn-reset-draft').length) {
+            var $anchorBtn = $('#btn-save-draft').length ? $('#btn-save-draft') : $submitBtn;
             var $resetBtn = $('<button type="button" id="btn-reset-draft" class="btn btn-outline-danger ms-2"><i class="ri-delete-bin-line align-bottom me-1"></i>Reset Draf</button>');
-            $submitBtn.after($resetBtn);
+            $anchorBtn.after($resetBtn);
 
             $resetBtn.on('click', function () {
                 Swal.fire({

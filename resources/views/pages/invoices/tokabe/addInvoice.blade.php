@@ -21,6 +21,17 @@ $(document).ready(function () {
         return false;
     }
 
+    // Validasi Nomor Invoice jika mode manual
+    if ($('#opt_mode_manual').is(':checked') && !$.trim($('#manual_invoice_input').val())) {
+        Swal.fire({
+            icon: "warning",
+            title: "Nomor Invoice Belum Diisi",
+            text: "Silakan masukkan nomor invoice manual Anda.",
+            confirmButtonColor: "#6366F1",
+        }).then(function() { $('#manual_invoice_input').focus(); });
+        return false;
+    }
+
     // Validasi Customer & Telepon
     if (!$.trim($('#customer').val())) {
         Swal.fire({
@@ -285,15 +296,69 @@ $(document).ready(function () {
 
                                          {{-- End coloumn --}}
                                    </div>
-                                        <div class="row mb-2 col-lg-8 col-sm-6">
-                                      <label for="invoicenoInput">Invoice No</label>
-                                      <div class="col-lg-4">
-                                          <input type="text" class="form-control bg-light border-0" id="invoicenoInput" placeholder="Kode" name="kode" value="{{ explode('/', $no_invoice)[1] }}" readonly>
-                                      </div>
-                                      <div class="col-lg-7">
-                                          <input type="text" class="form-control bg-light border-0" id="noInvoice" placeholder="Kode Unik" name="kodeUnik" value="{{ $no_invoice }}" readonly>
-                                      </div>
-                                  </div>
+                                   {{-- SECTION PENOMORAN INVOICE --}}
+                                   <div class="row mb-3 col-lg-8 col-sm-12">
+                                       <div class="col-12">
+                                           <label class="form-label mb-2 fw-semibold text-white fs-13 d-flex align-items-center gap-1.5">
+                                               <i class="ri-barcode-box-line text-primary"></i> Penomoran Invoice
+                                           </label>
+
+                                           {{-- Radio Option Modes: Sesuai Permintaan User --}}
+                                           <div class="d-flex flex-wrap gap-3 mb-2 p-2 rounded" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);">
+                                               <div class="form-check mb-0">
+                                                   <input class="form-check-input" type="radio" name="opt_mode_penomoran" id="opt_mode_kategori" value="kategori" checked onchange="switchInvoiceNumberMode('kategori')">
+                                                   <label class="form-check-label text-white fs-12 cursor-pointer" for="opt_mode_kategori">
+                                                       Nomor Otomatis (Standar Sistem / Kategori)
+                                                   </label>
+                                               </div>
+                                               <div class="form-check mb-0">
+                                                   <input class="form-check-input" type="radio" name="opt_mode_penomoran" id="opt_mode_manual" value="manual" onchange="switchInvoiceNumberMode('manual')">
+                                                   <label class="form-check-label text-white fs-12 cursor-pointer" for="opt_mode_manual">
+                                                       Input Nomor Manual Bebas
+                                                   </label>
+                                               </div>
+                                           </div>
+
+                                           {{-- Panel 1: Dari Kategori / Standar Sistem --}}
+                                           <div id="panel_mode_kategori" class="mb-2">
+                                               <select class="form-select bg-light border-0" id="kategori_invoice_id" name="kategori_invoice_id">
+                                                   @if(isset($kategoriInvoices) && $kategoriInvoices->isNotEmpty())
+                                                       @foreach($kategoriInvoices as $katInv)
+                                                           <option value="{{ $katInv->id }}" data-prefix="{{ $katInv->prefix ?? 'TKB' }}" data-custom="{{ $katInv->use_custom_format ? '1' : '0' }}" data-format="{{ $katInv->format_nomor }}" {{ $katInv->prefix === 'TKB' || str_contains(strtolower($katInv->nama_kategori), 'standar') ? 'selected' : '' }}>
+                                                               {{ $katInv->nama_kategori }} (Prefix: {{ $katInv->prefix ?? 'TKB' }})
+                                                           </option>
+                                                       @endforeach
+                                                   @else
+                                                       <option value="" data-prefix="TKB" selected>Invoice Standar Tokabe (Prefix: TKB)</option>
+                                                   @endif
+                                               </select>
+                                           </div>
+
+                                           {{-- Panel 2: Input Nomor Manual Bebas (Sesuai Gambar User) --}}
+                                           <div id="panel_mode_manual" style="display: none;" class="mb-2">
+                                               <div class="p-2 rounded" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25);">
+                                                   <small class="text-warning d-block mb-1 fw-medium"><i class="ri-information-line"></i> Masukkan nomor invoice manual sesuai kebutuhan dokumen Anda:</small>
+                                                   <input type="text" id="manual_invoice_input" class="form-control form-control-sm bg-dark text-white border-secondary fw-semibold" placeholder="Contoh: 001/INV-IKL/2026" oninput="applyManualInvoiceNumber()">
+                                               </div>
+                                           </div>
+
+                                           {{-- Tampilan Hasil Nomor Invoice Aktif --}}
+                                           <div class="row g-2 align-items-center">
+                                               <div class="col-lg-4 col-4">
+                                                   <label class="fs-11 text-muted mb-0 d-flex align-items-center justify-content-between">
+                                                       <span>Kode Prefix</span>
+                                                       <small id="prefix_status_label" class="text-muted fw-normal" style="font-size: 10px;">(Otomatis)</small>
+                                                   </label>
+                                                   <input type="text" class="form-control text-center fw-bold bg-light border-0" id="invoicenoInput" placeholder="Kode" name="kode" value="{{ explode('/', $no_invoice)[1] ?? 'TKB' }}" readonly title="Kode prefix otomatis sesuai format pilihan" oninput="onPrefixCustomChange()">
+                                               </div>
+                                               <div class="col-lg-8 col-8">
+                                                   <label class="fs-11 text-muted mb-0">Nomor Invoice Aktif</label>
+                                                   <input type="text" class="form-control bg-light border-0 fw-bold" id="noInvoice" placeholder="Nomor Invoice Aktif" name="kodeUnik" value="{{ $no_invoice }}" readonly style="color: #6366F1 !important; letter-spacing: 0.02em;">
+                                                   <input type="hidden" id="nomor_invoice_custom" name="nomor_invoice_custom" value="">
+                                               </div>
+                                           </div>
+                                       </div>
+                                   </div>
 
                                   <div class="row mb-2 col-lg-9">
                                       <label for="date-field">Tanggal Penjualan</label>
@@ -690,6 +755,7 @@ $(document).ready(function () {
                                       </span>
                                   </span>
                                 </button>
+                                <button type="button" id="btn-save-draft" class="btn btn-save-draft-tokabe"><i class="ri-draft-line align-bottom me-1"></i>Simpan Draf</button>
                                 <a href="{{ route('list_invoice_tokabe') }}" class="btn btn-secondary btn-cancel-tokabe"><i class="ri-close-line align-bottom me-1"></i>Batal</a>
                                </div>
                              </div>
@@ -722,26 +788,135 @@ $(document).ready(function () {
            </script>
            
           <script>
+    let isPrefixManuallyEdited = false;
+
+    function onPrefixCustomChange() {
+        isPrefixManuallyEdited = true;
+        const customPrefix = ($('#invoicenoInput').val() || '').trim().toUpperCase();
+        
+        if ($('#opt_mode_kategori').is(':checked')) {
+            let currentNo = $('#noInvoice').val() || '';
+            const opt = $('#kategori_invoice_id')[0] ? $('#kategori_invoice_id')[0].selectedOptions[0] : null;
+            const oldPrefix = (opt && opt.dataset.prefix) ? opt.dataset.prefix : 'TKB';
+            
+            if (currentNo && oldPrefix && customPrefix && oldPrefix !== customPrefix) {
+                const regex = new RegExp('/' + oldPrefix + '/', 'i');
+                if (regex.test(currentNo)) {
+                    currentNo = currentNo.replace(regex, '/' + customPrefix + '/');
+                } else if (currentNo.includes(oldPrefix)) {
+                    currentNo = currentNo.replace(oldPrefix, customPrefix);
+                }
+                $('#noInvoice').val(currentNo);
+                $('#nomor_invoice_custom').val(currentNo);
+            }
+        }
+    }
+
+    function switchInvoiceNumberMode(mode) {
+        if (mode === 'kategori') {
+            $('#panel_mode_kategori').show();
+            $('#panel_mode_manual').hide();
+            $('#nomor_invoice_custom').val('');
+            isPrefixManuallyEdited = false;
+
+            // Kunci prefix dan nomor invoice agar tidak bisa diedit saat mode otomatis
+            $('#invoicenoInput')
+                .prop('readonly', true)
+                .removeClass('bg-dark text-white border-secondary')
+                .addClass('bg-light border-0')
+                .attr('title', 'Kode prefix terisi otomatis sesuai format pilihan');
+            $('#prefix_status_label').text('(Otomatis)').removeClass('text-primary').addClass('text-muted');
+
+            if (typeof window.refreshGeneratedInvoiceNumber === 'function') {
+                window.refreshGeneratedInvoiceNumber();
+            }
+        } else if (mode === 'manual') {
+            $('#panel_mode_kategori').hide();
+            $('#panel_mode_manual').show();
+
+            // Buka kunci prefix agar BISA dikustomisasi saat mode manual bebas
+            $('#invoicenoInput')
+                .prop('readonly', false)
+                .removeClass('bg-light border-0')
+                .addClass('bg-dark text-white border-secondary')
+                .attr('title', 'Kode prefix dapat diketik/dikustomisasi bebas');
+            $('#prefix_status_label').text('(Bisa Diedit)').removeClass('text-muted').addClass('text-primary');
+
+            $('#manual_invoice_input').focus();
+            applyManualInvoiceNumber();
+        }
+    }
+
+    function applyManualInvoiceNumber() {
+        const manualVal = ($('#manual_invoice_input').val() || '').trim();
+        if (manualVal) {
+            $('#noInvoice').val(manualVal);
+            $('#nomor_invoice_custom').val(manualVal);
+
+            // Hanya auto-set prefix jika user belum mengedit kolom prefix secara manual
+            if (!isPrefixManuallyEdited) {
+                const parts = manualVal.split('/');
+                if (parts.length >= 3 && isNaN(parts[1])) {
+                    $('#invoicenoInput').val(parts[1].toUpperCase());
+                } else if (!isNaN(parts[1]) || !$('#invoicenoInput').val()) {
+                    // Jika format tanggal seperti 19/04/2005, gunakan default TKB daripada angka bulan '04'
+                    const opt = $('#kategori_invoice_id')[0] ? $('#kategori_invoice_id')[0].selectedOptions[0] : null;
+                    $('#invoicenoInput').val(opt && opt.dataset.prefix ? opt.dataset.prefix : 'TKB');
+                }
+            }
+        } else {
+            $('#nomor_invoice_custom').val('');
+            if (typeof window.refreshGeneratedInvoiceNumber === 'function') {
+                window.refreshGeneratedInvoiceNumber();
+            }
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
       let dateField = document.getElementById("date-field");
       let invoiceInput = document.getElementById("noInvoice");
+      let invoiceKodeInput = document.getElementById("invoicenoInput");
+      let kategoriSelect = document.getElementById("kategori_invoice_id");
       let dateInput = document.getElementById("dateInput");
+
+      window.refreshGeneratedInvoiceNumber = function() {
+          if ($('#opt_mode_manual').is(':checked')) {
+              return;
+          }
+          const tgl = dateField ? dateField.value : '{{ $hariIni }}';
+          const katId = kategoriSelect ? kategoriSelect.value : '';
+          
+          let url = katId ? `/kategori-invoice/generate-number?kategori_id=${katId}&date=${tgl}` : `/invoice/get-invoice-number?tanggal=${tgl}`;
+          fetch(url)
+              .then(response => response.json())
+              .then(data => {
+                  const no = data.no_invoice || data.nomor_invoice || data.invoiceNumber;
+                  if (no) {
+                      invoiceInput.value = no;
+                      const parts = no.split('/');
+                      const opt = kategoriSelect ? kategoriSelect.selectedOptions[0] : null;
+                      const prefix = data.prefix || (opt && opt.dataset.prefix ? opt.dataset.prefix : (parts.length > 1 ? parts[1] : 'TKB'));
+                      if (invoiceKodeInput && !isPrefixManuallyEdited) {
+                          invoiceKodeInput.value = prefix;
+                      }
+                  }
+              })
+              .catch(error => console.error('Error fetching invoice number:', error));
+      };
+
+      if (kategoriSelect) {
+          kategoriSelect.addEventListener("change", window.refreshGeneratedInvoiceNumber);
+      }
 
       if (dateField) {
         flatpickr(dateField, {
             dateFormat: "Y-m-d",
             defaultDate: "{{ $hariIni }}",
             onChange: function (selectedDates, dateStr) {
-                fetch(`/invoice/get-invoice-number?tanggal=${dateStr}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        invoiceInput.value = data.no_invoice;
-                    })
-                    .catch(error => console.error('Error fetching invoice number:', error));
+                window.refreshGeneratedInvoiceNumber();
             }
         });
       }
-
       if (dateInput) {
         flatpickr(dateInput, {
             dateFormat: "Y-m-d",
@@ -790,6 +965,7 @@ $(document).ready(function () {
 <script src="{{asset('vendor/jsvalidation/js/jsvalidation.js')}}"></script>
 <script src="{{asset('js/halaman/tabel-item-tokabe.js')}}"></script>
 <script src="{{asset('js/halaman/invoice.js')}}"></script>
+<script src="{{asset('js/halaman/searchable-item-select.js')}}"></script>
 <script src="{{asset('js/halaman/draft-invoice-tokabe.js')}}"></script>
 {{-- <script src="{{asset('js/halaman/form-masks.js')}}"></script> --}}
 

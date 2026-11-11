@@ -1,8 +1,8 @@
+@extends('layout.template')
+
 @section('head')
 
-<script src="https://cdn.lordicon.com/bhenfmcm.js" defer></script>
-
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
 
 <!--datatable responsive css-->
 
@@ -11,222 +11,148 @@
 
   <style>
 
-    /* Base card */
+    /* KPI Card Container */
     .kpi-card {
-        background: var(--bg-surface, #0F172A);
-        border: 1px solid var(--border-subtle, #1E293B);
-        border-radius: var(--radius-lg, 12px);
-        box-shadow: var(--shadow-xs, 0 1px 2px rgb(0 0 0 / 0.5));
-        margin-bottom: var(--space-4, 16px);
+        background: #111827;
+        border: 1px solid #1E293B;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        margin-bottom: 0 !important;
+        height: 100%;
         transition:
-            box-shadow var(--dur-base, 200ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            transform var(--dur-base, 200ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            border-color var(--dur-base, 200ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
+            box-shadow 200ms cubic-bezier(.2,0,0,1),
+            transform 200ms cubic-bezier(.2,0,0,1),
+            border-color 200ms cubic-bezier(.2,0,0,1);
     }
     .kpi-card:hover {
-        box-shadow: var(--shadow-md, 0 4px 12px rgb(0 0 0 / 0.5));
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
         transform: translateY(-2px);
-        border-color: var(--border-default, #334155);
+        border-color: #334155;
     }
     .kpi-card:active {
-        transform: scale(0.985);
+        transform: scale(0.99);
     }
 
-    /* Card body — padding dashboard: space-5 = 20px */
+    /* Card body — spacious and clean */
     .kpi-card__body {
-        padding: var(--space-5, 20px);
+        padding: 20px 24px !important;
         display: flex;
         flex-direction: column;
-        gap: var(--space-3, 12px);
-        min-height: 130px;
-    }
-
-    /* Top row: overline label + ikon */
-    .kpi-card__header {
-        display: flex;
-        align-items: flex-start;
         justify-content: space-between;
-        gap: var(--space-3, 12px);
+        min-height: 146px !important;
     }
 
-    /* Overline: 11/600 UPPERCASE letter-spacing 0.08em — DESIGN.md §5.2 */
     .kpi-card__overline {
-        font-size: 11px;
+        font-size: 11.5px !important;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-tertiary, #94A3B8);
+        letter-spacing: 0.05em;
+        color: #94A3B8;
         line-height: 16px;
-        margin: 0;
+        margin: 0 0 10px 0;
     }
 
-    /* Ikon dalam kotak tonal 40×40 — DESIGN.md §12.4 */
-    .kpi-card__icon {
-        width: 40px;
-        height: 40px;
-        border-radius: var(--radius-md, 8px);
-        background-color: var(--kpi-accent-subtle, rgb(99 102 241 / 0.12));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        color: var(--kpi-accent, #818CF8);
-        font-size: 20px;
-        transition: background-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
-    }
-    .kpi-card:hover .kpi-card__icon {
-        background-color: var(--kpi-accent-subtle-hover, rgb(99 102 241 / 0.2));
-    }
-
-    /* Nilai utama: price-md 22px/700 tabular — DESIGN.md §5.2 */
     .kpi-card__value {
-        font-size: 22px;
+        font-size: 26px !important;
         font-weight: 700;
-        line-height: 1.2;
-        color: var(--text-primary, #F1F5F9);
-        margin: 0;
+        line-height: 1.25;
+        color: #F8FAFC;
+        margin: 0 0 14px 0;
         font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
     }
 
-    /* Footer row: badge count + label */
+    /* Semantic text color for values according to screenshot */
+    .kpi-card__value--success {
+        color: #34D399 !important; /* Emerald green */
+    }
+    .kpi-card__value--warning {
+        color: #FBBF24 !important; /* Amber yellow */
+    }
+    .kpi-card__value--danger {
+        color: #F87171 !important; /* Coral red */
+    }
+
     .kpi-card__footer {
         display: flex;
         align-items: center;
-        gap: var(--space-2, 8px);
-        padding-top: var(--space-2, 8px);
-        border-top: 1px solid var(--border-subtle, #1E293B);
+        gap: 10px;
+        margin-top: auto;
     }
 
-    /* Badge count — DESIGN.md §14: pill, 12/500, dot, border */
     .kpi-badge {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        justify-content: center;
+        min-width: 28px;
         height: 22px;
-        padding: 0 var(--space-2, 8px);
-        font-size: 12px;
-        font-weight: 600;
-        border-radius: var(--radius-full, 9999px);
-        border: 1px solid var(--kpi-accent-border, rgb(129 140 248 / 0.35));
-        background-color: var(--kpi-accent-subtle, rgb(99 102 241 / 0.12));
-        color: var(--kpi-accent-text, #A5B4FC);
-        white-space: nowrap;
+        padding: 0 9px;
+        font-size: 11.5px;
+        font-weight: 700;
+        border-radius: 9999px;
+        background-color: #1E293B;
+        color: #E2E8F0;
+        border: 1px solid rgba(148, 163, 184, 0.15);
         font-variant-numeric: tabular-nums;
-    }
-    .kpi-badge::before {
-        content: "";
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--kpi-accent, #818CF8);
         flex-shrink: 0;
     }
 
-    /* Footer label text: body-sm 13/400 */
     .kpi-card__label {
-        font-size: 13px;
+        font-size: 12.5px !important;
         font-weight: 400;
-        color: var(--text-secondary, #CBD5E1);
+        color: #94A3B8;
         margin: 0;
-        line-height: 18px;
+        line-height: 16px;
     }
 
-    /* ---- Varian aksen per semantik ---- */
-    /* Varian: brand / primer (indigo) */
-    .kpi-card--brand {
-        --kpi-accent:          var(--brand, #6366F1);
-        --kpi-accent-subtle:   var(--brand-subtle, rgb(99 102 241 / 0.12));
-        --kpi-accent-subtle-hover: var(--brand-subtle-hover, rgb(99 102 241 / 0.2));
-        --kpi-accent-border:   rgb(99 102 241 / 0.35);
-        --kpi-accent-text:     #A5B4FC;
-    }
-    /* Varian: success (hijau) — Terbayar / Lunas */
-    .kpi-card--success {
-        --kpi-accent:          var(--success, #10B981);
-        --kpi-accent-subtle:   var(--success-subtle, rgb(16 185 129 / 0.12));
-        --kpi-accent-subtle-hover: rgb(16 185 129 / 0.2);
-        --kpi-accent-border:   var(--success-border, rgb(16 185 129 / 0.35));
-        --kpi-accent-text:     var(--success-text, #6EE7B7);
-    }
-    /* Varian: danger (merah) — Belum Terbayar / Batal */
-    .kpi-card--danger {
-        --kpi-accent:          var(--danger, #EF4444);
-        --kpi-accent-subtle:   var(--danger-subtle, rgb(239 68 68 / 0.12));
-        --kpi-accent-subtle-hover: rgb(239 68 68 / 0.2);
-        --kpi-accent-border:   var(--danger-border, rgb(239 68 68 / 0.35));
-        --kpi-accent-text:     var(--danger-text, #FCA5A5);
-    }
-    /* Varian: warning (kuning) — PO Belum Lunas */
-    .kpi-card--warning {
-        --kpi-accent:          var(--warning, #F59E0B);
-        --kpi-accent-subtle:   var(--warning-subtle, rgb(245 158 11 / 0.12));
-        --kpi-accent-subtle-hover: rgb(245 158 11 / 0.2);
-        --kpi-accent-border:   var(--warning-border, rgb(245 158 11 / 0.35));
-        --kpi-accent-text:     var(--warning-text, #FCD34D);
-    }
-    /* Varian: info (biru) — PO Total / PPN / PPh */
-    .kpi-card--info {
-        --kpi-accent:          var(--info, #3B82F6);
-        --kpi-accent-subtle:   var(--info-subtle, rgb(59 130 246 / 0.12));
-        --kpi-accent-subtle-hover: rgb(59 130 246 / 0.2);
-        --kpi-accent-border:   var(--info-border, rgb(59 130 246 / 0.35));
-        --kpi-accent-text:     var(--info-text, #93C5FD);
-    }
-
-    /* Section header (overline row sebelum grup card) */
+    /* Section header */
     .kpi-section-header {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2, 8px);
-        margin-bottom: var(--space-3, 12px);
-        margin-top: var(--space-4, 16px);
+        margin-top: 24px;
+        margin-bottom: 14px;
     }
     .kpi-section-header:first-of-type {
-        margin-top: var(--space-1, 4px);
-    }
-    .kpi-section-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        height: 24px;
-        padding: 0 var(--space-2, 8px);
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        border-radius: var(--radius-full, 9999px);
-        border: 1px solid transparent;
-    }
-    .kpi-section-badge--brand {
-        background: var(--brand-subtle, rgb(99 102 241 / 0.12));
-        color: #A5B4FC;
-        border-color: rgb(99 102 241 / 0.3);
-    }
-    .kpi-section-badge--warning {
-        background: var(--warning-subtle, rgb(245 158 11 / 0.12));
-        color: var(--warning-text, #FCD34D);
-        border-color: var(--warning-border, rgb(245 158 11 / 0.35));
-    }
-    .kpi-section-badge--info {
-        background: var(--info-subtle, rgb(59 130 246 / 0.12));
-        color: var(--info-text, #93C5FD);
-        border-color: var(--info-border, rgb(59 130 246 / 0.35));
-    }
-    .kpi-section-badge--danger {
-        background: var(--danger-subtle, rgb(239 68 68 / 0.12));
-        color: var(--danger-text, #FCA5A5);
-        border-color: var(--danger-border, rgb(239 68 68 / 0.35));
+        margin-top: 10px;
     }
     .kpi-section-title {
-        font-size: 12px;
-        font-weight: 500;
-        color: var(--text-tertiary, #94A3B8);
+        font-size: 13px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        color: #CBD5E1;
+        margin: 0 0 3px 0;
+    }
+    .kpi-section-subtitle {
+        font-size: 12.5px;
+        color: #64748B;
         margin: 0;
+        font-weight: 400;
     }
 
-    /* Atur SweetAlert modal menjadi muncul di tengah (tidak menimpa toast) */
+    /* Pajak: Rincian Kode PPN */
+    .kpi-ppn-list {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        margin-top: 4px;
+    }
+    .kpi-ppn-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        line-height: 18px;
+    }
+    .kpi-ppn-label {
+        color: #CBD5E1;
+        font-weight: 500;
+    }
+    .kpi-ppn-val {
+        color: #F8FAFC;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+
+        /* Atur SweetAlert modal menjadi muncul di tengah (tidak menimpa toast) */
     body:not(.swal2-toast-shown) .swal2-container:not(.swal2-top-end):not(.swal2-top-right):not(:has(.swal2-toast)) {
         position: fixed !important;
         top: 0 !important;
@@ -279,8 +205,12 @@
         font-weight: 600;
     }
 
-    #scroll-horizontal_wrapper {
-        width: 100%;
+    #scroll-horizontal_wrapper,
+    #scroll-horizontal_wrapper .table-responsive {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
     }
 
     /* DataTables Controls: Show Entries (kiri) & Search Bar (kanan) sejajar sempurna */
@@ -368,7 +298,7 @@
 
     #scroll-horizontal {
         width: 100% !important;
-        min-width: 1915px !important;
+        min-width: 2135px !important;
         table-layout: fixed !important;
         margin-bottom: 0 !important;
         border-collapse: separate !important;
@@ -485,7 +415,7 @@
         line-height: 1.45;
     }
 
-    /* Column Widths & Alignments (14 Kolom Lengkap Sesuai DESIGN.md §13) */
+    /* Column Widths & Alignments (15 Kolom Lengkap Sesuai DESIGN.md §13) */
     #scroll-horizontal th:nth-child(1), #scroll-horizontal td:nth-child(1) { width: 45px; text-align: center !important; }
     #scroll-horizontal th:nth-child(2), #scroll-horizontal td:nth-child(2) { width: 175px; text-align: left !important; }
     #scroll-horizontal th:nth-child(3), #scroll-horizontal td:nth-child(3) { width: 220px; text-align: left !important; }
@@ -494,15 +424,16 @@
     #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 140px; min-width: 135px; text-align: center !important; }
     #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 130px; text-align: left !important; }
     #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 240px !important; min-width: 230px !important; max-width: 260px !important; text-align: center !important; }
-    #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 270px !important; min-width: 270px !important; max-width: 270px !important; text-align: left !important; box-sizing: border-box !important; }
+    #scroll-horizontal th:nth-child(9), #scroll-horizontal td:nth-child(9) { width: 320px; min-width: 280px; max-width: 450px; text-align: left !important; box-sizing: border-box !important; }
     #scroll-horizontal th:nth-child(10), #scroll-horizontal td:nth-child(10) { width: 130px; text-align: right !important; font-variant-numeric: tabular-nums; }
     #scroll-horizontal th:nth-child(11), #scroll-horizontal td:nth-child(11) { width: 155px; text-align: right !important; font-variant-numeric: tabular-nums; font-weight: 600; }
     #scroll-horizontal th:nth-child(12), #scroll-horizontal td:nth-child(12) { width: 150px; min-width: 140px; text-align: center !important; }
-    #scroll-horizontal th:nth-child(13), #scroll-horizontal td:nth-child(13) { width: 140px; text-align: left !important; }
+    #scroll-horizontal th:nth-child(13), #scroll-horizontal td:nth-child(13) { width: 155px; min-width: 145px; text-align: center !important; }
+    #scroll-horizontal th:nth-child(14), #scroll-horizontal td:nth-child(14) { width: 140px; text-align: left !important; }
 
-    /* Kolom Aksi Sticky di Kanan — Akses Cepat Tanpa Perlu Scroll Horizontal */
-    #scroll-horizontal th:nth-child(14),
-    #scroll-horizontal td:nth-child(14) {
+    /* Kolom Aksi Sticky di Kanan (Kolom 15) — Akses Cepat Tanpa Perlu Scroll Horizontal */
+    #scroll-horizontal th:nth-child(15),
+    #scroll-horizontal td:nth-child(15) {
         width: 80px !important;
         min-width: 80px !important;
         max-width: 80px !important;
@@ -513,27 +444,28 @@
         box-shadow: -4px 0 10px rgba(0, 0, 0, 0.45) !important;
         z-index: 10 !important;
     }
-    #scroll-horizontal thead th:nth-child(14) {
+    #scroll-horizontal thead th:nth-child(15) {
         z-index: 25 !important;
         background: var(--bg-surface-2, #1E293B) !important;
     }
-    #scroll-horizontal tbody tr:hover td:nth-child(14) {
+    #scroll-horizontal tbody tr:hover td:nth-child(15) {
         background: #1b2332 !important;
     }
-    #scroll-horizontal tbody tr.is-expanded td:nth-child(14) {
+    #scroll-horizontal tbody tr.is-expanded td:nth-child(15) {
         background: #161c28 !important;
     }
 
     /* Stacking Context Dropdown agar Selalu di Atas Sticky Baris Lainnya */
-    #scroll-horizontal tbody td:nth-child(14):has(.show),
-    #scroll-horizontal tbody td:nth-child(14):focus-within {
+    #scroll-horizontal tbody td:nth-child(15):has(.show),
+    #scroll-horizontal tbody td:nth-child(15):focus-within {
         z-index: 1050 !important;
     }
 
     /* Header padding for centered sortable columns */
     #scroll-horizontal thead th:nth-child(6),
     #scroll-horizontal thead th:nth-child(8),
-    #scroll-horizontal thead th:nth-child(12) {
+    #scroll-horizontal thead th:nth-child(12),
+    #scroll-horizontal thead th:nth-child(13) {
         text-align: center !important;
         padding-left: 20px !important;
         padding-right: 28px !important;
@@ -542,7 +474,7 @@
     #scroll-horizontal tbody td:nth-child(2),
     #scroll-horizontal tbody td:nth-child(3),
     #scroll-horizontal tbody td:nth-child(4),
-    #scroll-horizontal tbody td:nth-child(13) {
+    #scroll-horizontal tbody td:nth-child(14) {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -563,7 +495,8 @@
     #scroll-horizontal tbody td:nth-child(7),
     #scroll-horizontal tbody td:nth-child(10),
     #scroll-horizontal tbody td:nth-child(11),
-    #scroll-horizontal tbody td:nth-child(12) {
+    #scroll-horizontal tbody td:nth-child(12),
+    #scroll-horizontal tbody td:nth-child(13) {
         white-space: nowrap !important;
     }
 
@@ -761,11 +694,16 @@
             transform 320ms cubic-bezier(0.2, 0, 0, 1);
     }
 
+    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible {
+        overflow: visible !important;
+    }
+
     #scroll-horizontal tbody tr.is-expanded .description-extra-container {
         max-height: 3000px;
         opacity: 1;
         transform: translateY(0);
         overflow: visible;
+        display: block !important;
     }
 
     /* Saat baris terbuka, tampilkan teks secara penuh ke bawah tanpa terpotong */
@@ -824,7 +762,12 @@
     }
 
     /* Indikator Expand Chevron dengan transisi halus dan warna tonal elegan */
-    .row-expand-indicator {
+    .row-expand-indicator,
+    button.row-expand-indicator {
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
         display: inline-flex;
         width: 26px;
         height: 26px;
@@ -833,10 +776,10 @@
         justify-content: center;
         margin-right: 8px;
         padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 6px;
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text-secondary, #CBD5E1);
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-secondary, #CBD5E1) !important;
         font-size: 15px;
         cursor: pointer;
         transition:
@@ -846,22 +789,27 @@
             color 200ms ease;
     }
 
-    #scroll-horizontal tbody tr:hover .row-expand-indicator {
-        background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.22);
-        color: #ffffff;
+    #scroll-horizontal tbody tr:hover .row-expand-indicator,
+    #scroll-horizontal tbody tr:hover button.row-expand-indicator {
+        background: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(255, 255, 255, 0.22) !important;
+        color: #ffffff !important;
     }
 
-    .row-expand-indicator:focus-visible {
-        outline: 2px solid var(--info-text, #93C5FD);
+    .row-expand-indicator:focus-visible,
+    button.row-expand-indicator:focus-visible {
+        outline: 2px solid var(--info-text, #93C5FD) !important;
         outline-offset: 2px;
     }
 
-    #scroll-horizontal tbody tr.is-expanded .row-expand-indicator {
-        transform: rotate(90deg);
-        background: rgba(99, 102, 241, 0.2);
-        border-color: rgba(99, 102, 241, 0.45);
-        color: #A5B4FC;
+    #scroll-horizontal tbody tr.is-expanded .row-expand-indicator,
+    #scroll-horizontal tbody tr.is-expanded button.row-expand-indicator,
+    .row-expand-indicator.expanded,
+    button.row-expand-indicator.expanded {
+        transform: rotate(90deg) !important;
+        background: rgba(99, 102, 241, 0.25) !important;
+        border-color: rgba(99, 102, 241, 0.5) !important;
+        color: #A5B4FC !important;
     }
 
     /* Tombol toggle semua baris di header kartu */
@@ -1014,12 +962,17 @@
     }
 
     /* Tiap item: transparan → aktif mengikuti brand-subtle + border brand */
-    .segmented-item {
+    .segmented-item,
+    button.segmented-item {
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
         display: inline-flex;
         align-items: center;
         gap: 6px;
         background: transparent;
-        border: 1px solid transparent;
+        border: 1px solid transparent !important;
         color: var(--text-secondary, #CBD5E1);
         padding: 5px 12px;
         border-radius: var(--radius-sm, 6px);
@@ -1037,41 +990,50 @@
             border-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
             transform var(--dur-instant, 80ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
     }
-    .segmented-item:hover:not(.active) {
+    .segmented-item:hover:not(.active),
+    button.segmented-item:hover:not(.active) {
         color: var(--text-primary, #F1F5F9);
         background-color: var(--bg-hover, #1E293B);
     }
     /* press state — DESIGN.md §9.4 Active/Pressed: scale 0.98, 80ms */
-    .segmented-item:active {
+    .segmented-item:active,
+    button.segmented-item:active {
         transform: scale(0.98);
     }
     /* focus-visible — DESIGN.md §9.4: pakai --focus-ring */
-    .segmented-item:focus-visible {
+    .segmented-item:focus-visible,
+    button.segmented-item:focus-visible {
         outline: none;
         box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45));
     }
     /* State aktif: bg brand-subtle (dark mode = rgb transparan), border brand, teks putih */
-    .segmented-item.active {
+    .segmented-item.active,
+    button.segmented-item.active {
         background: var(--brand, #6366F1) !important;
         border-color: var(--brand, #6366F1) !important;
         color: #ffffff !important;
         font-weight: 600;
-        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.45);
+        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.45) !important;
     }
 
     /* ------------------------------------------------------------------ */
     /* Tombol "Filter Khusus" — standalone di sebelah kanan segmented group */
     /* Mengikuti pola .btn--secondary dari DESIGN.md §9.5 */
     /* ------------------------------------------------------------------ */
-    .btn-custom-filter {
+    .btn-custom-filter,
+    button.btn-custom-filter {
+        appearance: none;
+        -webkit-appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
         display: inline-flex;
         align-items: center;
         gap: 6px;
         height: var(--control-sm, 32px);
         padding: 0 12px;
-        background: var(--bg-surface-2, #1E293B);
-        color: var(--text-secondary, #CBD5E1);
-        border: 1px solid var(--border-default, #334155);
+        background: var(--bg-surface-2, #1E293B) !important;
+        color: var(--text-secondary, #CBD5E1) !important;
+        border: 1px solid var(--border-default, #334155) !important;
         border-radius: var(--radius-md, 8px);
         font-size: 13px;
         font-weight: 500;
@@ -1086,28 +1048,33 @@
             border-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
             transform var(--dur-instant, 80ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
     }
-    .btn-custom-filter:hover {
-        color: var(--text-primary, #F1F5F9);
-        border-color: var(--border-strong, #475569);
-        background-color: var(--bg-hover, #1E293B);
+    .btn-custom-filter:hover,
+    button.btn-custom-filter:hover {
+        color: var(--text-primary, #F1F5F9) !important;
+        border-color: var(--border-strong, #475569) !important;
+        background-color: var(--bg-hover, #1E293B) !important;
     }
     /* press */
-    .btn-custom-filter:active {
+    .btn-custom-filter:active,
+    button.btn-custom-filter:active {
         transform: scale(0.98);
-        background-color: var(--bg-active, #334155);
+        background-color: var(--bg-active, #334155) !important;
     }
     /* focus-visible */
-    .btn-custom-filter:focus-visible {
+    .btn-custom-filter:focus-visible,
+    button.btn-custom-filter:focus-visible {
         outline: none;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45));
+        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45)) !important;
     }
     /* State aktif (filter sedang berlaku) dan open (panel terbuka) */
     .btn-custom-filter.active,
-    .btn-custom-filter.open {
+    button.btn-custom-filter.active,
+    .btn-custom-filter.open,
+    button.btn-custom-filter.open {
         background-color: var(--brand, #6366F1) !important;
         border-color: var(--brand, #6366F1) !important;
         color: #ffffff !important;
-        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.45);
+        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.45) !important;
     }
 
     /* Chevron berputar — DESIGN.md §18.3 "chevron-rotate": 180° 150ms */
@@ -1370,8 +1337,6 @@
 
 @endsection
 
-@extends('layout.template')
-
 @section('content')
 
 @if (session()->has('batal'))
@@ -1563,325 +1528,173 @@
            </div>
        </div>
 
-      <!-- SECTION 1: CARD INVOICE NON PO (4 Cards) -->
+      <!-- SECTION 1: RINGKASAN TRANSAKSI (3 cards per row x 2 rows) -->
       <div class="kpi-section-header">
-          <span class="kpi-section-badge kpi-section-badge--brand" aria-hidden="true">
-              <i class="ri-receipt-line"></i> NON PO
-          </span>
-          <p class="kpi-section-title">Ringkasan Invoice Regular (Cash / Transfer)</p>
+          <div class="kpi-section-title">RINGKASAN TRANSAKSI</div>
+          <div class="kpi-section-subtitle">Statistik nilai invoice tahunan, bulanan, dan pembatalan</div>
       </div>
-      <div class="row g-3 mb-1">
-          {{-- Card 1: Jumlah Seluruh Non PO --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--brand">
+      <div class="row g-3 mb-3">
+          {{-- Card 1: Total Invoice Tahun Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-1">Jumlah Seluruh Non PO Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-file-text-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-1">TOTAL INVOICE TAHUN INI</p>
+                          <p class="kpi-card__value" id="tokabe-card-val-1">Rp {{ number_format($jumlahPerTahun, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-1">Rp {{ number_format($jumlahPerTahun, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-1">{{ $jlhInvoice }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-desc-1">Invoice Non PO Dibuat Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-1">Invoice Tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 2: Jumlah Non PO Terbayar --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--success">
+          {{-- Card 2: Invoice Lunas Tahun Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-2">Non PO Terbayar Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-checkbox-circle-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-2">INVOICE LUNAS TAHUN INI</p>
+                          <p class="kpi-card__value kpi-card__value--success" id="tokabe-card-val-2">Rp {{ number_format($totalLunasThn, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-2">Rp {{ number_format($totalLunasThn, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-2">{{ $lunas }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-desc-2">Invoice Non PO Lunas Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-2">Lunas Tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 3: Jumlah Non PO Belum Terbayar Tahun --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--danger">
+          {{-- Card 3: Belum Lunas Tahun Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-3">Non PO Belum Terbayar Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-time-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-3">BELUM LUNAS TAHUN INI</p>
+                          <p class="kpi-card__value kpi-card__value--warning" id="tokabe-card-val-3">Rp {{ number_format($jumlahBBPerTahun, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-3">Rp {{ number_format($jumlahBBPerTahun, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-3">{{ $belumLunas }}</span>
-                          <p class="kpi-card__label">Invoice Non PO Belum Lunas</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-3">Sisa Tagihan {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 4: Jumlah Non PO Belum Terbayar Bulan --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--danger">
+          {{-- Card 4: Terbayar Bulan Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-4">Non PO Belum Terbayar Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-calendar-close-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-4">TERBAYAR BULAN INI</p>
+                          <p class="kpi-card__value" id="tokabe-card-val-4">Rp {{ number_format($totalTerbayarBulan ?? 0, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-4">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-count-4">{{ $belumLunasMonth }}</span>
-                          <p class="kpi-card__label">Invoice Non PO Belum Lunas</p>
+                          <span class="kpi-badge" id="tokabe-card-count-4">{{ $terbayarBulanCount ?? 0 }}</span>
+                          <p class="kpi-card__label" id="tokabe-card-desc-4">Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
                       </div>
                   </div>
               </div>
           </div>
-      </div>
 
-      <!-- SECTION 2: CARD INVOICE PURCHASE ORDER (PO) (4 Cards) -->
-      <div class="kpi-section-header">
-          <span class="kpi-section-badge kpi-section-badge--warning" aria-hidden="true">
-              <i class="ri-file-list-3-line"></i> Purchase Order (PO)
-          </span>
-          <p class="kpi-section-title">Ringkasan Invoice Khusus Purchase Order</p>
-      </div>
-      <div class="row g-3 mb-1">
-          {{-- Card PO 1: Jumlah Seluruh PO --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--info">
+          {{-- Card 5: Belum Lunas Bulan Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-po-title-1">Jumlah Seluruh PO</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-bank-card-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-bulan-belum">BELUM LUNAS BULAN INI</p>
+                          <p class="kpi-card__value" id="tokabe-card-val-bulan-belum">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-po-val-1">Rp {{ number_format($jumlahPO, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-po-count-1">{{ $countAllInvPO }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-po-desc-1">Invoice PO Aktif</p>
+                          <span class="kpi-badge" id="tokabe-card-count-bulan-belum">{{ $belumLunasMonth }}</span>
+                          <p class="kpi-card__label" id="tokabe-card-desc-bulan-belum">Sisa Bulan Ini</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card PO 2: Jumlah PO Lunas Tahun Ini --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--success">
+          {{-- Card 6: Invoice Dibatalkan --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-po-title-2">Jumlah PO Lunas Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-checkbox-circle-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-5">INVOICE DIBATALKAN</p>
+                          <p class="kpi-card__value kpi-card__value--danger" id="tokabe-card-val-5">Rp {{ number_format($jumlahBatal, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-po-val-2">Rp {{ number_format($jumlahPOLunas, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-po-count-2">{{ $countAllSettledPO }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-po-desc-2">Invoice PO Lunas Tahun {{ date('Y') }}</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card PO 3: Jumlah PO Belum Lunas Tahun Ini --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--warning">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-po-title-3">PO Belum Lunas Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-error-warning-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-po-val-3">Rp {{ number_format($jumlahPOBlmLunas, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-po-count-3">{{ $countAllOutstandingPO }}</span>
-                          <p class="kpi-card__label">Invoice PO Belum Lunas</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card PO 4: Jumlah PO Belum Lunas Bulan Ini --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--warning">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-po-title-4">PO Belum Lunas Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-hourglass-2-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-po-val-4">Rp {{ number_format($jumlahBBPerBulanPO, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-po-count-4">{{ $blmLunasPO }}</span>
-                          <p class="kpi-card__label">Invoice PO Belum Lunas</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- SECTION 3: RINGKASAN PEMBATALAN -->
-      <div class="kpi-section-header">
-          <span class="kpi-section-badge kpi-section-badge--danger" aria-hidden="true">
-              <i class="ri-close-circle-line"></i> Pembatalan
-          </span>
-          <p class="kpi-section-title">Status Batal Invoice Tokabe</p>
-      </div>
-      <div class="row g-3 mb-1">
-          {{-- Card 5: Invoice Dibatalkan --}}
-          <div class="col-12">
-              <div class="kpi-card kpi-card--danger">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-5">Invoice Dibatalkan</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-close-circle-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-5">Rp {{ number_format($jumlahBatal, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-5">{{ $batal }}</span>
-                          <p class="kpi-card__label">Invoice Tokabe Dibatalkan</p>
+                          <p class="kpi-card__label">Total Dibatalkan</p>
                       </div>
                   </div>
               </div>
           </div>
       </div>
 
-      <!-- SECTION 4: RINGKASAN PAJAK (PPN / PPh) -->
+      <!-- SECTION 2: PAJAK (PPN & PPH) (3 cards) -->
       <div class="kpi-section-header">
-          <span class="kpi-section-badge kpi-section-badge--info" aria-hidden="true">
-              <i class="ri-pie-chart-2-line"></i> Pajak (PPN & PPh)
-          </span>
-          <p class="kpi-section-title">Total PPN & PPh serta Rincian Kode PPN</p>
+          <div class="kpi-section-title">PAJAK (PPN &amp; PPH)</div>
+          <div class="kpi-section-subtitle">Total PPN &amp; PPh serta rincian kode PPN 01 — 04</div>
       </div>
-      <!-- ROW 1: 2 Cards (Total PPN, Total PPh) -->
-      <div class="row g-3 mb-1">
-          {{-- Card 6: Total PPN Tahun Ini --}}
-          <div class="col-xl-6 col-md-6">
-              <div class="kpi-card kpi-card--info">
+      <div class="row g-3 mb-3">
+          {{-- Card 7: Total PPN Tahun Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-6">Jumlah Total PPN Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-percent-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-6">TOTAL PPN {{ date('Y') }}</p>
+                          <p class="kpi-card__value" id="tokabe-card-val-6">Rp {{ number_format($ppnTotal, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-6">Rp {{ number_format($ppnTotal, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-6">{{ $ppnTotalCount }}</span>
-                          <p class="kpi-card__label">Invoice Tokabe dengan PPN</p>
+                          <p class="kpi-card__label">Invoice dengan PPN</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 7: Total PPh Tahun Ini --}}
-          <div class="col-xl-6 col-md-6">
-              <div class="kpi-card kpi-card--warning">
+          {{-- Card 8: Total PPh Tahun Ini --}}
+          <div class="col-lg-4 col-md-6 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline" id="tokabe-card-title-7">Jumlah Total PPh Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-file-chart-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline" id="tokabe-card-title-7">TOTAL PPH {{ date('Y') }}</p>
+                          <p class="kpi-card__value" id="tokabe-card-val-7">Rp {{ number_format($pphTotal, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-7">Rp {{ number_format($pphTotal, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-7">{{ $pphTotalCount }}</span>
-                          <p class="kpi-card__label">Invoice Tokabe dengan PPh</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <!-- ROW 3: 4 Cards (Rincian Kode PPN 01, 02, 03, 04) -->
-      <div class="row g-3 mb-3">
-          {{-- Card 8: PPN 01 - Swasta / Non-Pemungut --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--brand">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline">PPN 01 — Non-Pemungut</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-user-star-line"></i>
-                          </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-8">Rp {{ number_format($ppn01, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-count-8">{{ $ppn01Count }}</span>
-                          <p class="kpi-card__label">01 — Swasta (Non-Pemungut)</p>
+                          <p class="kpi-card__label">Invoice dengan PPh</p>
                       </div>
                   </div>
               </div>
           </div>
 
-          {{-- Card 9: PPN 02 - Instansi Pemerintah --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--info">
+          {{-- Card 9: Rincian Kode PPN --}}
+          <div class="col-lg-4 col-md-12 col-12">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline">PPN 02 — Instansi Pemerintah</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-government-line"></i>
+                      <p class="kpi-card__overline">RINCIAN KODE PPN</p>
+                      <div class="kpi-ppn-list">
+                          <div class="kpi-ppn-item">
+                              <span class="kpi-ppn-label">01 — Non-Pemungut</span>
+                              <span class="kpi-ppn-val" id="tokabe-card-val-8">Rp {{ number_format($ppn01, 0, ',', '.') }}</span>
+                              <span id="tokabe-card-count-8" class="d-none">{{ $ppn01Count }}</span>
                           </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-9">Rp {{ number_format($ppn02, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-count-9">{{ $ppn02Count }}</span>
-                          <p class="kpi-card__label">02 — Pemungut Pemerintah</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card 10: PPN 03 - Pemungut BUMN --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--success">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline">PPN 03 — Pemungut BUMN</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-building-4-line"></i>
+                          <div class="kpi-ppn-item">
+                              <span class="kpi-ppn-label">02 — Pemerintah</span>
+                              <span class="kpi-ppn-val" id="tokabe-card-val-9">Rp {{ number_format($ppn02, 0, ',', '.') }}</span>
+                              <span id="tokabe-card-count-9" class="d-none">{{ $ppn02Count }}</span>
                           </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-10">Rp {{ number_format($ppn03, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-count-10">{{ $ppn03Count }}</span>
-                          <p class="kpi-card__label">03 — BUMN / Pemungut Lain</p>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          {{-- Card 11: PPN 04 - DPP Nilai Lain --}}
-          <div class="col-xl-3 col-md-6">
-              <div class="kpi-card kpi-card--warning">
-                  <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline">PPN 04 — DPP Nilai Lain</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-price-tag-3-line"></i>
+                          <div class="kpi-ppn-item">
+                              <span class="kpi-ppn-label">03 — BUMN</span>
+                              <span class="kpi-ppn-val" id="tokabe-card-val-10">Rp {{ number_format($ppn03, 0, ',', '.') }}</span>
+                              <span id="tokabe-card-count-10" class="d-none">{{ $ppn03Count }}</span>
                           </div>
-                      </div>
-                      <p class="kpi-card__value" id="tokabe-card-val-11">Rp {{ number_format($ppn04, 0, ',', '.') }}</p>
-                      <div class="kpi-card__footer">
-                          <span class="kpi-badge" id="tokabe-card-count-11">{{ $ppn04Count }}</span>
-                          <p class="kpi-card__label">04 — DPP Nilai Lain</p>
+                          <div class="kpi-ppn-item">
+                              <span class="kpi-ppn-label">04 — Nilai Lain</span>
+                              <span class="kpi-ppn-val" id="tokabe-card-val-11">Rp {{ number_format($ppn04, 0, ',', '.') }}</span>
+                              <span id="tokabe-card-count-11" class="d-none">{{ $ppn04Count }}</span>
+                          </div>
                       </div>
                   </div>
               </div>
@@ -1892,15 +1705,12 @@
       <!-- Non-Pemilik: Belum Lunas Saja -->
       <div class="row g-3 mb-3">
           <div class="col-xl-6 col-md-6">
-              <div class="kpi-card kpi-card--danger">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline">Belum Terbayar Tahun {{ date('Y') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-time-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline">BELUM TERBAYAR TAHUN {{ date('Y') }}</p>
+                          <p class="kpi-card__value kpi-card__value--warning">Rp {{ number_format($jumlahBBPerTahun, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value">Rp {{ number_format($jumlahBBPerTahun, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge">{{ $belumLunas }}</span>
                           <p class="kpi-card__label">Invoice Tokabe Belum Lunas</p>
@@ -1909,15 +1719,12 @@
               </div>
           </div>
           <div class="col-xl-6 col-md-6">
-              <div class="kpi-card kpi-card--danger">
+              <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <div class="kpi-card__header">
-                          <p class="kpi-card__overline">Belum Terbayar Bulan {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
-                          <div class="kpi-card__icon" aria-hidden="true">
-                              <i class="ri-calendar-close-line"></i>
-                          </div>
+                      <div>
+                          <p class="kpi-card__overline">BELUM TERBAYAR BULAN {{ \Carbon\Carbon::now()->locale('id')->isoFormat('MMMM') }}</p>
+                          <p class="kpi-card__value kpi-card__value--danger">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
                       </div>
-                      <p class="kpi-card__value">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge">{{ $belumLunasMonth }}</span>
                           <p class="kpi-card__label">Invoice Tokabe Belum Lunas</p>
@@ -1953,14 +1760,22 @@
                           </button>
                       </div>
 
-                      <div class="d-flex align-items-center gap-2">
+                      <div class="d-flex flex-wrap align-items-center gap-2">
+                          <div class="d-inline-flex align-items-center gap-2">
+                              <label for="filter-jenis-transaksi" class="mb-0 text-muted" style="font-size: 12px; font-weight: 600;">Jenis Transaksi:</label>
+                              <select id="filter-jenis-transaksi" class="form-select form-select-sm dash-select" style="min-width: 155px; height: 32px; font-size: 12.5px;" onchange="filterTableJenisTransaksi(this.value)">
+                                  <option value="">Semua Transaksi</option>
+                                  <option value="PADI UMKM">PADI UMKM ({{ $penjualan->where('is_padi_umkm', true)->count() }})</option>
+                                  <option value="Non-PADI UMKM">Non-PADI UMKM ({{ $penjualan->where('is_padi_umkm', false)->count() }})</option>
+                              </select>
+                          </div>
                           <button type="button" id="btn-toggle-all-rows" class="btn btn-sm" style="background: rgba(99, 102, 241, 0.15); color: #C7D2FE; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px;">
                               <i class="ri-expand-diagonal-line me-1"></i><span id="text-toggle-all-rows">Buka Semua Rincian</span>
                           </button>
                       </div>
                   </div>
 
-                      <div class="card-body p-0">
+                  <div class="card-body p-0" style="overflow-x: auto; width: 100%; max-width: 100%;">
                           <table id="scroll-horizontal" class="table align-middle table-hover mb-0" aria-label="Daftar invoice Tokabe">
 
                               <thead>
@@ -1992,6 +1807,8 @@
                                       <th scope="col">Total</th>
 
                                       <th scope="col">Tipe Pembayaran</th>
+
+                                      <th scope="col">Jenis Transaksi</th>
 
                                       <th scope="col">Admin</th>
 
@@ -2144,6 +1961,14 @@
                                               <span class="badge badge-payment--po">{{ $inv->jenis_pembayaran }}</span>
                                           @else
                                               <span class="badge badge--neutral">{{ $inv->jenis_pembayaran }}</span>
+                                          @endif
+                                      </td>
+
+                                      <td class="text-center" data-order="{{ $inv->is_padi_umkm ? 'PADI UMKM' : 'Non-PADI UMKM' }}" data-search="{{ $inv->is_padi_umkm ? 'PADI UMKM' : 'Non-PADI UMKM' }}">
+                                          @if ($inv->is_padi_umkm)
+                                              <span class="badge" style="background: rgba(16, 185, 129, 0.14); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 10px; border-radius: 6px; font-weight: 600;">PADI UMKM</span>
+                                          @else
+                                              <span class="badge" style="background: rgba(148, 163, 184, 0.12); color: #94A3B8; border: 1px solid rgba(148, 163, 184, 0.25); padding: 4px 10px; border-radius: 6px; font-weight: 500;">Non-PADI UMKM</span>
                                           @endif
                                       </td>
 
@@ -2532,36 +2357,12 @@
                               </tbody><!-- end tbody -->
 
                           </table><!-- end table -->
-
-                  </div>
-
-              </div>
-
-          </div>
-
-
-
-
-
-  </div>
-
-  <!-- container-fluid -->
-
-</div>
-
-
-
-
-
-
-
-
-
-  </div>
-
-  <!-- container-fluid -->
-
-</div>
+                      </div><!-- end card-body -->
+                  </div><!-- end card -->
+              </div><!-- end col-12 -->
+          </div><!-- end row -->
+      </div><!-- end container-fluid -->
+  </div><!-- end page-content -->
 
 @endsection
 
@@ -2615,6 +2416,16 @@
         }
     }
 
+    function filterTableJenisTransaksi(jenis) {
+        if (invoiceTable) {
+            if (jenis) {
+                invoiceTable.column(12).search('^' + jenis + '$', true, false).draw();
+            } else {
+                invoiceTable.column(12).search('').draw();
+            }
+        }
+    }
+
     $(document).ready(function() {
 
         invoiceTable = $('#scroll-horizontal').DataTable({
@@ -2624,10 +2435,10 @@
             bSort: true,
             order: [[4, 'desc']],
             columnDefs: [
-                { orderable: false, targets: [0, 3, 6, 8, 13] },
+                { orderable: false, targets: [0, 3, 6, 8, 14] },
                 { width: '240px', targets: 7, className: 'text-center' },
                 { width: '270px', targets: 8 },
-                { width: '80px', targets: 13, className: 'text-center' }
+                { width: '80px', targets: 14, className: 'text-center' }
             ],
             dom: "<'dataTables_controls_top'lf><'table-responsive mb-0't><'dataTables_controls_bottom'ip>",
             pageLength: 25,
@@ -2660,42 +2471,13 @@
             adjustInvoiceTable();
         });
 
-        // Pertahankan nomor urut 1, 2, 3... tetap rapi berurutan saat tabel disortir
-        invoiceTable.on('order.dt search.dt', function () {
+        // Pertahankan nomor urut 1, 2, 3... tetap rapi berurutan saat tabel disortir dan dipaginasi
+        invoiceTable.on('order.dt search.dt draw.dt', function () {
+            const pageInfo = invoiceTable.page.info();
+            const start = pageInfo ? pageInfo.start : 0;
             invoiceTable.column(0, {search:'applied', order:'applied'}).nodes().each(function (cell, i) {
-                cell.innerHTML = i + 1;
+                cell.innerHTML = start + i + 1;
             });
-        });
-
-        // Handler tombol Urutkan Invoice
-        $(document).on('click', '.sort-action-btn', function(e) {
-            e.preventDefault();
-            const col = parseInt($(this).data('col'));
-            const dir = $(this).data('dir');
-            const text = $(this).text().trim();
-            
-            invoiceTable.order([col, dir]).draw();
-            
-            $('.sort-action-btn').removeClass('active');
-            $(this).addClass('active');
-            $('#text-current-sort').text('Urutkan: ' + text);
-        });
-
-        // Sinkronisasi status tombol Urutkan saat user mengklik header kolom tabel langsung
-        invoiceTable.on('order.dt', function () {
-            const currentOrder = invoiceTable.order();
-            if (currentOrder && currentOrder.length) {
-                const col = currentOrder[0][0];
-                const dir = currentOrder[0][1];
-                $('.sort-action-btn').removeClass('active');
-                const $matchingBtn = $(`.sort-action-btn[data-col="${col}"][data-dir="${dir}"]`);
-                if ($matchingBtn.length) {
-                    $matchingBtn.addClass('active');
-                    $('#text-current-sort').text('Urutkan: ' + $matchingBtn.text().trim());
-                } else {
-                    $('#text-current-sort').text('Urutkan: Kolom ' + (col + 1));
-                }
-            }
         });
 
         function adjustInvoiceTable() {
@@ -2707,7 +2489,7 @@
         function setInvoiceRowExpanded(row, expanded) {
             const $row = $(row);
             $row.toggleClass('is-expanded', expanded);
-            $row.find('.row-expand-indicator').attr('aria-expanded', expanded);
+            $row.find('.row-expand-indicator').toggleClass('expanded', expanded).attr('aria-expanded', expanded ? 'true' : 'false');
         }
 
         invoiceTable.columns.adjust();
@@ -2746,29 +2528,19 @@
         let allExpanded = false;
 
         $('#btn-toggle-all-rows').on('click', function() {
-
             allExpanded = !allExpanded;
-
             if (allExpanded) {
-
                 $('#scroll-horizontal tbody tr').addClass('is-expanded');
-                $('#scroll-horizontal .row-expand-indicator').attr('aria-expanded', 'true');
-
+                $('#scroll-horizontal .row-expand-indicator').addClass('expanded').attr('aria-expanded', 'true');
                 $('#text-toggle-all-rows').text('Tutup Semua Rincian');
-
                 $(this).find('i').removeClass('ri-expand-diagonal-line').addClass('ri-collapse-diagonal-line');
-
             } else {
-
                 $('#scroll-horizontal tbody tr').removeClass('is-expanded');
-                $('#scroll-horizontal .row-expand-indicator').attr('aria-expanded', 'false');
-
+                $('#scroll-horizontal .row-expand-indicator').removeClass('expanded').attr('aria-expanded', 'false');
                 $('#text-toggle-all-rows').text('Buka Semua Rincian');
-
                 $(this).find('i').removeClass('ri-collapse-diagonal-line').addClass('ri-expand-diagonal-line');
-
             }
-
+            adjustInvoiceTable();
         });
 
         $(window).off('resize.invoiceRows').on('resize.invoiceRows', adjustInvoiceTable);
@@ -2952,45 +2724,32 @@
                     let label = res.periodLabel;
                     $('#badge-active-period').text(label);
 
-                    // Card Non-PO
+                    // 5 Transaction Cards Statistik Invoice
                     $('#tokabe-card-val-1').text('Rp ' + res.card1.nominal);
-                    $('#tokabe-card-title-1').text('JUMLAH SELURUH NON PO ' + label);
+                    $('#tokabe-card-title-1').text('TOTAL INVOICE ' + label);
                     $('#tokabe-card-count-1').text(res.card1.count);
-                    $('#tokabe-card-desc-1').text('Invoice Non PO Dibuat ' + label);
+                    $('#tokabe-card-desc-1').text('Invoice Dibuat ' + label);
 
                     $('#tokabe-card-val-2').text('Rp ' + res.card2.nominal);
-                    $('#tokabe-card-title-2').text('NON PO TERBAYAR ' + label);
+                    $('#tokabe-card-title-2').text('TOTAL INVOICE LUNAS ' + label);
                     $('#tokabe-card-count-2').text(res.card2.count);
-                    $('#tokabe-card-desc-2').text('Invoice Non PO Lunas ' + label);
+                    $('#tokabe-card-desc-2').text('Invoice Berstatus Lunas ' + label);
 
                     $('#tokabe-card-val-3').text('Rp ' + res.card3.nominal);
-                    $('#tokabe-card-title-3').text('NON PO BELUM TERBAYAR ' + label);
+                    $('#tokabe-card-title-3').text('TOTAL INVOICE BELUM LUNAS ' + label);
                     $('#tokabe-card-count-3').text(res.card3.count);
+                    $('#tokabe-card-desc-3').text('Sisa Tagihan Belum Lunas ' + label);
 
                     $('#tokabe-card-val-4').text('Rp ' + res.card4.nominal);
-                    $('#tokabe-card-title-4').text('NON PO BELUM TERBAYAR BULAN ' + res.card4MonthName);
+                    $('#tokabe-card-title-4').text('TOTAL TERBAYAR BULAN ' + res.card4MonthName);
                     $('#tokabe-card-count-4').text(res.card4.count);
+                    $('#tokabe-card-desc-4').text('Pembayaran Diterima Bulan ' + res.card4MonthName);
 
-                    // Card PO (Purchase Order)
-                    if (res.cardPo1) {
-                        $('#tokabe-card-po-val-1').text('Rp ' + res.cardPo1.nominal);
-                        $('#tokabe-card-po-count-1').text(res.cardPo1.count);
-                    }
-                    if (res.cardPo2) {
-                        $('#tokabe-card-po-val-2').text('Rp ' + res.cardPo2.nominal);
-                        $('#tokabe-card-po-title-2').text('JUMLAH PO LUNAS ' + label);
-                        $('#tokabe-card-po-count-2').text(res.cardPo2.count);
-                        $('#tokabe-card-po-desc-2').text('Invoice PO Lunas ' + label);
-                    }
-                    if (res.cardPo3) {
-                        $('#tokabe-card-po-val-3').text('Rp ' + res.cardPo3.nominal);
-                        $('#tokabe-card-po-title-3').text('PO BELUM LUNAS ' + label);
-                        $('#tokabe-card-po-count-3').text(res.cardPo3.count);
-                    }
-                    if (res.cardPo4) {
-                        $('#tokabe-card-po-val-4').text('Rp ' + res.cardPo4.nominal);
-                        $('#tokabe-card-po-title-4').text('PO BELUM LUNAS BULAN ' + res.card4MonthName);
-                        $('#tokabe-card-po-count-4').text(res.cardPo4.count);
+                    if (res.cardBulanBelum) {
+                        $('#tokabe-card-val-bulan-belum').text('Rp ' + res.cardBulanBelum.nominal);
+                        $('#tokabe-card-title-bulan-belum').text('TOTAL BELUM TERBAYAR BULAN ' + res.card4MonthName);
+                        $('#tokabe-card-count-bulan-belum').text(res.cardBulanBelum.count);
+                        $('#tokabe-card-desc-bulan-belum').text('Sisa Tagihan Bulan ' + res.card4MonthName);
                     }
 
                     // Card 5: Dibatalkan

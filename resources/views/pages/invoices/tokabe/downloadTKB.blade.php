@@ -53,9 +53,23 @@
             <div class="col-xxl-12">
                 <div class="card" id="demo">
                     <div class="card-body">
+                        @php
+                            $katSettings = optional($penjualan->kategoriInvoice)->template_settings ?? [];
+                            $judulInv = !empty($katSettings['judul_invoice']) ? $katSettings['judul_invoice'] : 'INVOICE';
+                            $subjudulInv = $katSettings['subjudul_invoice'] ?? '';
+                            $labelPenerima = !empty($katSettings['label_penerima']) ? $katSettings['label_penerima'] : 'Penerima';
+                            $showNpwp = isset($katSettings['tampilkan_npwp']) ? (bool)$katSettings['tampilkan_npwp'] : true;
+                            $catatanKaki = $katSettings['catatan_kaki'] ?? '';
+                        @endphp
                         <div class="row ">
                             <div class="col-lg-12">
                                 <h3 class="fw-bold mb-3"></h3>
+                                <h3 class="fw-bold mb-1">{{ $judulInv }}</h3>
+                                @if(!empty($subjudulInv))
+                                    <p class="text-muted fs-14 mb-3">{{ $subjudulInv }}</p>
+                                @else
+                                    <div class="mb-2"></div>
+                                @endif
                                 <div class="row g-3">
                                     <div class="col-lg-4 col-4">
                                         <p class="text-dark mb-1 text-uppercase fs-16">Invoice No</p>
@@ -78,13 +92,13 @@
                                             <p class="text-dark mb-1 text-uppercase fs-16">Tanggal</p>
                                             <p class="fw-bold fs-16 mb-0"><span id="invoice-date">{{$formatTanggal}}</span></p>
                                         </div>
-                                        <p class="text-dark text-uppercase fs-16 mb-1">Penerima</p>
+                                        <p class="text-dark text-uppercase fs-16 mb-1">{{ $labelPenerima }}</p>
                                         <p class="fw-bold fs-16 mb-1" id="billing-name">{{$penjualan->customer}}</p>
                                         @if(!empty($penjualan->perusahaan) && $penjualan->perusahaan !== '-')
                                             <p class="text-dark fs-15 mb-1"><span class="text-muted">Perusahaan: </span>{{$penjualan->perusahaan}}</p>
                                         @endif
                                         <p class="text-dark fs-16 mb-1"><span>Telepon: </span><span id="billing-phone-no">{{$penjualan->no_telepon}}</span></p>
-                                        @if(!empty($penjualan->npwp))
+                                        @if($showNpwp && !empty($penjualan->npwp))
                                             <p class="text-dark fs-16 mb-1"><span>NPWP: </span><span id="billing-npwp" class="fw-semibold">{{$penjualan->npwp}}</span></p>
                                         @endif
                                     </div>
@@ -174,7 +188,12 @@
 
                                     <div class="border-top border-top-dashed mt-0">
                                         <div class="col-lg-6 mt-1">
-                                            <p style="color:rgb(227, 25, 25);" class="fs-16">Mohon Transfer ke : {{$norek}}</p><br>
+                                            <p style="color:rgb(227, 25, 25);" class="fs-16 mb-1">Mohon Transfer ke : {{$norek}}</p>
+                                            @if(!empty($catatanKaki))
+                                                <p class="text-muted fs-14 mb-2"><em>{{ $catatanKaki }}</em></p>
+                                            @else
+                                                <br>
+                                            @endif
                                         </div>
 
                                         <div class="d-flex justify-content-end align-items-end">

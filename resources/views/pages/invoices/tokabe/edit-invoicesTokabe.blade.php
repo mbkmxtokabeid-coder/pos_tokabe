@@ -106,6 +106,19 @@
 
                                          {{-- End coloumn --}}
                                    </div>
+                                   @if(isset($kategoriInvoices) && $kategoriInvoices->count() > 0)
+                                   <div class="row g-3 mb-2">
+                                       <div class="col-lg-8 col-sm-6">
+                                           <label for="kategori_invoice_id">Kategori Invoice</label>
+                                           <select class="form-select bg-light border-0" id="kategori_invoice_id" name="kategori_invoice_id">
+                                               <option value="">-- Standar Reguler --</option>
+                                               @foreach($kategoriInvoices as $katInv)
+                                                   <option value="{{ $katInv->id }}" {{ old('kategori_invoice_id', $inv->kategori_invoice_id ?? '') == $katInv->id ? 'selected' : '' }}>{{ $katInv->nama_kategori }}</option>
+                                               @endforeach
+                                           </select>
+                                       </div>
+                                   </div>
+                                   @endif
                                       <div class="row mb-2 col-lg-8 col-sm-6">
                                           <label for="invoicenoInput">Invoice No</label>
                                           
@@ -279,6 +292,24 @@
                                        </div>
                                       </div>
                                      {{-- End Date --}}
+                                     {{-- Start PADI UMKM --}}
+                                     <div class="row mb-3">
+                                       <div class="col-lg-5">
+                                        <label class="form-label col-form-label col-form-label-md">Transaksi PADI UMKM</label>
+                                       </div>
+                                       <div class="col-lg-7 d-flex align-items-center gap-4 pt-1">
+                                        @php $valPadi = old('is_padi_umkm', $inv->is_padi_umkm ? '1' : '0'); @endphp
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_tidak" value="0" {{ (string)$valPadi === '0' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="padi_umkm_tidak">Tidak (Non-PADI UMKM)</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_ya" value="1" {{ (string)$valPadi === '1' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="padi_umkm_ya">Ya (PADI UMKM)</label>
+                                        </div>
+                                       </div>
+                                     </div>
+                                     {{-- End PADI UMKM --}}
                                    {{-- </div> --}}
                                   </div>
                                  </div>
@@ -622,6 +653,7 @@
 <script src="{{asset('js/halaman/update-invoice.js')}}"></script>
 <script src="{{asset('js/halaman/tabel-item-tokabe.js')}}"></script>
 <script src="{{asset('js/halaman/invoice.js')}}"></script>
+<script src="{{asset('js/halaman/searchable-item-select.js')}}"></script>
 <script src="{{asset('js/halaman/draft-invoice-tokabe.js')}}"></script>
 
 <script>
