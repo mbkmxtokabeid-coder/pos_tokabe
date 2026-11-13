@@ -497,6 +497,44 @@ INSERT INTO `migrations` (`migration`, `batch`)
 SELECT '2026_11_13_102459_alter_nomor_telepon_on_users_table', COALESCE((SELECT MAX(`batch`) FROM (SELECT `batch` FROM `migrations`) AS m), 1)
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `migrations` WHERE `migration` = '2026_11_13_102459_alter_nomor_telepon_on_users_table');
 
+-- ----------------------------------------------------------------------------
+-- 13. TABEL pembelian & vendor: Koreksi jumlah_harga yang belum dikurangi PPh
+-- ----------------------------------------------------------------------------
+UPDATE `pembelian` p
+INNER JOIN (
+    SELECT `pembelian_id`, COALESCE(SUM(`total`), 0) AS `subtotal`
+    FROM `pembelian_barang`
+    GROUP BY `pembelian_id`
+) pb ON pb.pembelian_id = p.id
+SET
+    p.jumlah_harga = GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0)),
+    p.terbayar = LEAST(p.terbayar, GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0))),
+    p.sisa = GREATEST(0, GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0)) - LEAST(p.terbayar, GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0)))),
+    p.status = IF(
+        GREATEST(0, GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0)) - LEAST(p.terbayar, GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0)))) <= 0
+        AND GREATEST(0, pb.subtotal + COALESCE(p.ppn_nominal, 0) - COALESCE(p.pph_nominal, 0)) > 0,
+        'Lunas',
+        'Cicil'
+    )
+WHERE COALESCE(p.pph_nominal, 0) > 0
+  AND p.jumlah_harga = (pb.subtotal + COALESCE(p.ppn_nominal, 0));
+
+UPDATE `vendor` v
+INNER JOIN (
+    SELECT
+        `id_vendor`,
+        COALESCE(SUM(`jumlah_harga`), 0) AS `tot`,
+        COALESCE(SUM(`terbayar`), 0) AS `ter`,
+        COALESCE(SUM(`sisa`), 0) AS `sis`
+    FROM `pembelian`
+    GROUP BY `id_vendor`
+) agg ON agg.id_vendor = v.id
+SET
+    v.total_pembelian = agg.tot,
+    v.pembelian_terbayar = agg.ter,
+    v.pembelian_sisa = agg.sis
+WHERE v.id IN (SELECT DISTINCT `id_vendor` FROM `pembelian` WHERE COALESCE(`pph_nominal`, 0) > 0);
+
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
 
