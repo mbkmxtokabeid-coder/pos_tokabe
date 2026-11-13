@@ -275,7 +275,13 @@ class SptMasaController extends Controller
 
     private function extractRincianPpnFromRequest(Request $request): array
     {
-        if ($request->has('simple_ppn_keluaran') || $request->has('simple_ppn_masukan')) {
+        $inputMode = $request->input('ppn_input_mode');
+        $useSimple = $inputMode === 'simple' || (
+            $inputMode !== 'detail'
+            && ($request->has('simple_ppn_keluaran') || $request->has('simple_ppn_masukan'))
+        );
+
+        if ($useSimple) {
             $iiiaPpnDipungutSendiri = $this->cleanCurrency($request->input('simple_ppn_keluaran', 0));
             $ia6Ppn                 = $this->cleanCurrency($request->input('simple_ppn_pemungut', 0));
             $iigPajakMasukanKredit  = $this->cleanCurrency($request->input('simple_ppn_masukan', 0));

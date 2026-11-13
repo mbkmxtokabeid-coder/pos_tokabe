@@ -488,6 +488,15 @@ INSERT INTO `migrations` (`migration`, `batch`)
 SELECT '2026_11_11_000002_add_approval_to_spt_masa_and_beban_belanja', COALESCE((SELECT MAX(`batch`) FROM (SELECT `batch` FROM `migrations`) AS m), 1)
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `migrations` WHERE `migration` = '2026_11_11_000002_add_approval_to_spt_masa_and_beban_belanja');
 
+-- ----------------------------------------------------------------------------
+-- 12. TABEL users: Perbesar kolom nomor_telepon menjadi VARCHAR(50) NULL
+-- ----------------------------------------------------------------------------
+ALTER TABLE `users` MODIFY `nomor_telepon` VARCHAR(50) NULL DEFAULT NULL;
+
+INSERT INTO `migrations` (`migration`, `batch`)
+SELECT '2026_11_13_102459_alter_nomor_telepon_on_users_table', COALESCE((SELECT MAX(`batch`) FROM (SELECT `batch` FROM `migrations`) AS m), 1)
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `migrations` WHERE `migration` = '2026_11_13_102459_alter_nomor_telepon_on_users_table');
+
 COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
 

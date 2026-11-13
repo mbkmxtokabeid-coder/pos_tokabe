@@ -218,7 +218,7 @@
                 {{-- Nomor Telepon --}}
                 <div class="col-md-6">
                   <label class="form-label-user" for="phone-number">Nomor Telepon</label>
-                  <input type="text" value="{{ old('no_telp') }}" name="no_telp" class="form-control" placeholder="08xxxxxxxxxx" id="phone-number">
+                  <input type="text" value="{{ old('no_telp') }}" name="no_telp" class="form-control" placeholder="08xxxxxxxxxx" id="phone-number" maxlength="25">
                   @error('no_telp')
                     <span class="help-block error-help-block">{{ $message }}</span>
                   @enderror

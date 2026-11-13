@@ -27,24 +27,29 @@ class UserController extends Controller
   function storeUser(Request $request)
   {
     $request->validate([
-      'role' => 'required|in:Pemilik,Admin',
+      'namaKaryawan' => 'required|string|max:191',
+      'email'        => 'required|email|max:191|unique:users,email',
+      'password'     => 'required|string|min:6',
+      're_password'  => 'required|same:password',
+      'role'         => 'required|in:Pemilik,Admin',
+      'no_telp'      => 'nullable|string|max:30',
+    ], [
+      're_password.same' => 'Konfirmasi password tidak cocok dengan password.',
+      'email.unique'     => 'Email ini sudah terdaftar.',
+      'no_telp.max'      => 'Nomor telepon maksimal 30 karakter.',
     ]);
 
-    if ($request->re_password != $request->password) {
-      Alert::error('Password tidak sama');
-      return redirect()->back()->withInput();
-    } else {
-      User::create([
-        'nama' => $request->namaKaryawan,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'nomor_telepon' => $request->no_telp,
-        'role' => $request->role,
-        'status' => 'Aktif',
-      ]);
-      Alert::success('User Berhasil ditambahkan');
-      return redirect()->route('user.index');
-    }
+    User::create([
+      'nama'          => $request->namaKaryawan,
+      'email'         => $request->email,
+      'password'      => Hash::make($request->password),
+      'nomor_telepon' => $request->no_telp ? substr(trim($request->no_telp), 0, 30) : null,
+      'role'          => $request->role,
+      'status'        => 'Aktif',
+    ]);
+
+    Alert::success('User Berhasil ditambahkan');
+    return redirect()->route('user.index');
   }
 
   function status($id)
@@ -78,25 +83,36 @@ class UserController extends Controller
   function update(Request $request, $id)
   {
     $request->validate([
-      'role' => 'required|in:Pemilik,Admin',
+      'namaKaryawan' => 'required|string|max:191',
+      'email'        => 'required|email|max:191|unique:users,email,' . $id,
+      'role'         => 'required|in:Pemilik,Admin',
+      'no_telp'      => 'nullable|string|max:30',
+    ], [
+      'email.unique' => 'Email ini sudah terdaftar pada pengguna lain.',
+      'no_telp.max'  => 'Nomor telepon maksimal 30 karakter.',
     ]);
 
     $user = User::findOrFail($id);
-    if ($request->re_password != $request->password) {
+    if ($request->filled('password') && $request->re_password != $request->password) {
       Alert::error('Password tidak sama');
       return redirect()->back();
-    } else {
-      $user->update([
-        'nama' => $request->namaKaryawan,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'nomor_telepon' => $request->no_telp,
-        'role' => $request->role,
-        'status' => 'Aktif',
-      ]);
-      Alert::success('User Berhasil diubah');
-      return redirect('daftar-user');
     }
+
+    $updateData = [
+      'nama'          => $request->namaKaryawan,
+      'email'         => $request->email,
+      'nomor_telepon' => $request->no_telp ? substr(trim($request->no_telp), 0, 30) : null,
+      'role'          => $request->role,
+      'status'        => 'Aktif',
+    ];
+
+    if ($request->filled('password')) {
+      $updateData['password'] = Hash::make($request->password);
+    }
+
+    $user->update($updateData);
+    Alert::success('User Berhasil diubah');
+    return redirect('daftar-user');
   }
 
   function profiles()
