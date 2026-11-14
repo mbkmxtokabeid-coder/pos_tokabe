@@ -914,6 +914,23 @@
           transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s,
                       transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
       }
+      .sidebar-badge-spt {
+          font-size: 9.5px !important;
+          font-weight: 700 !important;
+          padding: 2px 7px !important;
+          border-radius: 5px !important;
+          letter-spacing: 0.03em !important;
+          margin-left: auto !important;
+          margin-right: 12px !important;
+          white-space: nowrap !important;
+          flex-shrink: 0 !important;
+          opacity: 1;
+          transform: scale(1);
+          max-width: 60px;
+          overflow: hidden;
+          transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s,
+                      transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
+      }
 
       /* =========================================================
          COLLAPSIBLE MENU DROPDOWN (Surat & Laporan Smooth Slide)
@@ -1236,10 +1253,14 @@
           pointer-events: none !important;
           transition: opacity 0.15s ease, transform 0.15s ease, max-width 0.22s ease !important;
       }
-      [data-sidebar-size="sm-hover"] .navbar-menu .sidebar-badge-beta {
+      [data-sidebar-size="sm-hover"] .navbar-menu .sidebar-badge-beta,
+      [data-sidebar-size="sm-hover"] .navbar-menu .sidebar-badge-spt {
           opacity: 0 !important;
           transform: scale(0.7) !important;
           max-width: 0 !important;
+          margin-right: 0 !important;
+          padding: 0 !important;
+          border-width: 0 !important;
           pointer-events: none !important;
           transition: opacity 0.15s ease, transform 0.15s ease !important;
       }
@@ -1264,6 +1285,19 @@
           opacity: 1 !important;
           transform: scale(1) !important;
           max-width: 45px !important;
+          margin-right: 12px !important;
+          padding: 2px 6px !important;
+          pointer-events: auto !important;
+          transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s,
+                      transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s !important;
+      }
+      [data-sidebar-size="sm-hover"] .navbar-menu:hover .sidebar-badge-spt {
+          opacity: 1 !important;
+          transform: scale(1) !important;
+          max-width: 60px !important;
+          margin-right: 12px !important;
+          padding: 2px 7px !important;
+          border-width: 1px !important;
           pointer-events: auto !important;
           transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s,
                       transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.06s !important;
@@ -1406,8 +1440,21 @@
 
                     <li class="nav-item">
                         <a class="nav-link menu-link {{ Request::is('spt-masa*') ? 'active' : '' }}" href="{{ route('spt-masa.index') }}">
-                            <span class="icon-box"><i class="las la-balance-scale menu-icon"></i></span>
+                            <span class="icon-box position-relative">
+                                <i class="las la-balance-scale menu-icon"></i>
+                                @if(!empty($sptReminder['should_remind']))
+                                    <span class="position-absolute rounded-circle {{ ($sptReminder['level'] ?? '') === 'danger' ? 'bg-danger' : 'bg-warning' }}"
+                                          style="top: 7px; right: 11px; width: 8px; height: 8px; border: 2px solid #0C0F14;"
+                                          title="{{ $sptReminder['headline'] ?? 'Reminder SPT Masa' }}"></span>
+                                @endif
+                            </span>
                             <span class="menu-text">SPT Masa</span>
+                            @if(!empty($sptReminder['should_remind']))
+                                <span class="badge sidebar-badge-spt"
+                                      style="background: {{ ($sptReminder['level'] ?? '') === 'danger' ? 'rgba(244,63,94,0.2)' : 'rgba(245,158,11,0.2)' }}; color: {{ ($sptReminder['level'] ?? '') === 'danger' ? '#FDA4AF' : '#FCD34D' }}; border: 1px solid {{ ($sptReminder['level'] ?? '') === 'danger' ? 'rgba(244,63,94,0.4)' : 'rgba(245,158,11,0.4)' }}; margin-right: 12px;">
+                                    {{ ($sptReminder['days_remaining'] ?? 0) === 0 ? 'H-0' : ($sptReminder['countdown_label'] ?? 'H-5') }}
+                                </span>
+                            @endif
                         </a>
                     </li>
 
@@ -1498,6 +1545,36 @@
 
         <!-- BOTTOM: User Account Footer (like shadcn SessionNavBar footer) -->
         <div class="sidebar-user-footer">
+            @if(Auth::check() && in_array(Auth::user()->role, ['Admin', 'Pemilik']))
+            @php
+                $panelItems = $sptReminder['panel_notifications'] ?? [];
+                $notifCount = count($panelItems);
+                $hasReminder = $notifCount > 0;
+                $notifParams = $sptReminder['preview_query'] ?? [];
+            @endphp
+            <a href="{{ route('notifikasi.index', $notifParams) }}"
+               class="btn user-trigger-btn d-flex align-items-center w-100 position-relative mb-2 text-decoration-none {{ Request::is('notifikasi*') ? 'active' : '' }}"
+               style="{{ Request::is('notifikasi*') ? 'background: rgba(99, 102, 241, 0.14); border-color: rgba(99, 102, 241, 0.35);' : '' }}"
+               title="Buka Halaman Notifikasi Pajak">
+                <div class="user-avatar-badge position-relative" style="background: {{ $hasReminder ? 'rgba(245,158,11,0.16)' : '#1E263B' }}; border: 1px solid {{ $hasReminder ? 'rgba(245,158,11,0.4)' : '#282E37' }}; color: {{ $hasReminder ? '#FCD34D' : '#94A3B8' }};">
+                    <i class="ri-notification-3-line fs-16"></i>
+                    @if($hasReminder)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill {{ ($sptReminder['level'] ?? '') === 'danger' ? 'bg-danger' : 'bg-warning text-dark' }}" style="font-size: 9px; padding: 2px 5px;">
+                            {{ $notifCount }}
+                        </span>
+                    @endif
+                </div>
+                <div class="user-meta">
+                    <div class="text-truncate overflow-hidden text-start">
+                        <span class="user-name text-truncate d-block">Notifikasi</span>
+                        <span class="user-role-label text-truncate d-block">
+                            {{ $hasReminder ? ($notifCount . ' pengingat aktif') : 'Semua SPT aman' }}
+                        </span>
+                    </div>
+                    <i class="ri-arrow-right-s-line user-chevron ms-auto text-muted"></i>
+                </div>
+            </a>
+            @endif
             <div class="dropup w-100">
                 <button type="button" class="btn user-trigger-btn d-flex align-items-center w-100" data-bs-toggle="dropdown" data-bs-offset="[0, 10]" aria-expanded="false">
                     <div class="user-avatar-badge">
@@ -1548,6 +1625,9 @@
         <!-- Start right Content here -->
         <!-- ============================================================== -->
         <div class="main-content">
+        @if(!Request::is('notifikasi*'))
+            <x-spt-reminder-banner :reminder="$sptReminder ?? []" />
+        @endif
         @yield('content')
 
         @include('layout.footer')
@@ -1571,46 +1651,61 @@
                 });
             }
 
-            // Smooth entrance and exit animations for profile popup menu
+            // Smooth entrance and exit animations for sidebar footer popup menus
             var userFooter = document.querySelector(".sidebar-user-footer");
             if (userFooter) {
-                var toggleBtn = userFooter.querySelector('[data-bs-toggle="dropdown"]');
-                var menuEl = userFooter.querySelector(".shadcn-dropdown-menu");
                 var sidebar = document.querySelector(".navbar-menu");
-                var dropContainer = userFooter.querySelector(".dropup, .dropdown");
-                var isClosing = false;
+                userFooter.querySelectorAll(".dropup, .dropdown").forEach(function (dropContainer) {
+                    var toggleBtn = dropContainer.querySelector('[data-bs-toggle="dropdown"]');
+                    var menuEl = dropContainer.querySelector(".shadcn-dropdown-menu");
+                    var isClosing = false;
 
-                if (dropContainer && toggleBtn && menuEl) {
-                    dropContainer.addEventListener("show.bs.dropdown", function () {
-                        if (sidebar) sidebar.classList.add("user-dropdown-active");
-                    });
+                    if (toggleBtn && menuEl) {
+                        dropContainer.addEventListener("show.bs.dropdown", function () {
+                            if (sidebar) sidebar.classList.add("user-dropdown-active");
+                        });
 
-                    dropContainer.addEventListener("hide.bs.dropdown", function (e) {
-                        if (isClosing) {
-                            return; // Allow the final hide to proceed smoothly
-                        }
-
-                        // Intercept dismissal to run smooth exit animation
-                        e.preventDefault();
-                        isClosing = true;
-                        menuEl.classList.add("is-closing");
-
-                        setTimeout(function () {
-                            menuEl.classList.remove("is-closing");
-                            if (sidebar) sidebar.classList.remove("user-dropdown-active");
-
-                            var bsDropdown = bootstrap.Dropdown.getInstance(toggleBtn);
-                            if (bsDropdown) {
-                                bsDropdown.hide();
-                            } else {
-                                menuEl.classList.remove("show");
+                        dropContainer.addEventListener("hide.bs.dropdown", function (e) {
+                            if (isClosing) {
+                                return;
                             }
-                            isClosing = false;
-                        }, 160);
-                    });
 
-                    dropContainer.addEventListener("hidden.bs.dropdown", function () {
-                        if (sidebar) sidebar.classList.remove("user-dropdown-active");
+                            e.preventDefault();
+                            isClosing = true;
+                            menuEl.classList.add("is-closing");
+
+                            setTimeout(function () {
+                                menuEl.classList.remove("is-closing");
+                                if (sidebar) sidebar.classList.remove("user-dropdown-active");
+
+                                var bsDropdown = bootstrap.Dropdown.getInstance(toggleBtn);
+                                if (bsDropdown) {
+                                    bsDropdown.hide();
+                                } else {
+                                    menuEl.classList.remove("show");
+                                }
+                                isClosing = false;
+                            }, 160);
+                        });
+
+                        dropContainer.addEventListener("hidden.bs.dropdown", function () {
+                            if (sidebar) sidebar.classList.remove("user-dropdown-active");
+                        });
+                    }
+                });
+
+                // Tutup dropdown & kembalikan ukuran sidebar saat kursor keluar dari area sidebar
+                if (sidebar) {
+                    sidebar.addEventListener("mouseleave", function () {
+                        userFooter.querySelectorAll('.shadcn-dropdown-menu.show').forEach(function (openMenu) {
+                            var parentDrop = openMenu.closest('.dropup, .dropdown');
+                            var btn = parentDrop ? parentDrop.querySelector('[data-bs-toggle="dropdown"]') : null;
+                            if (btn && typeof bootstrap !== 'undefined') {
+                                var inst = bootstrap.Dropdown.getInstance(btn);
+                                if (inst) inst.hide();
+                            }
+                        });
+                        sidebar.classList.remove("user-dropdown-active");
                     });
                 }
             }

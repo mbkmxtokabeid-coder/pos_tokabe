@@ -18,6 +18,7 @@ use App\Http\Controllers\LaporanPembelianController;
 use App\Http\Controllers\BebanBelanjaController;
 use App\Http\Controllers\KategoriBebanController;
 use App\Http\Controllers\SptMasaController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\KategoriInvoiceController;
 
 use App\Http\Controllers\Auth\LoginController;
@@ -174,6 +175,9 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/spt-masa/{id}/request-unlock', [SptMasaController::class, 'requestUnlock'])->name('spt-masa.request-unlock');
             Route::post('/spt-masa/{id}/unlock', [SptMasaController::class, 'unlock'])->middleware('role:Pemilik')->name('spt-masa.unlock');
             Route::post('/spt-masa/{id}/lock', [SptMasaController::class, 'lock'])->middleware('role:Pemilik')->name('spt-masa.lock');
+
+            // ROUTE HALAMAN NOTIFIKASI PAJAK
+            Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
 
             // ROUTE KATEGORI INVOICE (MANAJEMEN HANYA PEMILIK)
             Route::get('/kategori-invoice', [KategoriInvoiceController::class, 'index'])->middleware('role:Pemilik')->name('kategori-invoice.index');

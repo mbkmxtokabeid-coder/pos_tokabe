@@ -2998,6 +2998,32 @@
                 }
             });
         });
+
+        // Auto-open Modal Input SPT Masa saat diklik dari Reminder Banner / Notifikasi
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('open_modal') === '1') {
+            const paramBulan = urlParams.get('bulan');
+            const paramTahun = urlParams.get('tahun');
+            const elAddBulan = document.getElementById('add_masa_pajak_bulan');
+            const elAddTahun = document.getElementById('add_masa_pajak_tahun');
+            const elAddJenis = document.getElementById('add_jenis_pajak');
+
+            if (elAddJenis) elAddJenis.value = 'SPT Masa PPN';
+            if (elAddBulan && paramBulan) elAddBulan.value = paramBulan;
+            if (elAddTahun && paramTahun) elAddTahun.value = paramTahun;
+
+            if (typeof handleJenisPajakMode === 'function') {
+                handleJenisPajakMode('add');
+            }
+            if (typeof updateDefaultJatuhTempoPpn === 'function') {
+                updateDefaultJatuhTempoPpn('add');
+            }
+
+            const modalAddEl = document.getElementById('modalTambahSpt');
+            if (modalAddEl && typeof bootstrap !== 'undefined') {
+                new bootstrap.Modal(modalAddEl).show();
+            }
+        }
     });
 </script>
 @endsection

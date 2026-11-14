@@ -57,6 +57,7 @@
                 tgl_jual: $('[name="tgl_jual"]').val() || '',
                 jam: $('[name="jam"]').val() || '',
                 tgl_selesai: $('[name="tgl_selesai"]').val() || '',
+                is_padi_umkm: $('[name="is_padi_umkm"]:checked').val() || '0',
                 jns_pem: $('[name="jns_pem"]').val() || '',
                 norek: $('[name="norek"]:checked').val() || '',
                 ppn: $('#input-ppn').val() || '',
@@ -176,6 +177,7 @@
             }
         }
         if (header.tgl_selesai) $('[name="tgl_selesai"]').val(header.tgl_selesai);
+        if (header.is_padi_umkm !== undefined && header.is_padi_umkm !== '') $('[name="is_padi_umkm"][value="' + header.is_padi_umkm + '"]').prop('checked', true);
         if (header.jns_pem) $('[name="jns_pem"]').val(header.jns_pem).trigger('change');
         if (header.norek) $('[name="norek"][value="' + header.norek + '"]').prop('checked', true);
 

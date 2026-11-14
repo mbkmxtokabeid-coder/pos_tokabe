@@ -499,6 +499,23 @@ $(document).ready(function () {
                                        </div>
                                       </div>
                                      {{-- End Date --}}
+                                     {{-- Start PADI UMKM --}}
+                                     <div class="row mb-3">
+                                       <div class="col-lg-5">
+                                        <label class="form-label col-form-label col-form-label-md">Transaksi PADI UMKM <span class="text-danger">*</span></label>
+                                       </div>
+                                       <div class="col-lg-7 d-flex align-items-center gap-4 pt-1">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_tidak" value="0" {{ old('is_padi_umkm', '0') == '0' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="padi_umkm_tidak">Tidak (Non-PADI UMKM)</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_ya" value="1" {{ old('is_padi_umkm') == '1' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="padi_umkm_ya">Ya (PADI UMKM)</label>
+                                        </div>
+                                       </div>
+                                     </div>
+                                     {{-- End PADI UMKM --}}
                                    {{-- </div> --}}
                                   </div>
                                  </div>
