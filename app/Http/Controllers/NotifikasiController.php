@@ -9,10 +9,11 @@ class NotifikasiController extends Controller
 {
     public function index(Request $request, SptReminderService $reminderService)
     {
-        $reminder = $reminderService->getReminderData(
-            null,
-            $reminderService->resolvePreviewDaysRemaining($request)
-        );
+        $previewH = method_exists($reminderService, 'resolvePreviewDaysRemaining')
+            ? $reminderService->resolvePreviewDaysRemaining($request)
+            : null;
+
+        $reminder = $reminderService->getReminderData(null, $previewH);
 
         return view('pages.notifikasi.index', compact('reminder'));
     }

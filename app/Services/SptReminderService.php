@@ -78,6 +78,10 @@ class SptReminderService
         $endOfMonth = $today->copy()->endOfMonth()->startOfDay();
         $daysRemaining = (int) $today->diffInDays($endOfMonth, false);
 
+        if ($previewDaysRemaining === null) {
+            $previewDaysRemaining = $this->resolvePreviewDaysRemaining();
+        }
+
         if ($previewDaysRemaining !== null && $previewDaysRemaining >= 0 && $previewDaysRemaining <= 5) {
             $daysRemaining = $previewDaysRemaining;
         }

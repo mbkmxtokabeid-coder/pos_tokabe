@@ -34,7 +34,10 @@ class AppServiceProvider extends ServiceProvider
                 $user = Auth::user();
                 if ($user && in_array($user->role, ['Admin', 'Pemilik'], true)) {
                     $service = app(SptReminderService::class);
-                    $cachedReminder = $service->getReminderData(null, $service->resolvePreviewDaysRemaining(request()));
+                    $previewH = method_exists($service, 'resolvePreviewDaysRemaining')
+                        ? $service->resolvePreviewDaysRemaining(request())
+                        : null;
+                    $cachedReminder = $service->getReminderData(null, $previewH);
                 } else {
                     $cachedReminder = ['should_remind' => false, 'notif_count' => 0];
                 }
