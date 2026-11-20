@@ -1557,7 +1557,7 @@ class PenjualanTokabeController extends Controller
         }
         $isOwner = Auth::check() && Auth::user()->role === 'Pemilik';
         $isAdmin = Auth::check() && Auth::user()->role === 'Admin';
-        $isLocked = ($inv->approval !== 'Unlock');
+        $isLocked = ($inv->approval !== 'Unlock') && !$isOwner;
         $latestApprovalRequest = $inv->latestApprovalRequest;
 
         // Material untuk form edit
@@ -1567,7 +1567,7 @@ class PenjualanTokabeController extends Controller
     public function updateInvoice(Request $request, $id)
     {
         $penjualan = PenjualanTokabe::findOrFail($id);
-        if ($penjualan->approval !== 'Unlock') {
+        if (Auth::check() && Auth::user()->role === 'Admin' && $penjualan->approval !== 'Unlock') {
             Alert::error('Akses Ditolak', 'Invoice berstatus Terkunci. Silakan ajukan permintaan Unlock/Edit melalui WhatsApp terlebih dahulu.');
             if ($penjualan->is_custom == 1) {
                 return redirect()->route('list_invoice_tokabe_custom');

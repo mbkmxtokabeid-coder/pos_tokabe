@@ -164,7 +164,8 @@ class PembelianController extends Controller
     {
         $pembelian = Pembelian::with('barang')->findOrFail($id);
 
-        if ($pembelian->approval !== 'Unlock') {
+        $role = Auth::user()->role ?? null;
+        if ($role === 'Admin' && $pembelian->approval !== 'Unlock') {
             return redirect()->route('pembelian.vendor.show', $pembelian->id_vendor)
                 ->with('error', 'Akses edit riwayat pembelian terkunci. Silakan ajukan permintaan Unlock/Edit melalui WhatsApp terlebih dahulu.');
         }
@@ -180,7 +181,8 @@ class PembelianController extends Controller
     {
         $pembelian = Pembelian::findOrFail($id);
 
-        if ($pembelian->approval !== 'Unlock') {
+        $role = Auth::user()->role ?? null;
+        if ($role === 'Admin' && $pembelian->approval !== 'Unlock') {
             return redirect()->route('pembelian.vendor.show', $pembelian->id_vendor)
                 ->with('error', 'Akses edit riwayat pembelian terkunci. Silakan ajukan permintaan Unlock/Edit melalui WhatsApp terlebih dahulu.');
         }

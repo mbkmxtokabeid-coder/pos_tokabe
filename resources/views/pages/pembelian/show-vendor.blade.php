@@ -569,7 +569,7 @@
                                 $isOwner      = $roleUser === 'Pemilik';
                                 $isAdmin      = $roleUser === 'Admin';
                                 $isUnlocked   = $item->approval === 'Unlock';
-                                $canManage    = $isUnlocked;
+                                $canManage    = !$isAdmin || $isUnlocked;
 
                                 // Nomor WhatsApp Tujuan Terpusat (+62 811-5239-999)
                                 $waTarget = '628115239999';
@@ -695,21 +695,17 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-lg">
 
-                                            {{-- Menu Edit & Unlock --}}
-                                            @if($isUnlocked)
+                                            {{-- Menu Edit --}}
+                                            @if($canManage)
                                                 <li>
                                                     <a class="dropdown-item" href="{{ route('pembelian.edit', $item->id) }}">
                                                         <i class="ri-edit-line fs-15 text-primary"></i>Edit Pembelian
                                                     </a>
                                                 </li>
-                                                @if($isOwner)
-                                                    <li>
-                                                        <a class="dropdown-item text-warning" href="{{ route('pembelian.lock', $item->id) }}">
-                                                            <i class="ri-lock-line fs-15"></i>Kunci Kembali (Lock)
-                                                        </a>
-                                                    </li>
-                                                @endif
-                                            @else
+                                            @endif
+
+                                            {{-- ADMIN: Pengajuan Edit & Unlock via WA (+62 811-5239-999) jika status masih Terkunci --}}
+                                            @if($isAdmin && !$isUnlocked)
                                                 <li>
                                                     <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanEdit }}" target="_blank" rel="noopener noreferrer">
                                                         <i class="ri-whatsapp-line fs-15 text-success"></i>Request Edit (WA)
@@ -720,7 +716,25 @@
                                                         <i class="ri-whatsapp-line fs-15 text-success"></i>Request Unlock (WA)
                                                     </a>
                                                 </li>
-                                                @if($isOwner)
+                                            @endif
+
+                                            {{-- OWNER: Lock & Unlock langsung --}}
+                                            @if($isOwner)
+                                                @if($isUnlocked)
+                                                    <li>
+                                                        <a class="dropdown-item text-warning" href="{{ route('pembelian.lock', $item->id) }}">
+                                                            <i class="ri-lock-line fs-15"></i>Kunci Kembali (Lock)
+                                                        </a>
+                                                    </li>
+                                                @else
+                                                    <li>
+                                                        <form action="{{ route('pembelian.unlock', $item->id) }}" method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit" class="dropdown-item text-success">
+                                                                <i class="ri-lock-unlock-line fs-15"></i>Buka Kunci (Unlock)
+                                                            </button>
+                                                        </form>
+                                                    </li>
                                                     <li>
                                                         <a class="dropdown-item text-info" href="{{ route('pembelian.approval.page', $item->id) }}">
                                                             <i class="ri-shield-check-line fs-15"></i>Halaman Approval
@@ -773,13 +787,25 @@
                                                 </li>
                                             @endif
 
-                                            {{-- Pengajuan Hapus melalui WhatsApp (+62 811-5239-999) --}}
+                                            {{-- Hapus: Pemilik hapus langsung, Admin wajib Request Hapus via WA (+62 811-5239-999) --}}
                                             <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <a class="dropdown-item text-danger fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanHapus }}" target="_blank" rel="noopener noreferrer">
-                                                    <i class="ri-whatsapp-line fs-15 text-success"></i>Request Hapus (WA)
-                                                </a>
-                                            </li>
+                                            @if($isOwner)
+                                                <li>
+                                                    <form action="{{ route('pembelian.destroy', $item->id) }}" method="POST" onsubmit="event.preventDefault(); confirmHapus(this);">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            <i class="ri-delete-bin-line fs-15 text-danger"></i>Hapus
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @else
+                                                <li>
+                                                    <a class="dropdown-item text-danger fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanHapus }}" target="_blank" rel="noopener noreferrer">
+                                                        <i class="ri-whatsapp-line fs-15 text-success"></i>Request Hapus (WA)
+                                                    </a>
+                                                </li>
+                                            @endif
                                         </ul>
                                     </div>
                                 </td>
