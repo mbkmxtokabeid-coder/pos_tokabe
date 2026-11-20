@@ -131,17 +131,18 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/pembelian', [PembelianController::class, 'store'])->name('pembelian.store');
             Route::get('/pembelian/{id}/edit', [PembelianController::class, 'edit'])->name('pembelian.edit');
             Route::put('/pembelian/{id}', [PembelianController::class, 'update'])->name('pembelian.update');
-            Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy'])->name('pembelian.destroy');
+            Route::delete('/pembelian/{id}', [PembelianController::class, 'destroy'])->middleware('role:Pemilik')->name('pembelian.destroy');
             Route::get('/pembelian/{id}/lunas', [PembelianController::class, 'lunas'])->middleware('role:Pemilik')->name('pembelian.lunas');
             // CICILAN PEMBELIAN
             Route::post('/pembelian/{id}/cicilan', [PembelianController::class, 'bayarCicilan'])->name('pembelian.cicilan.store');
             Route::post('/pembelian-cicilan/{id}/approve', [PembelianController::class, 'approveCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.approve');
             Route::post('/pembelian-cicilan/{id}/reject', [PembelianController::class, 'rejectCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.reject');
             Route::post('/pembelian-cicilan/{id}/cancel', [PembelianController::class, 'cancelCicilan'])->middleware('role:Pemilik')->name('pembelian.cicilan.cancel');
-            // APPROVAL PEMBELIAN (LOCK / UNLOCK - HANYA PEMILIK)
+            // APPROVAL PEMBELIAN (LOCK / UNLOCK / DELETE - HANYA PEMILIK)
             Route::post('/ubah-status-unlock-pembelian/{id}', [PembelianController::class, 'unlock'])->middleware('role:Pemilik')->name('pembelian.unlock');
             Route::get('/ubah-status-lock-pembelian/{id}', [PembelianController::class, 'lock'])->middleware('role:Pemilik')->name('pembelian.lock');
             Route::get('/pembelian-approval/{id}', [PembelianController::class, 'approvalPage'])->middleware('role:Pemilik')->name('pembelian.approval.page');
+            Route::get('/pembelian-delete/{id}', [PembelianController::class, 'deletePage'])->middleware('role:Pemilik')->name('pembelian.delete.page');
             Route::post('/pembelian/vendor', [PembelianController::class, 'storeVendor'])->name('pembelian.vendor.store');
             Route::put('/pembelian/vendor/{id}', [PembelianController::class, 'updateVendor'])->name('pembelian.vendor.update');
             Route::get('/pembelian/vendor/{id}', [PembelianController::class, 'showVendor'])->name('pembelian.vendor.show');

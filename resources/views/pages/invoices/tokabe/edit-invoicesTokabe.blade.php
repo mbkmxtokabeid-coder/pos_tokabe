@@ -15,6 +15,10 @@
 @endsection
 @extends('layout.template')
 @section('content')
+@php
+    $waTargetEditForm = '628115239999';
+    $msgUnlockEditForm = urlencode("Halo, saya ingin meminta approval untuk membuka akses (Unlock / Edit) invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna perubahan data / pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n" . url("/tokabe-approval/{$inv->id}"));
+@endphp
 @if($isLocked)
 <div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-3 p-3 mb-3" role="alert" style="background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b !important;">
     <i class="ri-lock-2-line fs-20 text-warning mt-1"></i>
@@ -26,7 +30,7 @@
             </span>
         </div>
         <p class="mb-2 text-muted" style="font-size: 13.5px;">
-            Invoice ini dalam keadaan terkunci. Anda tidak dapat melakukan perubahan atau mengisi Nomor Faktur Pajak sampai mendapatkan persetujuan (approval) dari Pemilik/Owner.
+            Invoice ini dalam keadaan terkunci. Anda tidak dapat melakukan perubahan atau mengisi Nomor Faktur Pajak sampai mendapatkan persetujuan (approval) melalui WhatsApp (+62 811-5239-999).
         </p>
         @if(isset($latestApprovalRequest) && $latestApprovalRequest && $latestApprovalRequest->status === 'Pending')
             <div class="alert alert-info py-1 px-2 mb-2 d-inline-flex align-items-center gap-1" style="font-size: 12px;">
@@ -34,18 +38,12 @@
             </div>
         @endif
         <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
-            @if($isAdmin)
-                <form action="{{ route('tokabe.request.edit_faktur', $inv->id) }}" method="POST" class="d-inline">
-                    @csrf
-                    <input type="hidden" name="catatan" value="Pengajuan izin edit Nomor Faktur Pajak dari form edit">
-                    <button type="submit" class="btn btn-sm btn-warning">
-                        <i class="ri-key-2-line me-1"></i>Minta Akses Edit ke Owner
-                    </button>
-                </form>
-            @endif
+            <a href="https://wa.me/{{ $waTargetEditForm }}?text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-warning">
+                <i class="ri-whatsapp-line me-1"></i>Request Unlock / Edit via WA (+62 811-5239-999)
+            </a>
             @if($isOwner)
                 <a href="{{ route('tokabe.approval.page', $inv->id) }}" class="btn btn-sm btn-success">
-                    <i class="ri-lock-unlock-line me-1"></i>Buka Kunci (Unlock) Sekarang
+                    <i class="ri-shield-check-line me-1"></i>Halaman Approval
                 </a>
             @endif
         </div>
@@ -596,17 +594,12 @@
                                       <button type="button" class="btn btn-secondary disabled" title="Invoice sedang terkunci (Read-Only)">
                                           <i class="ri-lock-line align-bottom me-1"></i>Terkunci (Read-Only)
                                       </button>
-                                      @if($isAdmin)
-                                          <form action="{{ route('tokabe.request.edit_faktur', $inv->id) }}" method="POST" class="d-inline">
-                                              @csrf
-                                              <button type="submit" class="btn btn-warning">
-                                                  <i class="ri-key-2-line align-bottom me-1"></i>Minta Akses Edit
-                                              </button>
-                                          </form>
-                                      @endif
+                                      <a href="https://wa.me/{{ $waTargetEditForm }}?text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-warning">
+                                          <i class="ri-whatsapp-line align-bottom me-1"></i>Request Unlock / Edit (WA)
+                                      </a>
                                       @if($isOwner)
                                           <a href="{{ route('tokabe.approval.page', $inv->id) }}" class="btn btn-success">
-                                              <i class="ri-lock-unlock-line align-bottom me-1"></i>Buka Kunci (Unlock)
+                                              <i class="ri-shield-check-line align-bottom me-1"></i>Halaman Approval
                                           </a>
                                       @endif
                                   @else

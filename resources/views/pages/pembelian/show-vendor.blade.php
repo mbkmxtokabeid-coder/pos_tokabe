@@ -569,14 +569,15 @@
                                 $isOwner      = $roleUser === 'Pemilik';
                                 $isAdmin      = $roleUser === 'Admin';
                                 $isUnlocked   = $item->approval === 'Unlock';
-                                $canManage    = !$isAdmin || $isUnlocked;
+                                $canManage    = $isUnlocked;
 
-                                // Kontak Owner Tokabe (sesuai modul invoice)
-                                $waOwner1 = '628116029999';
-                                $waOwner2 = '628116179999';
+                                // Nomor WhatsApp Tujuan Terpusat (+62 811-5239-999)
+                                $waTarget = '628115239999';
 
-                                // Pesan Request Unlock ke Owner via WhatsApp
+                                // Pesan Pengajuan Edit, Unlock, dan Delete via WhatsApp
+                                $pesanEdit = urlencode("Halo, saya ingin mengajukan permintaan perubahan data (Edit) untuk riwayat pembelian *#{$item->nomor_inv}* dari vendor *{$vendor->nama_vendor}*. Mohon untuk segera ditinjau.\n\nKlik tautan berikut untuk membuka halaman persetujuan:\n" . url("/pembelian-approval/{$item->id}"));
                                 $pesanUnlock = urlencode("Halo, saya ingin meminta approval untuk membuka akses riwayat pembelian *#{$item->nomor_inv}* dari vendor *{$vendor->nama_vendor}*. Mohon untuk segera ditinjau.\n\nKlik tautan berikut untuk membuka halaman persetujuan:\n" . url("/pembelian-approval/{$item->id}"));
+                                $pesanHapus = urlencode("Halo, saya ingin meminta persetujuan untuk MENGHAPUS riwayat pembelian *#{$item->nomor_inv}* dari vendor *{$vendor->nama_vendor}*. Mohon untuk segera ditinjau.\n\nKlik tautan berikut untuk membuka halaman konfirmasi hapus:\n" . url("/pembelian-delete/{$item->id}"));
                                 $deskripsiSearch = $item->barang->pluck('deskripsi')->filter()->implode(' ');
                             @endphp
                             <tr class="pembelian-row" data-invoice="{{ strtolower($item->nomor_inv . ' ' . $deskripsiSearch) }}" data-status="{{ $item->status }}">
@@ -694,52 +695,32 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-lg">
 
-                                            {{-- Menu Edit --}}
-                                            @if($canManage)
+                                            {{-- Menu Edit & Unlock --}}
+                                            @if($isUnlocked)
                                                 <li>
                                                     <a class="dropdown-item" href="{{ route('pembelian.edit', $item->id) }}">
                                                         <i class="ri-edit-line fs-15 text-primary"></i>Edit Pembelian
                                                     </a>
                                                 </li>
-                                            @else
-                                                <li>
-                                                    <span class="dropdown-item text-muted disabled">
-                                                        <i class="ri-lock-line fs-15 text-warning"></i>Edit Terkunci
-                                                    </span>
-                                                </li>
-                                            @endif
-
-                                            {{-- ADMIN: Request Unlock via WA jika status masih Terkunci --}}
-                                            @if($isAdmin && !$isUnlocked)
-                                                <li>
-                                                    <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waOwner1 }}?text={{ $pesanUnlock }}" target="_blank">
-                                                        <i class="ri-whatsapp-line fs-15 text-success"></i>Request Unlock (Owner 1)
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waOwner2 }}?text={{ $pesanUnlock }}" target="_blank">
-                                                        <i class="ri-whatsapp-line fs-15 text-success"></i>Request Unlock (Owner 2)
-                                                    </a>
-                                                </li>
-                                            @endif
-
-                                            {{-- OWNER: Lock & Unlock langsung --}}
-                                            @if($isOwner)
-                                                @if($isUnlocked)
+                                                @if($isOwner)
                                                     <li>
                                                         <a class="dropdown-item text-warning" href="{{ route('pembelian.lock', $item->id) }}">
                                                             <i class="ri-lock-line fs-15"></i>Kunci Kembali (Lock)
                                                         </a>
                                                     </li>
-                                                @else
-                                                    <li>
-                                                        <form action="{{ route('pembelian.unlock', $item->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            <button type="submit" class="dropdown-item text-success">
-                                                                <i class="ri-lock-unlock-line fs-15"></i>Buka Kunci (Unlock)
-                                                            </button>
-                                                        </form>
-                                                    </li>
+                                                @endif
+                                            @else
+                                                <li>
+                                                    <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanEdit }}" target="_blank" rel="noopener noreferrer">
+                                                        <i class="ri-whatsapp-line fs-15 text-success"></i>Request Edit (WA)
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanUnlock }}" target="_blank" rel="noopener noreferrer">
+                                                        <i class="ri-whatsapp-line fs-15 text-success"></i>Request Unlock (WA)
+                                                    </a>
+                                                </li>
+                                                @if($isOwner)
                                                     <li>
                                                         <a class="dropdown-item text-info" href="{{ route('pembelian.approval.page', $item->id) }}">
                                                             <i class="ri-shield-check-line fs-15"></i>Halaman Approval
@@ -792,19 +773,13 @@
                                                 </li>
                                             @endif
 
-                                            {{-- Hapus (hanya jika memiliki hak kelola) --}}
-                                            @if($canManage)
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <form action="{{ route('pembelian.destroy', $item->id) }}" method="POST" onsubmit="event.preventDefault(); confirmHapus(this);">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="dropdown-item text-danger">
-                                                            <i class="ri-delete-bin-line fs-15 text-danger"></i>Hapus
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            @endif
+                                            {{-- Pengajuan Hapus melalui WhatsApp (+62 811-5239-999) --}}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanHapus }}" target="_blank" rel="noopener noreferrer">
+                                                    <i class="ri-whatsapp-line fs-15 text-success"></i>Request Hapus (WA)
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </td>
@@ -1035,7 +1010,7 @@
                                             @php
                                                 $pesanWaCicilan = urlencode("Halo, admin telah mengajukan pembayaran termin ke-{$pby->cicilan_ke} untuk invoice #{$item->nomor_inv} ({$vendor->nama_vendor}) sebesar Rp " . number_format($pby->jumlah_bayar, 0, ',', '.') . ". Mohon persetujuan Pemilik melalui sistem Tokabe.");
                                             @endphp
-                                            <a href="https://wa.me/{{ $waOwner1 }}?text={{ $pesanWaCicilan }}" target="_blank" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
+                                            <a href="https://wa.me/628115239999?text={{ $pesanWaCicilan }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
                                                 <i class="ri-whatsapp-line"></i> Hubungi Owner
                                             </a>
                                         @endif

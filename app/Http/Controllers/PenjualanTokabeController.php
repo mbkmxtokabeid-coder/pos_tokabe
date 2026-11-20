@@ -1557,7 +1557,7 @@ class PenjualanTokabeController extends Controller
         }
         $isOwner = Auth::check() && Auth::user()->role === 'Pemilik';
         $isAdmin = Auth::check() && Auth::user()->role === 'Admin';
-        $isLocked = ($inv->approval !== 'Unlock') && !$isOwner;
+        $isLocked = ($inv->approval !== 'Unlock');
         $latestApprovalRequest = $inv->latestApprovalRequest;
 
         // Material untuk form edit
@@ -1567,8 +1567,8 @@ class PenjualanTokabeController extends Controller
     public function updateInvoice(Request $request, $id)
     {
         $penjualan = PenjualanTokabe::findOrFail($id);
-        if (Auth::check() && Auth::user()->role === 'Admin' && $penjualan->approval !== 'Unlock') {
-            Alert::error('Akses Ditolak', 'Invoice berstatus Terkunci. Anda harus meminta izin/approval Owner terlebih dahulu.');
+        if ($penjualan->approval !== 'Unlock') {
+            Alert::error('Akses Ditolak', 'Invoice berstatus Terkunci. Silakan ajukan permintaan Unlock/Edit melalui WhatsApp terlebih dahulu.');
             if ($penjualan->is_custom == 1) {
                 return redirect()->route('list_invoice_tokabe_custom');
             }
@@ -1891,7 +1891,7 @@ class PenjualanTokabeController extends Controller
         $inv = PenjualanTokabe::findOrFail($id);
         $user = Auth::user();
 
-        $approvalRequest = InvoiceApprovalRequest::updateOrCreate(
+        InvoiceApprovalRequest::updateOrCreate(
             [
                 'invoice_id' => $inv->id,
                 'status' => 'Pending',
@@ -1903,16 +1903,21 @@ class PenjualanTokabeController extends Controller
             ]
         );
 
+        $msgUnlock = urlencode(
+            "Halo, saya ingin meminta approval untuk membuka akses invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna perubahan data / pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n"
+            . url("/tokabe-approval/{$inv->id}")
+        );
+        $waUrl = "https://wa.me/628115239999?text={$msgUnlock}";
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => "Permintaan akses edit untuk invoice #{$inv->nomor_invoice} berhasil diajukan kepada Owner.",
-                'data' => $approvalRequest,
+                'message' => "Mengarahkan pengajuan akses edit invoice #{$inv->nomor_invoice} ke WhatsApp (+62 811-5239-999).",
+                'wa_url' => $waUrl,
             ]);
         }
 
-        Alert::success('Berhasil', "Permintaan akses edit untuk invoice #{$inv->nomor_invoice} telah diajukan kepada Owner.");
-        return redirect()->back();
+        return redirect()->away($waUrl);
     }
 
     public function unlock($id)

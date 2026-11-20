@@ -164,10 +164,9 @@ class PembelianController extends Controller
     {
         $pembelian = Pembelian::with('barang')->findOrFail($id);
 
-        $role = Auth::user()->role ?? null;
-        if ($role === 'Admin' && $pembelian->approval !== 'Unlock') {
+        if ($pembelian->approval !== 'Unlock') {
             return redirect()->route('pembelian.vendor.show', $pembelian->id_vendor)
-                ->with('error', 'Akses edit riwayat pembelian terkunci. Silakan minta persetujuan ke Pemilik terlebih dahulu.');
+                ->with('error', 'Akses edit riwayat pembelian terkunci. Silakan ajukan permintaan Unlock/Edit melalui WhatsApp terlebih dahulu.');
         }
 
         $vendor = $pembelian->vendor;
@@ -181,10 +180,9 @@ class PembelianController extends Controller
     {
         $pembelian = Pembelian::findOrFail($id);
 
-        $role = Auth::user()->role ?? null;
-        if ($role === 'Admin' && $pembelian->approval !== 'Unlock') {
+        if ($pembelian->approval !== 'Unlock') {
             return redirect()->route('pembelian.vendor.show', $pembelian->id_vendor)
-                ->with('error', 'Akses edit riwayat pembelian terkunci. Silakan minta persetujuan ke Pemilik terlebih dahulu.');
+                ->with('error', 'Akses edit riwayat pembelian terkunci. Silakan ajukan permintaan Unlock/Edit melalui WhatsApp terlebih dahulu.');
         }
 
         if ($request->has('terbayar')) {
@@ -354,13 +352,25 @@ class PembelianController extends Controller
         return view('pages.pembelian.approval', compact('pembelian'));
     }
 
+    public function deletePage($id)
+    {
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses ditolak. Hanya Pemilik yang dapat mengakses halaman konfirmasi penghapusan pembelian.');
+        }
+
+        $pembelian = Pembelian::with(['vendor', 'barang', 'pembayaran.anggaran', 'pembayaran.user'])->findOrFail($id);
+        return view('pages.pembelian.delete', compact('pembelian'));
+    }
+
     public function destroy($id)
     {
-        $pembelian = Pembelian::findOrFail($id);
-        $role = Auth::user()->role ?? null;
-        if ($role === 'Admin' && $pembelian->approval !== 'Unlock') {
-            return redirect()->back()->with('error', 'Akses hapus riwayat pembelian terkunci. Silakan minta persetujuan ke Pemilik terlebih dahulu.');
+        if (!Auth::check() || Auth::user()->role !== 'Pemilik') {
+            return redirect()->back()->with('error', 'Akses hapus riwayat pembelian harus diajukan melalui WhatsApp dan disetujui oleh Pemilik.');
         }
+
+        $pembelian = Pembelian::findOrFail($id);
+        $vendorId = $pembelian->id_vendor;
+        $nomorInv = $pembelian->nomor_inv;
 
         DB::transaction(function () use ($pembelian) {
             $this->adjustBudget($pembelian->anggaran, $pembelian->terbayar);
@@ -369,7 +379,8 @@ class PembelianController extends Controller
             $pembelian->delete();
         });
 
-        return back()->with('success', 'Pembelian berhasil dihapus.');
+        return redirect()->route('pembelian.vendor.show', $vendorId)
+            ->with('success', "Pembelian #{$nomorInv} berhasil dihapus.");
     }
 
     public function lunas($id)

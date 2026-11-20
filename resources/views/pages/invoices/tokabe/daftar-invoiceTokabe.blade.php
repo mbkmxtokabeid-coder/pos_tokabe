@@ -1988,31 +1988,23 @@
 
 
 
-                                              // Nomor WA Owner Tokabe
+                                              // Nomor WA Tujuan Terpusat (+62 811-5239-999)
+                                              $waTargetTkb = '628115239999';
 
-                                              $waOwner1Tkb = '628116029999';
-
-                                              $waOwner2Tkb = '628116179999';
-
-
+                                              // Pesan Request Edit
+                                              $msgEditTkb = urlencode("Halo, saya ingin mengajukan permintaan perubahan data (Edit) untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n" . url("/tokabe-approval/{$inv->id}"));
 
                                               // Pesan Request Unlock
-
                                               $msgUnlockTkb = urlencode("Halo, saya ingin meminta approval untuk membuka akses invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n" . url("/tokabe-approval/{$inv->id}"));
 
-
-
                                               // Pesan Request Pelunasan
-
                                               $msgLunasTkb = urlencode("Halo, saya ingin Request perubahan status pelunasan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman ubah status pelunasan:\n" . url("/tokabe-pelunasan/{$inv->id}"));
 
+                                              // Pesan Request Batal
+                                              $msgBatalTkb = urlencode("Halo, saya ingin Request pembatalan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman pembatalan invoice:\n" . url("/tokabe-batal/{$inv->id}"));
 
-                                               // Pesan Request Batal
-
-                                               $msgBatalTkb = urlencode("Halo, saya ingin Request pembatalan untuk invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman pembatalan invoice:\n" . url("/tokabe-batal/{$inv->id}"));
-
-                                               // Pesan Request Hapus
-                                               $msgHapusTkb = urlencode("Halo, saya ingin meminta persetujuan untuk MENGHAPUS invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman konfirmasi hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
+                                              // Pesan Request Hapus
+                                              $msgHapusTkb = urlencode("Halo, saya ingin meminta persetujuan untuk MENGHAPUS invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}*. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman konfirmasi hapus invoice:\n" . url("/tokabe-delete/{$inv->id}"));
 
                                               // Format Nomor HP Customer
 
@@ -2085,7 +2077,7 @@
 
 
 
-                                              $canManageTkb = !$isAdminTkb || $inv->approval === 'Unlock';
+                                              $canManageTkb = $inv->approval === 'Unlock';
 
                                           @endphp
 
@@ -2154,6 +2146,15 @@
 
 
 
+                                                  {{-- === EDIT: hanya jika status invoice sudah Unlock === --}}
+                                                  @if($canManageTkb)
+                                                  <li>
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="{{ route('edit.inv.tkb', $inv->id) }}">
+                                                          <i class="ri-pencil-line" style="font-size:16px;color:var(--text-tertiary,#94A3B8);flex-shrink:0;"></i>Edit
+                                                      </a>
+                                                  </li>
+                                                  @endif
+
                                                   {{-- === OWNER: Lock langsung jika sudah Unlock === --}}
                                                   @if($isOwnerTkb && $inv->approval === 'Unlock')
                                                   <li>
@@ -2163,182 +2164,73 @@
                                                   </li>
                                                   @endif
 
-                                                  {{-- === OWNER: Unlock Invoice & Halaman Approval jika Lock === --}}
-                                                  @if($isOwnerTkb && $inv->approval !== 'Unlock')
+                                                  {{-- === PENGAJUAN EDIT & UNLOCK VIA WA (+62 811-5239-999) JIKA STATUS TERKUNCI === --}}
+                                                  @if($inv->approval !== 'Unlock')
                                                   <li>
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--success-text,#86EFAC);" href="{{ route('tokabe.unlock', $inv->id) }}">
-                                                          <i class="ri-lock-unlock-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Unlock Invoice
+                                                      <a class="dropdown-item invoice-request invoice-request--edit" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgEditTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Edit (WA)
                                                       </a>
                                                   </li>
+                                                  <li>
+                                                      <a class="dropdown-item invoice-request invoice-request--unlock" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgUnlockTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (WA)
+                                                      </a>
+                                                  </li>
+                                                  @if($isOwnerTkb)
                                                   <li>
                                                       <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="{{ route('tokabe.approval.page', $inv->id) }}">
                                                           <i class="ri-shield-check-line" style="font-size:16px;color:var(--info,#06B6D4);flex-shrink:0;"></i>Halaman Approval
                                                       </a>
                                                   </li>
                                                   @endif
-
-                                                  {{-- === ADMIN: Minta Akses Edit Faktur Pajak via Sistem & WA === --}}
-                                                  @if($isAdminTkb && $inv->approval !== 'Unlock')
-                                                  <li>
-                                                      <form action="{{ route('tokabe.request.edit_faktur', $inv->id) }}" method="POST" class="d-inline w-100">
-                                                          @csrf
-                                                          <button type="submit" class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;background:none;border:none;width:100%;text-align:left;">
-                                                              <i class="ri-key-2-line" style="font-size:16px;color:var(--warning,#F59E0B);flex-shrink:0;"></i>Minta Akses Edit (Sistem)
-                                                          </button>
-                                                      </form>
-                                                  </li>
-                                                  <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--unlock invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Minta Akses Edit (Owner 1)
-                                                      </a>
-                                                  </li>
-                                                  <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--unlock invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgUnlockTkb }}" target="_blank">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Minta Akses Edit (Owner 2)
-                                                      </a>
-                                                  </li>
                                                   @endif
 
-
-
-                                                  {{-- === ADMIN: Request Pelunasan via WA === --}}
-
+                                                  {{-- === ADMIN: Request Pelunasan via WA (+62 811-5239-999) === --}}
                                                   @if($isAdminTkb && $inv->status !== 'Lunas' && $inv->status !== 'Batal')
-
                                                   <li>
-
-                                                      <a class="dropdown-item invoice-request invoice-request--settlement invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (Owner 1)
-
+                                                      <a class="dropdown-item invoice-request invoice-request--settlement" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgLunasTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (WA)
                                                       </a>
-
                                                   </li>
-
-                                                  <li>
-
-                                                      <a class="dropdown-item invoice-request invoice-request--settlement invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgLunasTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (Owner 2)
-
-                                                      </a>
-
-                                                  </li>
-
                                                   @endif
 
-
-
-                                                  {{-- === ADMIN: Request Batal via WA === --}}
-
+                                                  {{-- === ADMIN: Request Batal via WA (+62 811-5239-999) === --}}
                                                   @if($isAdminTkb && $inv->status !== 'Batal')
-
                                                   <li>
-
-                                                      <a class="dropdown-item invoice-request invoice-request--cancel invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (Owner 1)
-
+                                                      <a class="dropdown-item invoice-request invoice-request--cancel" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgBatalTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (WA)
                                                       </a>
-
                                                   </li>
-
-                                                  <li>
-
-                                                      <a class="dropdown-item invoice-request invoice-request--cancel invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgBatalTkb }}" target="_blank">
-
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (Owner 2)
-
-                                                      </a>
-
-                                                  </li>
-
                                                   @endif
-
-                                                   {{-- === ADMIN: Request Hapus via WA === --}}
-                                                   @if($isAdminTkb)
-                                                   <li>
-                                                       <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-1" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner1Tkb }}?text={{ $msgHapusTkb }}" target="_blank">
-                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 1)
-                                                       </a>
-                                                   </li>
-                                                   <li>
-                                                       <a class="dropdown-item invoice-request invoice-request--delete invoice-request--owner-2" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waOwner2Tkb }}?text={{ $msgHapusTkb }}" target="_blank">
-                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (Owner 2)
-                                                       </a>
-                                                   </li>
-                                                   @endif
-
-
 
                                                   {{-- === OWNER: Pelunasan langsung === --}}
-
                                                   @if($isOwnerTkb && $inv->status == 'Belum Lunas')
-
                                                   <li>
-
                                                       <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="{{ route('tokabe.pelunasan.page', $inv->id) }}">
-
                                                           <i class="ri-money-dollar-circle-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Pelunasan
-
                                                       </a>
-
                                                   </li>
-
                                                   @endif
-
-
-
-                                                  {{-- === EDIT: hanya jika Pemilik, atau Admin dengan approval Unlock === --}}
-
-                                                  @if($canManageTkb)
-
-                                                  <li>
-
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="{{ route('edit.inv.tkb', $inv->id) }}">
-
-                                                          <i class="ri-pencil-line" style="font-size:16px;color:var(--text-tertiary,#94A3B8);flex-shrink:0;"></i>Edit
-
-                                                      </a>
-
-                                                  </li>
-
-                                                  @endif
-
-
 
                                                   {{-- === OWNER: Pembatalan langsung === --}}
-
                                                   @if($isOwnerTkb && $inv->status !== 'Batal')
-
                                                   <li>
-
                                                       <button type="button" class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" onclick="confirmBatalTkb('{{ $inv->id }}', '{{ $inv->nomor_invoice }}')">
-
                                                           <i class="ri-folder-reduce-line" style="font-size:16px;color:var(--danger,#EF4444);flex-shrink:0;"></i>Invoice Batal
-
                                                       </button>
-
                                                       <form id="form-batal-tkb-{{ $inv->id }}" action="{{ route('tokabe.status.batal', $inv->id) }}" method="POST" style="display:none;">
-
                                                           @csrf
-
                                                           <input type="hidden" name="alasan_batal" id="input-alasan-tkb-{{ $inv->id }}">
-
                                                       </form>
-
                                                   </li>
-
                                                   @endif
 
-                                                   {{-- === OWNER: Hapus Invoice langsung === --}}
-                                                   @if($isOwnerTkb)
-                                                   <li>
-                                                       <a class="dropdown-item text-danger" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);" href="{{ route('tokabe.delete.page', $inv->id) }}">
-                                                           <i class="ri-delete-bin-line" style="font-size:16px;color:var(--danger,#EF4444);flex-shrink:0;"></i>Hapus Invoice
-                                                       </a>
-                                                   </li>
-                                                   @endif
+                                                  {{-- === PENGAJUAN HAPUS INVOICE VIA WA (+62 811-5239-999) === --}}
+                                                  <li>
+                                                      <a class="dropdown-item invoice-request invoice-request--delete" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgHapusTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (WA)
+                                                      </a>
+                                                  </li>
 
 
 
