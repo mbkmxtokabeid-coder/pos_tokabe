@@ -16,7 +16,7 @@
 @extends('layout.template')
 @section('content')
 @php
-    $waTargetEditForm = '628115239999';
+    $waTargetEditForm = '628116029999';
     $msgUnlockEditForm = urlencode("Halo, saya ingin meminta approval untuk membuka akses (Unlock / Edit) invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna perubahan data / pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n" . url("/tokabe-approval/{$inv->id}"));
 @endphp
 @if($isLocked)
@@ -30,7 +30,7 @@
             </span>
         </div>
         <p class="mb-2 text-muted" style="font-size: 13.5px;">
-            Invoice ini dalam keadaan terkunci. Anda tidak dapat melakukan perubahan atau mengisi Nomor Faktur Pajak sampai mendapatkan persetujuan (approval) melalui WhatsApp (+62 811-5239-999).
+            Invoice ini dalam keadaan terkunci. Anda tidak dapat melakukan perubahan atau mengisi Nomor Faktur Pajak sampai mendapatkan persetujuan (approval) melalui WhatsApp (+62 811-6029-999).
         </p>
         @if(isset($latestApprovalRequest) && $latestApprovalRequest && $latestApprovalRequest->status === 'Pending')
             <div class="alert alert-info py-1 px-2 mb-2 d-inline-flex align-items-center gap-1" style="font-size: 12px;">
@@ -39,7 +39,7 @@
         @endif
         <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
             <a href="https://wa.me/{{ $waTargetEditForm }}?text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-warning">
-                <i class="ri-whatsapp-line me-1"></i>Request Unlock / Edit via WA (+62 811-5239-999)
+                <i class="ri-whatsapp-line me-1"></i>Request Unlock / Edit via WA (+62 811-6029-999)
             </a>
             @if($isOwner)
                 <a href="{{ route('tokabe.approval.page', $inv->id) }}" class="btn btn-sm btn-success">

@@ -571,8 +571,8 @@
                                 $isUnlocked   = $item->approval === 'Unlock';
                                 $canManage    = !$isAdmin || $isUnlocked;
 
-                                // Nomor WhatsApp Tujuan Terpusat (+62 811-5239-999)
-                                $waTarget = '628115239999';
+                                // Nomor WhatsApp Tujuan Terpusat (+62 811-6029-999)
+                                $waTarget = '628116029999';
 
                                 // Pesan Pengajuan Edit, Unlock, dan Delete via WhatsApp
                                 $pesanEdit = urlencode("Halo, saya ingin mengajukan permintaan perubahan data (Edit) untuk riwayat pembelian *#{$item->nomor_inv}* dari vendor *{$vendor->nama_vendor}*. Mohon untuk segera ditinjau.\n\nKlik tautan berikut untuk membuka halaman persetujuan:\n" . url("/pembelian-approval/{$item->id}"));
@@ -704,7 +704,7 @@
                                                 </li>
                                             @endif
 
-                                            {{-- ADMIN: Pengajuan Edit & Unlock via WA (+62 811-5239-999) jika status masih Terkunci --}}
+                                            {{-- ADMIN: Pengajuan Edit & Unlock via WA (+62 811-6029-999) jika status masih Terkunci --}}
                                             @if($isAdmin && !$isUnlocked)
                                                 <li>
                                                     <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanEdit }}" target="_blank" rel="noopener noreferrer">
@@ -787,7 +787,7 @@
                                                 </li>
                                             @endif
 
-                                            {{-- Hapus: Pemilik hapus langsung, Admin wajib Request Hapus via WA (+62 811-5239-999) --}}
+                                            {{-- Hapus: Pemilik hapus langsung, Admin wajib Request Hapus via WA (+62 811-6029-999) --}}
                                             <li><hr class="dropdown-divider"></li>
                                             @if($isOwner)
                                                 <li>
@@ -1036,7 +1036,7 @@
                                             @php
                                                 $pesanWaCicilan = urlencode("Halo, admin telah mengajukan pembayaran termin ke-{$pby->cicilan_ke} untuk invoice #{$item->nomor_inv} ({$vendor->nama_vendor}) sebesar Rp " . number_format($pby->jumlah_bayar, 0, ',', '.') . ". Mohon persetujuan Pemilik melalui sistem Tokabe.");
                                             @endphp
-                                            <a href="https://wa.me/628115239999?text={{ $pesanWaCicilan }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
+                                            <a href="https://wa.me/628116029999?text={{ $pesanWaCicilan }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
                                                 <i class="ri-whatsapp-line"></i> Hubungi Owner
                                             </a>
                                         @endif

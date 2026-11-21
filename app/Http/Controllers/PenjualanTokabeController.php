@@ -1907,12 +1907,12 @@ class PenjualanTokabeController extends Controller
             "Halo, saya ingin meminta approval untuk membuka akses invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna perubahan data / pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n"
             . url("/tokabe-approval/{$inv->id}")
         );
-        $waUrl = "https://wa.me/628115239999?text={$msgUnlock}";
+        $waUrl = "https://wa.me/628116029999?text={$msgUnlock}";
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => "Mengarahkan pengajuan akses edit invoice #{$inv->nomor_invoice} ke WhatsApp (+62 811-5239-999).",
+                'message' => "Mengarahkan pengajuan akses edit invoice #{$inv->nomor_invoice} ke WhatsApp (+62 811-6029-999).",
                 'wa_url' => $waUrl,
             ]);
         }
