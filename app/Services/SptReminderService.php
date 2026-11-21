@@ -228,7 +228,7 @@ class SptReminderService
      */
     private function buildTargetWaUrl(string $text): string
     {
-        return 'https://wa.me/' . self::TARGET_WA_NUMBER . '?text=' . rawurlencode($text);
+        return 'https://web.whatsapp.com/send?phone=' . self::TARGET_WA_NUMBER . '&text=' . rawurlencode($text);
     }
 }
 

@@ -38,7 +38,7 @@
             </div>
         @endif
         <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
-            <a href="https://wa.me/{{ $waTargetEditForm }}?text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-warning">
+            <a href="https://web.whatsapp.com/send?phone={{ $waTargetEditForm }}&text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-warning">
                 <i class="ri-whatsapp-line me-1"></i>Request Unlock / Edit via WA (+62 811-6029-999)
             </a>
             @if($isOwner)
@@ -594,7 +594,7 @@
                                       <button type="button" class="btn btn-secondary disabled" title="Invoice sedang terkunci (Read-Only)">
                                           <i class="ri-lock-line align-bottom me-1"></i>Terkunci (Read-Only)
                                       </button>
-                                      <a href="https://wa.me/{{ $waTargetEditForm }}?text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-warning">
+                                      <a href="https://web.whatsapp.com/send?phone={{ $waTargetEditForm }}&text={{ $msgUnlockEditForm }}" target="_blank" rel="noopener noreferrer" class="btn btn-warning">
                                           <i class="ri-whatsapp-line align-bottom me-1"></i>Request Unlock / Edit (WA)
                                       </a>
                                       @if($isOwner)

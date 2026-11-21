@@ -2134,7 +2134,7 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="https://wa.me/{{ $no_hp_cust }}?text={{ urlencode($pesan_cust) }}" target="_blank">
+                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="https://web.whatsapp.com/send?phone={{ $no_hp_cust }}&text={{ urlencode($pesan_cust) }}" target="_blank">
 
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Kirim Invoice (WA)
 
@@ -2181,12 +2181,12 @@
                                                   {{-- === ADMIN: Pengajuan Edit & Unlock via WA (+62 811-6029-999) jika status Terkunci === --}}
                                                   @if($isAdminTkb && $inv->approval !== 'Unlock')
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--edit" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgEditTkb }}" target="_blank" rel="noopener noreferrer">
+                                                      <a class="dropdown-item invoice-request invoice-request--edit" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgEditTkb }}" target="_blank" rel="noopener noreferrer">
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Edit (WA)
                                                       </a>
                                                   </li>
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--unlock" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgUnlockTkb }}" target="_blank" rel="noopener noreferrer">
+                                                      <a class="dropdown-item invoice-request invoice-request--unlock" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgUnlockTkb }}" target="_blank" rel="noopener noreferrer">
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (WA)
                                                       </a>
                                                   </li>
@@ -2195,7 +2195,7 @@
                                                   {{-- === ADMIN: Request Pelunasan via WA (+62 811-6029-999) === --}}
                                                   @if($isAdminTkb && $inv->status !== 'Lunas' && $inv->status !== 'Batal')
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--settlement" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgLunasTkb }}" target="_blank" rel="noopener noreferrer">
+                                                      <a class="dropdown-item invoice-request invoice-request--settlement" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgLunasTkb }}" target="_blank" rel="noopener noreferrer">
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (WA)
                                                       </a>
                                                   </li>
@@ -2204,7 +2204,7 @@
                                                   {{-- === ADMIN: Request Batal via WA (+62 811-6029-999) === --}}
                                                   @if($isAdminTkb && $inv->status !== 'Batal')
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--cancel" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgBatalTkb }}" target="_blank" rel="noopener noreferrer">
+                                                      <a class="dropdown-item invoice-request invoice-request--cancel" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgBatalTkb }}" target="_blank" rel="noopener noreferrer">
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (WA)
                                                       </a>
                                                   </li>
@@ -2213,7 +2213,7 @@
                                                   {{-- === ADMIN: Request Hapus via WA (+62 811-6029-999) === --}}
                                                   @if($isAdminTkb)
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--delete" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgHapusTkb }}" target="_blank" rel="noopener noreferrer">
+                                                      <a class="dropdown-item invoice-request invoice-request--delete" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgHapusTkb }}" target="_blank" rel="noopener noreferrer">
                                                           <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (WA)
                                                       </a>
                                                   </li>
