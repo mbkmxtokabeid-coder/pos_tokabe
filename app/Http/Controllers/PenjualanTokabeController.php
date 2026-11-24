@@ -1907,6 +1907,7 @@ class PenjualanTokabeController extends Controller
             "Halo, saya ingin meminta approval untuk membuka akses invoice *#{$inv->nomor_invoice}* atas nama *{$inv->customer}* guna perubahan data / pengisian Nomor Faktur Pajak. Mohon untuk segera ditinjau 🙏 \n\nKlik link berikut untuk membuka halaman approval:\n"
             . url("/tokabe-approval/{$inv->id}")
         );
+        $waUrl = "https://wa.me/628116029999?text={$msgUnlock}";
         $waUrl = "https://web.whatsapp.com/send?phone=628116029999&text={$msgUnlock}";
 
         if ($request->ajax() || $request->wantsJson()) {

@@ -707,11 +707,13 @@
                                             {{-- ADMIN: Pengajuan Edit & Unlock via WA (+62 811-6029-999) jika status masih Terkunci --}}
                                             @if($isAdmin && !$isUnlocked)
                                                 <li>
+                                                    <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanEdit }}" target="_blank" rel="noopener noreferrer">
                                                     <a class="dropdown-item text-warning fw-semibold" href="https://web.whatsapp.com/send?phone={{ $waTarget }}&text={{ $pesanEdit }}" target="_blank" rel="noopener noreferrer">
                                                         <i class="ri-whatsapp-line fs-15 text-success"></i>Request Edit (WA)
                                                     </a>
                                                 </li>
                                                 <li>
+                                                    <a class="dropdown-item text-warning fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanUnlock }}" target="_blank" rel="noopener noreferrer">
                                                     <a class="dropdown-item text-warning fw-semibold" href="https://web.whatsapp.com/send?phone={{ $waTarget }}&text={{ $pesanUnlock }}" target="_blank" rel="noopener noreferrer">
                                                         <i class="ri-whatsapp-line fs-15 text-success"></i>Request Unlock (WA)
                                                     </a>
@@ -801,6 +803,7 @@
                                                 </li>
                                             @else
                                                 <li>
+                                                    <a class="dropdown-item text-danger fw-semibold" href="https://wa.me/{{ $waTarget }}?text={{ $pesanHapus }}" target="_blank" rel="noopener noreferrer">
                                                     <a class="dropdown-item text-danger fw-semibold" href="https://web.whatsapp.com/send?phone={{ $waTarget }}&text={{ $pesanHapus }}" target="_blank" rel="noopener noreferrer">
                                                         <i class="ri-whatsapp-line fs-15 text-success"></i>Request Hapus (WA)
                                                     </a>
@@ -1036,6 +1039,7 @@
                                             @php
                                                 $pesanWaCicilan = urlencode("Halo, admin telah mengajukan pembayaran termin ke-{$pby->cicilan_ke} untuk invoice #{$item->nomor_inv} ({$vendor->nama_vendor}) sebesar Rp " . number_format($pby->jumlah_bayar, 0, ',', '.') . ". Mohon persetujuan Pemilik melalui sistem Tokabe.");
                                             @endphp
+                                            <a href="https://wa.me/628116029999?text={{ $pesanWaCicilan }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
                                             <a href="https://web.whatsapp.com/send?phone=628116029999&text={{ $pesanWaCicilan }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning py-1 px-2 fs-11" title="Kirim WA ke Pemilik">
                                                 <i class="ri-whatsapp-line"></i> Hubungi Owner
                                             </a>
