@@ -5,7 +5,7 @@
 
 <!-- Sweet Alert css-->
 <link href="{{asset('libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css" />
-<link href="{{asset('css/invoice-tokabe-form.css')}}" rel="stylesheet" type="text/css" />
+<link href="{{asset('css/invoice-tokabe-form.css')}}?v={{ file_exists(public_path('css/invoice-tokabe-form.css')) ? filemtime(public_path('css/invoice-tokabe-form.css')) : time() }}" rel="stylesheet" type="text/css" />
 
 <script>
 $(document).ready(function () {
@@ -254,537 +254,477 @@ $(document).ready(function () {
 </script>
 @endsection
 @extends('layout.template')
+@section('has_inline_theme_toggle', '1')
 @section('content')
 @include('layout.loading-overlay')
 <div class="page-content">
-                <div class="container-fluid">
+    <div class="container-fluid">
 
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                                <h4 class="mb-sm-0">Tambah Invoice Tokabe</h4>
+        <!-- Header -->
+        <div class="tkb-form-header">
+            <div>
+                <h4 class="tkb-form-title">Tambah Invoice Tokabe</h4>
+                <div class="tkb-form-breadcrumb">
+                    <a href="{{ route('list_invoice_tokabe') }}">Invoice</a>
+                    <span>›</span>
+                    <span class="crumb-active">Tambah invoice</span>
+                </div>
+            </div>
+            <div class="tkb-global-header-controls">
+                <button type="button" class="tkb-theme-toggle" onclick="window.toggleTokabeTheme(event)" aria-label="Ubah Mode Terang / Gelap" title="Ubah Mode Terang / Gelap">
+                    <span class="tkb-theme-toggle__thumb" aria-hidden="true"></span>
+                    <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--sun"><i class="ri-sun-line"></i></span>
+                    <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--moon"><i class="ri-moon-clear-line"></i></span>
+                </button>
+            </div>
+        </div>
 
-                                <div class="page-title-right">
-                                    <ol class="breadcrumb m-0">
-                                        <li class="breadcrumb-item"><a href="javascript: void(0);">Invoice</a></li>
-                                        <li class="breadcrumb-item active">Tambah Invoice</li>
-                                    </ol>
+        <form method="POST" action="{{ route('storeInvoice.Tokabe') }}" validate id="invoice_form" enctype="multipart/form-data">
+            @csrf
+
+            <!-- TOP 2-COLUMN CARDS: Informasi Invoice & Data Pelanggan -->
+            <div class="row g-4 mb-4">
+                <!-- Left Card: Informasi Invoice -->
+                <div class="col-lg-6">
+                    <div class="tkb-form-card h-100">
+                        <div class="tkb-form-card__header">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="tkb-sec-icon tkb-sec-icon--emerald"><i class="ri-file-text-line"></i></span>
+                                <div>
+                                    <h5 class="tkb-form-card__title">Informasi invoice</h5>
+                                    <p class="tkb-form-card__sub">Penomoran dan tanggal penjualan</p>
+                                </div>
+                            </div>
+                            <div class="tkb-logo-circle">
+                                <img src="{{asset('images/LogoTKB.png')}}" alt="Tokabe Logo">
+                            </div>
+                        </div>
+
+                        <div class="tkb-form-card__body">
+                            <div class="mb-3">
+                                <label for="choices-invoice" class="form-label">Invoice</label>
+                                <input type="text" class="form-control fw-medium @error('inv') is-invalid @enderror" id="choices-invoice" name="inv" value="Tokabe" readonly>
+                                @error('inv')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Penomoran invoice</label>
+                                <div class="d-flex flex-column gap-2 mb-2">
+                                    <label class="tkb-radio-card" for="opt_mode_kategori">
+                                        <input class="form-check-input" type="radio" name="opt_mode_penomoran" id="opt_mode_kategori" value="kategori" checked onchange="switchInvoiceNumberMode('kategori')">
+                                        <span>Nomor otomatis (standar sistem / kategori)</span>
+                                    </label>
+                                    <label class="tkb-radio-card" for="opt_mode_manual">
+                                        <input class="form-check-input" type="radio" name="opt_mode_penomoran" id="opt_mode_manual" value="manual" onchange="switchInvoiceNumberMode('manual')">
+                                        <span>Input nomor manual bebas</span>
+                                    </label>
                                 </div>
 
+                                <div id="panel_mode_kategori" class="mb-2">
+                                    <select class="form-select" id="kategori_invoice_id" name="kategori_invoice_id">
+                                        @if(isset($kategoriInvoices) && $kategoriInvoices->isNotEmpty())
+                                            @foreach($kategoriInvoices as $katInv)
+                                                <option value="{{ $katInv->id }}" data-prefix="{{ $katInv->prefix ?? 'TKB' }}" data-custom="{{ $katInv->use_custom_format ? '1' : '0' }}" data-format="{{ $katInv->format_nomor }}" {{ $katInv->prefix === 'TKB' || str_contains(strtolower($katInv->nama_kategori), 'standar') ? 'selected' : '' }}>
+                                                    {{ $katInv->nama_kategori }} (Prefix: {{ $katInv->prefix ?? 'TKB' }})
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            <option value="" data-prefix="TKB" selected>Invoice Standar Tokabe (Prefix: TKB)</option>
+                                        @endif
+                                    </select>
+                                </div>
+
+                                <div id="panel_mode_manual" style="display: none;" class="mb-2">
+                                    <div class="tkb-manual-box">
+                                        <span class="tkb-manual-box__label">Masukkan nomor invoice manual sesuai kebutuhan dokumen Anda:</span>
+                                        <input type="text" id="manual_invoice_input" class="form-control fw-semibold" placeholder="Contoh: 001/INV-IKL/2026" oninput="applyManualInvoiceNumber()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-5">
+                                    <label class="form-label d-flex align-items-center justify-content-between">
+                                        <span>Kode prefix</span>
+                                        <small id="prefix_status_label" style="color: var(--brand); font-size: 11px; font-weight: 500;">(Otomatis)</small>
+                                    </label>
+                                    <input type="text" class="form-control fw-bold" id="invoicenoInput" placeholder="Kode" name="kode" value="{{ explode('/', $no_invoice)[1] ?? 'TKB' }}" readonly oninput="onPrefixCustomChange()">
+                                </div>
+                                <div class="col-sm-7">
+                                    <label class="form-label">Nomor invoice aktif</label>
+                                    <input type="text" class="form-control" id="noInvoice" placeholder="Nomor Invoice Aktif" name="kodeUnik" value="{{ $no_invoice }}" readonly>
+                                    <input type="hidden" id="nomor_invoice_custom" name="nomor_invoice_custom" value="">
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label for="date-field" class="form-label">Tanggal penjualan</label>
+                                    <input type="text" class="form-control flatpickr-input" id="date-field" name="tgl_jual" data-provider="flatpickr" value="{{ $hariIni }}" readonly="readonly">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="time-field" class="form-label">Jam</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="time-field" placeholder="HH:mm" name="jam" value="{{ old('jam', $formatJam) }}" title="Jam transaksi (dapat diedit bebas)">
+                                        <span class="input-group-text"><i class="ri-time-line"></i></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row justify-content-center">
-                       <div class="col-xxl-12">
-                         <div class="card">
-                           <form method="POST" action="{{ route('storeInvoice.Tokabe') }}" validate id="invoice_form" enctype="multipart/form-data">
-                            @csrf
-                             <div class="card-body border-bottom border-bottom-dashed p-4">
-                               <div class="row">
-                                 <div class="col-lg-6">
-                                   <div class="row g-3 mb-2">
-                                        <div class="col-lg-8 col-sm-6">
-                                         <label for="choices-invoice">Invoice</label>
-                                            <div class="input-light">
-                                               <input type="text" class="form-control bg-light border-0 fw-medium @error('inv') is-invalid @enderror" id="choices-invoice" name="inv" value="Tokabe" readonly>
+                </div>
 
-                                                @error('inv')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                      </div>
-
-                                         {{-- End coloumn --}}
-                                   </div>
-                                   {{-- SECTION PENOMORAN INVOICE --}}
-                                   <div class="row mb-3 col-lg-8 col-sm-12">
-                                       <div class="col-12">
-                                           <label class="form-label mb-2 fw-semibold text-white fs-13 d-flex align-items-center gap-1.5">
-                                               <i class="ri-barcode-box-line text-primary"></i> Penomoran Invoice
-                                           </label>
-
-                                           {{-- Radio Option Modes: Sesuai Permintaan User --}}
-                                           <div class="d-flex flex-wrap gap-3 mb-2 p-2 rounded" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);">
-                                               <div class="form-check mb-0">
-                                                   <input class="form-check-input" type="radio" name="opt_mode_penomoran" id="opt_mode_kategori" value="kategori" checked onchange="switchInvoiceNumberMode('kategori')">
-                                                   <label class="form-check-label text-white fs-12 cursor-pointer" for="opt_mode_kategori">
-                                                       Nomor Otomatis (Standar Sistem / Kategori)
-                                                   </label>
-                                               </div>
-                                               <div class="form-check mb-0">
-                                                   <input class="form-check-input" type="radio" name="opt_mode_penomoran" id="opt_mode_manual" value="manual" onchange="switchInvoiceNumberMode('manual')">
-                                                   <label class="form-check-label text-white fs-12 cursor-pointer" for="opt_mode_manual">
-                                                       Input Nomor Manual Bebas
-                                                   </label>
-                                               </div>
-                                           </div>
-
-                                           {{-- Panel 1: Dari Kategori / Standar Sistem --}}
-                                           <div id="panel_mode_kategori" class="mb-2">
-                                               <select class="form-select bg-light border-0" id="kategori_invoice_id" name="kategori_invoice_id">
-                                                   @if(isset($kategoriInvoices) && $kategoriInvoices->isNotEmpty())
-                                                       @foreach($kategoriInvoices as $katInv)
-                                                           <option value="{{ $katInv->id }}" data-prefix="{{ $katInv->prefix ?? 'TKB' }}" data-custom="{{ $katInv->use_custom_format ? '1' : '0' }}" data-format="{{ $katInv->format_nomor }}" {{ $katInv->prefix === 'TKB' || str_contains(strtolower($katInv->nama_kategori), 'standar') ? 'selected' : '' }}>
-                                                               {{ $katInv->nama_kategori }} (Prefix: {{ $katInv->prefix ?? 'TKB' }})
-                                                           </option>
-                                                       @endforeach
-                                                   @else
-                                                       <option value="" data-prefix="TKB" selected>Invoice Standar Tokabe (Prefix: TKB)</option>
-                                                   @endif
-                                               </select>
-                                           </div>
-
-                                           {{-- Panel 2: Input Nomor Manual Bebas (Sesuai Gambar User) --}}
-                                           <div id="panel_mode_manual" style="display: none;" class="mb-2">
-                                               <div class="p-2 rounded" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25);">
-                                                   <small class="text-warning d-block mb-1 fw-medium"><i class="ri-information-line"></i> Masukkan nomor invoice manual sesuai kebutuhan dokumen Anda:</small>
-                                                   <input type="text" id="manual_invoice_input" class="form-control form-control-sm bg-dark text-white border-secondary fw-semibold" placeholder="Contoh: 001/INV-IKL/2026" oninput="applyManualInvoiceNumber()">
-                                               </div>
-                                           </div>
-
-                                           {{-- Tampilan Hasil Nomor Invoice Aktif --}}
-                                           <div class="row g-2 align-items-center">
-                                               <div class="col-lg-4 col-4">
-                                                   <label class="fs-11 text-muted mb-0 d-flex align-items-center justify-content-between">
-                                                       <span>Kode Prefix</span>
-                                                       <small id="prefix_status_label" class="text-muted fw-normal" style="font-size: 10px;">(Otomatis)</small>
-                                                   </label>
-                                                   <input type="text" class="form-control text-center fw-bold bg-light border-0" id="invoicenoInput" placeholder="Kode" name="kode" value="{{ explode('/', $no_invoice)[1] ?? 'TKB' }}" readonly title="Kode prefix otomatis sesuai format pilihan" oninput="onPrefixCustomChange()">
-                                               </div>
-                                               <div class="col-lg-8 col-8">
-                                                   <label class="fs-11 text-muted mb-0">Nomor Invoice Aktif</label>
-                                                   <input type="text" class="form-control bg-light border-0 fw-bold" id="noInvoice" placeholder="Nomor Invoice Aktif" name="kodeUnik" value="{{ $no_invoice }}" readonly style="color: #6366F1 !important; letter-spacing: 0.02em;">
-                                                   <input type="hidden" id="nomor_invoice_custom" name="nomor_invoice_custom" value="">
-                                               </div>
-                                           </div>
-                                       </div>
-                                   </div>
-
-                                  <div class="row mb-2 col-lg-9">
-                                      <label for="date-field">Tanggal Penjualan</label>
-                                      <div class="col-lg-4">
-                                          <input type="text" class="form-control bg-light border-0 flatpickr-input" id="date-field" name="tgl_jual" data-provider="flatpickr" value="{{ $hariIni }}" readonly="readonly">
-                                      </div>
-                                      <div class="col-lg-5">
-                                          <div class="input-group">
-                                              <input type="text" class="form-control bg-light border-0" id="time-field" placeholder="HH:mm" name="jam" value="{{ old('jam', $formatJam) }}" title="Jam transaksi (dapat diedit bebas)">
-                                              <span class="input-group-text bg-light border-0 text-muted"><i class="ri-time-line"></i></span>
-                                          </div>
-                                      </div>
-                                  </div>
-                                        {{-- </div> --}}
-
-                                 </div>
-                                  <div class="col-lg-4 ms-auto">
-                                  <div class="profile-user mx-auto  mb-3">
-                                   <input id="profile-img-file-input" type="file" class="profile-img-file-input"/>
-                                   <label for="profile-img-file-input" class="d-block" tabindex="0">
-                                    <span class="overflow-hidden border border-dashed d-flex align-items-center justify-content-center rounded" style=" width: 256px;">
-                                      <img src="{{asset('images/LogoTKB.png')}}" class="card-logo card-logo-dark user-profile-image img-fluid" alt="logo dark">
-                                      <img src="{{asset('images/LogoTKB.png')}}" class="card-logo card-logo-light user-profile-image img-fluid" alt="logo light">
-                                    </span>
-                                   </label>
-                                  </div>
-                                 </div>
-                                {{-- Customer Form --}}
-                                 <div class="row mt-2">
-                                  <div class="col-xxl-5">
-                                  </div>
-                                  <div class="col-xxl-7">
-                                   {{-- <div class="card no-border border-0"> --}}
-                                    <div class="row mb-3">
-                                      <label for="customer" class="col-lg-5 col-form-label col-form-label-md">Nama Customer <span class="text-danger">*</span></label>
-                                      <div class="col-lg-7">
-                                          <input type="text" class="form-control form-control-md @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama Customer" value="{{ old('pelanggan') }}" list="customerList" required>
-                                          <datalist id="customerList">
-                                              @foreach ($kontak as $data)
-                                                  <option value="{{ $data->customer }}" data-company="{{ $data->perusahaan }}" data-phone="{{ $data->no_telepon }}" data-npwp="{{ $data->npwp ?? '' }}">{{ $data->customer }}</option>
-                                              @endforeach
-                                          </datalist>
-                                          @error('pelanggan')
-                                              <div class="invalid-feedback">{{ $message }}</div>
-                                          @enderror
-                                      </div>
-                                  </div>
-
-                                  <div class="row mb-3" style="margin-top: -10px;">
-                                      <div class="col-lg-5">
-                                          <label for="npwp" class="form-label col-form-label col-form-label-md">NPWP</label>
-                                      </div>
-                                      <div class="col-lg-7">
-                                          <input type="text" class="form-control @error('npwp') is-invalid @enderror" id="npwp" name="npwp" placeholder="Contoh: 01.234.567.8-901.000" value="{{ old('npwp') }}" maxlength="50">
-                                          @error('npwp')
-                                              <div class="invalid-feedback">{{ $message }}</div>
-                                          @enderror
-                                      </div>
-                                  </div>
-
-                                  <div class="row mb-3" style="margin-top: -10px;">
-                                      <div class="col-lg-5">
-                                          <label for="phone-number" class="form-label col-form-label col-form-label-md">Nomor Telepon <span class="text-danger">*</span></label>
-                                      </div>
-                                      <div class="col-lg-7">
-                                          <input type="text" class="form-control @error('tlp') is-invalid @enderror" id="phone-number" name="tlp" placeholder="08xxxxxxxx" value="{{ old('tlp') }}" required>
-                                          @error('tlp')
-                                              <div class="invalid-feedback">{{ $message }}</div>
-                                          @enderror
-                                      </div>
-                                  </div>
-                                      {{-- End No.Telepon --}}
-                                      {{-- Start Admin --}}
-                                      <div class="row mb-3">
-                                       <div class="col-lg-5">
-                                        <label for="choices-admin" class="form-label col-form-label col-form-label-md">Nama Admin <span class="text-danger">*</span></label>
-                                       </div>
-                                       {{-- test --}}
-
-                                       <div class="col-lg-7">
-                                        <select class="form-select @error('adm') is-invalid @enderror" name="adm" id="choices-admin" aria-placeholder="Admin" required>
-                                         <option value="">Pilih Admin</option>
-                                         @foreach ($admin as $adm)
-                                         <option value="{{$adm->id}}" {{old('adm') == $adm->id ? 'selected' : ''}}>{{$adm->nama}}</option>
-
-                                         @endforeach
-                                        </select>
-                                        @error('adm')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                       </div>
-
-                                      </div>
-                                      {{-- End Admin --}}
-                                      {{-- Start Order By --}}
-                                      <div class="row mb-3">
-                                       <div class="col-lg-5">
-                                          <label for="choices-orderBy" class="form-label col-form-label col-form-label-md">Order Dari <span class="text-danger">*</span></label>
-                                       </div>
-                                       <div class="col-lg-7">
-                                        <select class="form-select @error('order') is-invalid @enderror"  id="choices-orderBy" name="order" required>
-                                        <option value="">Order By</option>
-                                        @foreach ($order as $ord)
-                                        <option value="{{$ord->order_by}}" {{old('order') == $ord->order_by ? 'selected' : ''}}>{{$ord->order_by}}</option>
-                                        @endforeach
-                                        </select>
-                                        @error('order')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                       </div>
-                                      </div>
-                                      {{-- End Order By--}}
-                                      {{-- start Hide div --}}
-                                        <div id="divSales"style="display: none; margin-bottom: -5px;">
-                                          <div class="row mb-3">
-                                            <div class="col-lg-5">
-                                              <label for="colFormLabelNamaSales" class="col-form-label col-form-label-md">Nama Sales <span class="text-danger">*</span></label>
-                                            </div>
-                                            <div class="col-lg-7" style="margin-top: -10px;">
-                                                <input type="text" class="form-control form-control-md mt-2 @error('sales') is-invalid @enderror" id="colFormLabelNamaSales" placeholder="Nama Sales" name="sales" value="{{ old('sales') }}">
-                                                @error('sales')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                          </div>
-                                        </div>
-                                      {{-- end Hide div --}}
-                                      {{-- Start Date --}}
-                                      <div class="row mb-3">
-                                       <div class="col-lg-5">
-                                        <label for="dateInput" class="form-label col-form-label col-form-label-md">Target Penyelesaian <span class="text-danger">*</span></label>
-                                       </div>
-                                       <div class="col-lg-7">
-                                        <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}" autocomplete="off" required>
-                                        @error('tgl_selesai')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                       </div>
-                                      </div>
-                                     {{-- End Date --}}
-                                     {{-- Start PADI UMKM --}}
-                                     <div class="row mb-3">
-                                       <div class="col-lg-5">
-                                        <label class="form-label col-form-label col-form-label-md">Transaksi PADI UMKM <span class="text-danger">*</span></label>
-                                       </div>
-                                       <div class="col-lg-7 d-flex align-items-center gap-4 pt-1">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_tidak" value="0" {{ old('is_padi_umkm', '0') == '0' ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="padi_umkm_tidak">Tidak (Non-PADI UMKM)</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_ya" value="1" {{ old('is_padi_umkm') == '1' ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="padi_umkm_ya">Ya (PADI UMKM)</label>
-                                        </div>
-                                       </div>
-                                     </div>
-                                     {{-- End PADI UMKM --}}
-                                   {{-- </div> --}}
-                                  </div>
-                                 </div>
-                                        {{-- End Customer Form --}}
-                                   <!--end row-->
-                             <div class="card-body p-4">
-
-                                 
-                                 <div id="template-options-barang" style="display: none;">
-                                    <option value="" selected disabled>Pilih Item</option>
-                                     @foreach ($jenisBarang as $jns)
-                                         <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}">{{$jns->nama_item}}</option>
-                                     @endforeach
-                                 </div>
-                                 <!-- END TEMPLATE -->
-
-                                 <table class="invoice-table  dt-responsive table table-borderless table-nowrap mb-0">
-                                <div class="table-responsive">
-                                  <thead class="align-middle">
-                                   <tr class="table-active">
-                                    <th scope="col" style="width: 50px;">#</th>
-                                    <!-- Menambahkan min-width: 500px pada TH agar kolom tidak dipress pada layar laptop -->
-                                    <th scope="col" style="min-width: 500px;">Item <span class="text-danger">*</span></th>
-                                     <th scope="col" style="min-width: 110px; width: 110px;">Satuan <span class="text-danger">*</span></th>
-                                    <th scope="col" style="width: 120px;">
-                                     <div class="d-flex currency-select input-light align-items-center">Harga <span class="text-danger me-1">*</span>
-                                      <select class="form-select border-0 bg-light" data-choices data-choices-search-false id="choices-payment-currency" onchange="otherPayment()">
-                                      <option value="Rp">(Rp)</option>
-                                      </select>
-                                     </div></th>
-                                    <th scope="col" style="width: 120px;">Quantity <span class="text-danger">*</span></th>
-                                    <th scope="col" class="text-center" style="width: 150px;">Jumlah Harga</th>
-                                    <th scope="col" class="text-end" style="width: 105px;"></th>
-                                   </tr>
-                                  </thead>
-                                  <tbody id="newlink">
-                                   <tr id="1" class="product">
-                                    <th scope="row" class="product-id">1</th>
-                                     <td class="text-start">
-                                      <div class="mb-2">
-                                        <label class="visually-hidden" for="productName">Item</label>
-
-                                        <!-- INDEX [0] DITAMBAHKAN SECARA EKSPLISIT -->
-                                        <select class="form-select @error('item_id.0') is-invalid @enderror" id="productName-1" name="item_id[0]" required>
-                                            <option value="" selected disabled>Pilih Item</option>
-                                             @foreach ($jenisBarang as $jns)
-                                             <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}" {{old('item_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->nama_item}}</option>
-                                             @endforeach
-                                        </select>
-                                        <small class="form-text text-muted item-tax-type" id="item-tax-type-1"></small>
-                                        @error('item_id.0')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                      </div>
-                                       <textarea class="form-control bg-light border-0 @error('deskripsi_item.0') is-invalid @enderror" id="productDetails-1" name="deskripsi_item[0]" rows="2" placeholder="Deskripsi Item" required></textarea>
-                                       @error('deskripsi_item.0')
-                                       <div class="invalid-feedback">{{ $message }}</div>
-                                       @enderror
-
-                                       
-
-                                     </td>
-                                     <td>
-                                      <!-- INDEX [0] DITAMBAHKAN SECARA EKSPLISIT -->
-                                      <select class="form-select bg-light border-0 @error ('satuan.0') is-invalid @enderror" style="min-width: 95px;" id="satuan-1" name="satuan[0]" required>
-                                      <option value="">Pilih</option>
-                                      <option value="Pcs" selected>Pcs</option>
-                                      <option value="Set">Set</option>
-                                      <option value="Und">Und</option>
-                                      <option value="Blok">Blok</option>
-                                      <option value="Rim">Rim</option>
-                                      <option value="Lbr">Lbr</option>
-                                      <option value="Ktk">Ktk</option>
-                                      <option value="Unit">Unit</option>
-                                      <option value="Kg">Kg</option>
-                                      <option value="Lainnya">Lainnya</option>
-                                      <option value="Pax">Pax</option>
-                                      </select>
-                                      @error('satuan.0')
-                                       <div class="invalid-feedback">{{ $message }}</div>
-                                       @enderror
-                                     </td>
-                                     <td>
-                                      <input type="text" class="form-control product-price bg-light border-0 @error('hrg.0') is-invalid @enderror" id="productRate-1" name="hrg[0]" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }'  placeholder="Rp. 0.000" onchange="autoCalc(this)" required/>
-
-                                      @error('hrg.0')
-                                       <div class="invalid-feedback">{{ $message }}</div>
-                                       @enderror
-                                     </td>
-                                     <td>
-                                      <div class="input-step">
-                                       <input type="number" class="text-center @error('qty.0') is-invalid @enderror" id="product-qty-1" value="1" min="1" name="qty[0]" onchange="autoCalc(this)" required>
-                                       @error('qty.0')
-                                       <div class="invalid-feedback">{{ $message }}</div>
-                                       @enderror
-                                      </div>
-                                     </td>
-                                     <td class="text-end">
-                                      <div>
-                                       <input type="text" class="form-control bg-light border-0 product-line-price" id="productPrice-1" name="jlh_hrg[0]" placeholder="Rp.0.000" onchange="autoCalc(this)" readonly/>
-                                      </div>
-                                     </td>
-                                      <td class="product-removal"><a href="javascript:void(0)" class="btn btn-danger btn-sm"><i class="ri-delete-bin-5-line me-1"></i>Hapus</a>
-                                      </td>
-                                    </tr>
-                                   </tbody>
-                                   <tbody>
-                                    <tr id="newForm" style="display: none;">
-                                     <td class="d-none" colspan="5"><p>Add New Form</p>
-                                     </td>
-                                    </tr>
-                                    <tr>
-                                     <td colspan="2"><a href="javascript:new_link()" id="add-item" class="btn btn-soft-secondary fw-medium"><i class="ri-add-fill me-1 align-bottom"></i> Add Item</a>
-                                     </td>
-                                    </tr>
-                                   </tbody>
-                                  </table>
-                                  <!--end table-->
-                                  {{-- Start detail Payment --}}
-                                 <div class="col-lg-4">
-                                   <div class="col-lg-12"></div>
-                                 </div>
-                                 <div class="col-lg-8">
-                                   <div class="row">
-                                     <div class="col-lg-4">
-                                     <label for="jenisPembayaran" class="form-label col-form-label col-form-label-md">Jenis Pembayaran <span class="text-danger">*</span></label>
-                                     </div>
-                                       <div class="col-lg-6">
-                                         <select class="form-select bg-light @error('jns_pem') is-invalid @enderror" id="choices-payment-type" name="jns_pem" value="{{ old('jns_pem') }}" required>
-                                           <option disabled selected value="">Payment Method</option>
-                                           <option value="Cash Belum Lunas">Cash Belum Lunas</option>
-                                           <option value="Transfer DP">Transfer Dp</option>
-                                           <option value="Transfer Lunas">Transfer Lunas</option>
-                                           <option value="PO">PO</option>
-                                         </select>
-                                         @error('jns_pem')
-                                           <div class="invalid-feedback">{{ $message }}</div>
-                                           @enderror
-                                       </div>
-                                   </div>
-                                   <div class="row mb-1 col-lg-12">
-                                     <div class="col lg-12">
-                                         @if(isset($rekenings) && $rekenings->count() > 0)
-                                          @foreach($rekenings as $rek)
-                                          <div class="form-check mb-1 col-lg-12">
-                                            <input class="form-check-input" type="radio" name="norek" id="flexRadioRek{{ $rek->id }}" value="{{ $rek->id }}" {{ $loop->first ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="flexRadioRek{{ $rek->id }}">
-                                              {{ $rek->formatted }}
-                                            </label>
-                                          </div>
-                                          @endforeach
-                                        @else
-                                          <div class="form-check mb-1 col-lg-12" id="alamatPembayaran2">
-                                          <input class="form-check-input" type="radio" name="norek" id="flexRadioDefault2" value="TKB" checked>
-                                          <label class="form-check-label" for="flexRadioDefault2">
-                                            BSI | A/N : PT. Total Karya Berkah | No. Rek :  3557999999
-                                          </label>
-                                          </div>
-                                        @endif
-                                     </div>
-                                   </div>
-                                 <div class="row">
-                                   <div class="col-lg-4">
-                                   <label for="total-harga" class="form-label col-form-label col-form-label-md">Jumlah Harga</label>
-                                   </div>
-                                     <div class="col-lg-6">
-                                       <input type="text" class="form-control bg-light border-0" rows="1" naplaceholder="" id="total-harga" name ="tot_harga" value="{{ old('tot_harga') }}"readonly >
-                                     </div>
-                                   </div>
-                                   {{-- Input untuk Dp --}}
-                                   <div class="row mb-1" id="div-dp-row">
-                                     <div class="col-lg-4" id="div-label" style="display: none" >
-                                       <label for="dp" class="form-label col-form-label col-form-label-md" id="label-dp">Dp</label>
-                                     </div>
-                                       <div class="col-lg-6" id="dp" style="display: none;">
-                                         <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand", "numeralDecimalScale": 0, "numeralPositiveOnly": true }' class="form-control bg-light border-0" rows="1" placeholder="Rp. 0,000" value="{{ old('dp') }}">
-                                         <small class="text-muted d-block mt-1"><i class="ri-information-line me-1"></i>Default 70%, dapat diedit manual jika negosiasi</small>
-                                       </div>
-                                     </div>
-                                     {{-- End Input --}}
-                                                                   {{-- Start Input PPN --}}
-                                  <div class="row mb-2">
-                                    <div class="col-lg-4">
-                                      <label for="input-ppn" class="form-label col-form-label col-form-label-md">PPN (%)</label>
-                                    </div>
-                                    <div class="col-lg-6">
-                                      <div class="input-group">
-                                        <input type="number" step="any" min="0" max="100" class="form-control bg-light border-0" id="input-ppn" name="ppn" placeholder="0" value="{{ old('ppn') }}">
-                                        <span class="input-group-text bg-light border-0 text-muted">%</span>
-                                      </div>
-                                      <small class="text-success fw-medium mt-1" id="preview-nominal-ppn" style="display: none;"></small>
-                                       <small class="text-danger fw-medium mt-1" id="hint-locked-ppn" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPN</small>
-                                    </div>
-                                  </div>
-
-                                  {{-- Kode Transaksi PPN (Tampil otomatis jika PPN diisi) --}}
-                                  <div class="row mb-2" id="row-kode-ppn" style="display: none;">
-                                    <div class="col-lg-4">
-                                      <label for="select-kode-ppn" class="form-label col-form-label col-form-label-md">Kode Transaksi PPN</label>
-                                    </div>
-                                    <div class="col-lg-6">
-                                      <select class="form-select bg-light border-0" name="kode_ppn" id="select-kode-ppn">
-                                        <option value="01" selected>01 - Non Pemungut PPN (Swasta)</option>
-                                        <option value="02">02 - Pemungut Instansi Pemerintah</option>
-                                        <option value="03">03 - Pemungut BUMN / Pemungut Lainnya</option>
-                                        <option value="04">04 - DPP Nilai Lain</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                  {{-- End Input PPN --}}
-
-                                  {{-- Start Input PPh --}}
-                                  <div class="row mb-2">
-                                    <div class="col-lg-4">
-                                      <label for="input-pph" class="form-label col-form-label col-form-label-md">PPh (%)</label>
-                                    </div>
-                                    <div class="col-lg-6">
-                                      <div class="input-group">
-                                        <input type="number" step="any" min="0" max="100" class="form-control bg-light border-0" id="input-pph" name="pph" placeholder="0" value="{{ old('pph') }}">
-                                        <span class="input-group-text bg-light border-0 text-muted">%</span>
-                                      </div>
-                                      <small class="text-danger fw-medium mt-1" id="preview-nominal-pph" style="display: none;"></small>
-                                       <small class="text-danger fw-medium mt-1" id="hint-locked-pph" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPh</small>
-                                    </div>
-                                  </div>
-                                  {{-- End Input PPh --}}
-                                  <div class="row mb-1">
-                                   <div class="col-lg-4">
-                                   <label for="totalPembayaran" class="form-label col-form-label col-form-label-md">Total Pembayaran</label>
-                                   </div>
-                                     <div class="col-lg-6">
-                                       <input type="text" class="form-control bg-light border-0" rows="1" placeholder="Total Pembayaran" id="total-pembelian" name="tot_pem" value="{{ old('tot_pem') }}" readonly>
-                                     </div>
-                                   </div>
-                                   <div class="row mb-1">
-                                   <div class="col-lg-4">
-                                   <label for="sisaPembayaran" class="form-label col-form-label col-form-label-md">Sisa Pembayaran</label>
-                                   </div>
-                                     <div class="col-lg-6">
-                                       <input type="text" class="form-control bg-light border-0" rows="1" placeholder="Sisa Pembayaran" id="sisa-pembayaran" name="sisa_pem" value="{{ old('sisa_pem') }}" readonly>
-                                     </div>
-                                   </div>
-                               </div>
-                              </div>
-                               <!--end row-->
-                               <div class="hstack gap-2 justify-content-start d-print-none mt-4">
-                                <button type="submit" id="simpan" class="btn btn-primary btn-load btn-simpan-tokabe">
-                                  <span class="d-flex align-items-center">
-                                      <span id="loading-spinner" class="spinner-border flex-shrink-0" role="status">
-                                          <span class="visually-hidden">Loading...</span>
-                                      </span>
-                                      <span class="flex-grow-1 ms-2">
-                                        <i class="ri-printer-line align-bottom me-1"></i>Simpan
-                                      </span>
-                                  </span>
-                                </button>
-                                <button type="button" id="btn-save-draft" class="btn btn-save-draft-tokabe"><i class="ri-draft-line align-bottom me-1"></i>Simpan Draf</button>
-                                <a href="{{ route('list_invoice_tokabe') }}" class="btn btn-secondary btn-cancel-tokabe"><i class="ri-close-line align-bottom me-1"></i>Batal</a>
-                               </div>
-                             </div>
-                            </form>
-                           </div>
-                          </div>
-                         </div>
+                <!-- Right Card: Data Pelanggan -->
+                <div class="col-lg-6">
+                    <div class="tkb-form-card h-100">
+                        <div class="tkb-form-card__header">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="tkb-sec-icon tkb-sec-icon--cyan"><i class="ri-store-2-line"></i></span>
+                                <div>
+                                    <h5 class="tkb-form-card__title">Data pelanggan</h5>
+                                    <p class="tkb-form-card__sub">Identitas customer dan pengaturan order</p>
+                                </div>
+                            </div>
                         </div>
-                        <!--end col-->
-                      </div>
-                    <!--end row-->
-                <!-- container-fluid -->
+
+                        <div class="tkb-form-card__body">
+                            <div class="mb-3">
+                                <label for="customer" class="form-label">Nama customer <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('pelanggan') is-invalid @enderror" name="pelanggan" id="customer" placeholder="Nama customer" value="{{ old('pelanggan') }}" list="customerList" required>
+                                <datalist id="customerList">
+                                    @foreach ($kontak as $data)
+                                        <option value="{{ $data->customer }}" data-company="{{ $data->perusahaan }}" data-phone="{{ $data->no_telepon }}" data-npwp="{{ $data->npwp ?? '' }}">{{ $data->customer }}</option>
+                                    @endforeach
+                                </datalist>
+                                @error('pelanggan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <label for="npwp" class="form-label">NPWP</label>
+                                    <input type="text" class="form-control @error('npwp') is-invalid @enderror" id="npwp" name="npwp" placeholder="Contoh: 01.234.567.8-901.000" value="{{ old('npwp') }}" maxlength="50">
+                                    @error('npwp')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="phone-number" class="form-label">Nomor telepon <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('tlp') is-invalid @enderror" id="phone-number" name="tlp" placeholder="08xxxxxxxx" value="{{ old('tlp') }}" required>
+                                    @error('tlp')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <label for="choices-admin" class="form-label">Nama admin <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('adm') is-invalid @enderror" name="adm" id="choices-admin" required>
+                                        <option value="">Pilih admin</option>
+                                        @foreach ($admin as $adm)
+                                            <option value="{{$adm->id}}" {{old('adm') == $adm->id ? 'selected' : ''}}>{{$adm->nama}}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('adm')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="choices-orderBy" class="form-label">Order dari <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('order') is-invalid @enderror" id="choices-orderBy" name="order" required>
+                                        <option value="">Order by</option>
+                                        @foreach ($order as $ord)
+                                            <option value="{{$ord->order_by}}" {{old('order') == $ord->order_by ? 'selected' : ''}}>{{$ord->order_by}}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('order')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+
+                            <div id="divSales" style="display: none;" class="mb-3">
+                                <label for="colFormLabelNamaSales" class="form-label">Nama sales <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('sales') is-invalid @enderror" id="colFormLabelNamaSales" placeholder="Nama sales" name="sales" value="{{ old('sales') }}">
+                                @error('sales')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label for="dateInput" class="form-label">Target penyelesaian <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control flatpickr-input @error ('tgl_selesai') is-invalid @enderror" data-provider="flatpickr" data-date-format="Y-m-d" name="tgl_selesai" id="dateInput" placeholder="YYYY-MM-DD" value="{{ old('tgl_selesai') }}" autocomplete="off" required>
+                                    @error('tgl_selesai')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label">Transaksi PADI UMKM <span class="text-danger">*</span></label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="tkb-radio-card" for="padi_umkm_tidak">
+                                                <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_tidak" value="0" {{ old('is_padi_umkm', '0') == '0' ? 'checked' : '' }}>
+                                                <span>Tidak</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="tkb-radio-card" for="padi_umkm_ya">
+                                                <input class="form-check-input" type="radio" name="is_padi_umkm" id="padi_umkm_ya" value="1" {{ old('is_padi_umkm') == '1' ? 'checked' : '' }}>
+                                                <span>Ya</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE CARD: Item Invoice -->
+            <div class="tkb-form-card mb-4">
+                <div class="tkb-form-card__header">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="tkb-sec-icon tkb-sec-icon--amber"><i class="ri-price-tag-3-line"></i></span>
+                        <div>
+                            <h5 class="tkb-form-card__title">Item invoice</h5>
+                            <p class="tkb-form-card__sub">Tambahkan produk atau jasa yang dijual</p>
+                        </div>
+                    </div>
+                    <a href="javascript:new_link()" id="add-item" class="btn btn-soft-secondary">
+                        <i class="ri-add-line"></i> Add item
+                    </a>
+                </div>
+
+                <div class="tkb-form-card__body">
+                    <div id="template-options-barang" style="display: none;">
+                        <option value="" selected disabled>Pilih item</option>
+                        @foreach ($jenisBarang as $jns)
+                            <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}">{{$jns->nama_item}}</option>
+                        @endforeach
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="invoice-table table table-borderless table-nowrap mb-0">
+                            <thead class="align-middle">
+                                <tr class="table-active">
+                                    <th scope="col" style="width: 48px;">#</th>
+                                    <th scope="col" style="min-width: 380px;">Item <span class="text-danger">*</span></th>
+                                    <th scope="col" style="min-width: 110px; width: 110px;">Satuan <span class="text-danger">*</span></th>
+                                    <th scope="col" style="width: 150px;">
+                                        <div class="d-flex currency-select align-items-center">Harga <span class="text-danger me-1">*</span>
+                                            <select class="form-select border-0" data-choices data-choices-search-false id="choices-payment-currency" onchange="otherPayment()">
+                                                <option value="Rp">(Rp)</option>
+                                            </select>
+                                        </div>
+                                    </th>
+                                    <th scope="col" style="width: 110px;">Quantity <span class="text-danger">*</span></th>
+                                    <th scope="col" style="width: 160px;">Jumlah harga</th>
+                                    <th scope="col" class="text-end" style="width: 105px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="newlink">
+                                <tr id="1" class="product">
+                                    <th scope="row" class="product-id">1</th>
+                                    <td class="text-start">
+                                        <div class="mb-2">
+                                            <label class="visually-hidden" for="productName-1">Item</label>
+                                            <select class="form-select @error('item_id.0') is-invalid @enderror" id="productName-1" name="item_id[0]" required>
+                                                <option value="" selected disabled>Pilih item</option>
+                                                @foreach ($jenisBarang as $jns)
+                                                    <option value="{{$jns->id}}" data-jenis-pajak="{{$jns->jenis_pajak}}" data-harga="{{$jns->harga_jual ?? 0}}" {{old('item_id.0') == $jns->id ? 'selected' : ''}}>{{$jns->nama_item}}</option>
+                                                @endforeach
+                                            </select>
+                                            <small class="form-text item-tax-type" id="item-tax-type-1"></small>
+                                            @error('item_id.0')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        </div>
+                                        <textarea class="form-control @error('deskripsi_item.0') is-invalid @enderror" id="productDetails-1" name="deskripsi_item[0]" rows="2" placeholder="Deskripsi item" required></textarea>
+                                        @error('deskripsi_item.0')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </td>
+                                    <td>
+                                        <select class="form-select @error ('satuan.0') is-invalid @enderror" style="min-width: 95px;" id="satuan-1" name="satuan[0]" required>
+                                            <option value="">Pilih</option>
+                                            <option value="Pcs" selected>Pcs</option>
+                                            <option value="Set">Set</option>
+                                            <option value="Und">Und</option>
+                                            <option value="Blok">Blok</option>
+                                            <option value="Rim">Rim</option>
+                                            <option value="Lbr">Lbr</option>
+                                            <option value="Ktk">Ktk</option>
+                                            <option value="Unit">Unit</option>
+                                            <option value="Kg">Kg</option>
+                                            <option value="Lainnya">Lainnya</option>
+                                            <option value="Pax">Pax</option>
+                                        </select>
+                                        @error('satuan.0')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control product-price @error('hrg.0') is-invalid @enderror" id="productRate-1" name="hrg[0]" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand" }' placeholder="Rp 0.000" onchange="autoCalc(this)" required/>
+                                        @error('hrg.0')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </td>
+                                    <td>
+                                        <div class="input-step">
+                                            <input type="number" class="text-center @error('qty.0') is-invalid @enderror" id="product-qty-1" value="1" min="1" name="qty[0]" onchange="autoCalc(this)" required>
+                                            @error('qty.0')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control product-line-price" id="productPrice-1" name="jlh_hrg[0]" placeholder="0" onchange="autoCalc(this)" readonly/>
+                                    </td>
+                                    <td class="product-removal text-end">
+                                        <a href="javascript:void(0)" class="btn btn-danger btn-sm"><i class="ri-delete-bin-5-line"></i>Hapus</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody style="display: none;">
+                                <tr id="newForm" style="display: none;"><td class="d-none" colspan="5"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM CARD: Pembayaran -->
+            <div class="tkb-form-card mb-4">
+                <div class="tkb-form-card__header">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="tkb-sec-icon tkb-sec-icon--emerald"><i class="ri-wallet-3-line"></i></span>
+                        <div>
+                            <h5 class="tkb-form-card__title">Pembayaran</h5>
+                            <p class="tkb-form-card__sub">Rincian pajak dan total yang harus dibayar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tkb-form-card__body">
+                    <div class="col-lg-7">
+                        <div class="row align-items-center mb-3">
+                            <div class="col-sm-4">
+                                <label for="choices-payment-type" class="col-form-label mb-0">Jenis pembayaran <span class="text-danger">*</span></label>
+                            </div>
+                            <div class="col-sm-8">
+                                <select class="form-select @error('jns_pem') is-invalid @enderror" id="choices-payment-type" name="jns_pem" value="{{ old('jns_pem') }}" required>
+                                    <option disabled selected value="">Payment method</option>
+                                    <option value="Cash Belum Lunas">Cash Belum Lunas</option>
+                                    <option value="Transfer DP">Transfer Dp</option>
+                                    <option value="Transfer Lunas">Transfer Lunas</option>
+                                    <option value="PO">PO</option>
+                                </select>
+                                @error('jns_pem')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4"></div>
+                            <div class="col-sm-8">
+                                @if(isset($rekenings) && $rekenings->count() > 0)
+                                    @foreach($rekenings as $rek)
+                                    <div class="form-check mb-1">
+                                        <input class="form-check-input" type="radio" name="norek" id="flexRadioRek{{ $rek->id }}" value="{{ $rek->id }}" {{ $loop->first ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-normal" for="flexRadioRek{{ $rek->id }}">{{ $rek->formatted }}</label>
+                                    </div>
+                                    @endforeach
+                                @else
+                                    <div class="form-check mb-1" id="alamatPembayaran2">
+                                        <input class="form-check-input" type="radio" name="norek" id="flexRadioDefault2" value="TKB" checked>
+                                        <label class="form-check-label fw-normal" for="flexRadioDefault2">BSI | A/N : PT. Total Karya Berkah | No. Rek : 3557999999</label>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-3">
+                            <div class="col-sm-4">
+                                <label for="total-harga" class="col-form-label mb-0">Jumlah harga</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control tabular-nums" id="total-harga" name="tot_harga" placeholder="0" value="{{ old('tot_harga') }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-3" id="div-dp-row">
+                            <div class="col-sm-4" id="div-label" style="display: none;">
+                                <label for="input-dp" class="col-form-label mb-0" id="label-dp">Dp</label>
+                            </div>
+                            <div class="col-sm-8" id="dp" style="display: none;">
+                                <input id="input-dp" name="dp" type="text" data-cleave='{ "numeral": true, "numeralThousandsGroupStyle": "thousand", "numeralDecimalScale": 0, "numeralPositiveOnly": true }' class="form-control" placeholder="Rp 0" value="{{ old('dp') }}">
+                                <small class="d-block mt-1" style="color: var(--text-tertiary);"><i class="ri-information-line me-1"></i>Default 70%, dapat diedit manual jika negosiasi</small>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-3">
+                            <div class="col-sm-4">
+                                <label for="input-ppn" class="col-form-label mb-0">PPN (%)</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="number" step="any" min="0" max="100" class="form-control" id="input-ppn" name="ppn" placeholder="0" value="{{ old('ppn') }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="fw-medium mt-1" id="preview-nominal-ppn" style="display: none;"></small>
+                                <small class="fw-medium mt-1" id="hint-locked-ppn" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPN</small>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-3" id="row-kode-ppn" style="display: none;">
+                            <div class="col-sm-4">
+                                <label for="select-kode-ppn" class="col-form-label mb-0">Kode transaksi PPN</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <select class="form-select" name="kode_ppn" id="select-kode-ppn">
+                                    <option value="01" selected>01 - Non Pemungut PPN (Swasta)</option>
+                                    <option value="02">02 - Pemungut Instansi Pemerintah</option>
+                                    <option value="03">03 - Pemungut BUMN / Pemungut Lainnya</option>
+                                    <option value="04">04 - DPP Nilai Lain</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-3">
+                            <div class="col-sm-4">
+                                <label for="input-pph" class="col-form-label mb-0">PPh (%)</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <div class="input-group">
+                                    <input type="number" step="any" min="0" max="100" class="form-control" id="input-pph" name="pph" placeholder="0" value="{{ old('pph') }}">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="fw-medium mt-1" id="preview-nominal-pph" style="display: none;"></small>
+                                <small class="fw-medium mt-1" id="hint-locked-pph" style="display: none;"><i class="ri-lock-line me-1"></i>Terkunci: Item tidak dikenakan PPh</small>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-3">
+                            <div class="col-sm-4">
+                                <label for="total-pembelian" class="col-form-label mb-0">Total pembayaran</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control fw-bold tabular-nums" placeholder="0" id="total-pembelian" name="tot_pem" value="{{ old('tot_pem') }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center mb-2">
+                            <div class="col-sm-4">
+                                <label for="sisa-pembayaran" class="col-form-label mb-0">Sisa pembayaran</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control tabular-nums" placeholder="0" id="sisa-pembayaran" name="sisa_pem" value="{{ old('sisa_pem') }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tkb-form-actions hstack gap-2 d-print-none">
+                        <button type="submit" id="simpan" class="btn btn-primary btn-load btn-simpan-tokabe">
+                            <span class="d-flex align-items-center">
+                                <span id="loading-spinner" class="spinner-border flex-shrink-0" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </span>
+                                <span class="flex-grow-1 ms-1">
+                                    <i class="ri-printer-line align-bottom me-1"></i>Simpan
+                                </span>
+                            </span>
+                        </button>
+                        <button type="button" id="btn-save-draft" class="btn btn-save-draft-tokabe">
+                            <i class="ri-draft-line align-bottom"></i>Simpan draf
+                        </button>
+                        <a href="{{ route('list_invoice_tokabe') }}" class="btn btn-secondary btn-cancel-tokabe">
+                            <i class="ri-close-line align-bottom"></i>Batal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
              <script>
                document.getElementById('customer').addEventListener('change', function() {
                    var selectedOption = this.value;

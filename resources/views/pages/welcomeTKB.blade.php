@@ -1,110 +1,38 @@
 @extends('layout.template')
+@section('has_inline_theme_toggle', '1')
 
 @section('head')
-{{-- <link href="{{asset('libs/jsvectormap/css/jsvectormap.min.css')}}" rel="stylesheet" type="text/css" /> --}}
 <style>
 /* ==========================================================================
-   TOKABE DASHBOARD — DESIGN SYSTEM & TOKENS (DESIGN.md Reference)
+   TOKABE DASHBOARD — EMERALD / FOREST MINT DESIGN SYSTEM (DARK & LIGHT)
    ========================================================================== */
 
-:root {
-    /* 1. Surfaces & Backgrounds (Flat Dark Slate Palette) */
-    --bg-app: #0C0F14;
-    --bg-surface: #12161D;
-    --bg-surface-2: #181D26;
-    --bg-hover: rgba(255, 255, 255, 0.04);
-    --bg-active: #242C38;
-
-    /* 2. Borders (1px Precision, No Glow) */
-    --border-subtle: #232A35;
-    --border-default: #232A35;
-    --border-strong: #2F3744;
-    --border-focus: #6B73F0;
-
-    /* 3. Typography Colors */
-    --text-primary: #E8EBF0;
-    --text-secondary: #9AA4B2;
-    --text-tertiary: #6B7686;
-    --text-disabled: #4A5361;
-
-    /* 4. Single Accent Color (Indigo #6B73F0) */
-    --brand: #6B73F0;
-    --brand-hover: #7E85F4;
-    --brand-pressed: #5A62DB;
-    --brand-subtle: rgba(107, 115, 240, 0.12);
-    --brand-border: rgba(107, 115, 240, 0.28);
-
-    /* 5. Chart Second Series & Semantic Status (10-14% Alpha Tints) */
-    --chart-series-2: #34C28B;
-
-    --success: #34C28B;
-    --success-subtle: rgba(52, 194, 139, 0.12);
-    --success-border: rgba(52, 194, 139, 0.28);
-    --success-text: #34C28B;
-
-    --warning: #E3A33B;
-    --warning-subtle: rgba(227, 163, 59, 0.12);
-    --warning-border: rgba(227, 163, 59, 0.28);
-    --warning-text: #E3A33B;
-
-    --danger: #E5586B;
-    --danger-subtle: rgba(229, 88, 107, 0.12);
-    --danger-border: rgba(229, 88, 107, 0.28);
-    --danger-text: #E5586B;
-
-    --info: #5B9DF0;
-    --info-subtle: rgba(91, 157, 240, 0.12);
-    --info-border: rgba(91, 157, 240, 0.28);
-    --info-text: #5B9DF0;
-
-    /* 6. Radii & Shadows (Flat, Minimalist) */
-    --radius-control: 8px;
-    --radius-card: 12px;
-    --radius-sm: 6px;
-    --radius-full: 9999px;
-
-    --shadow-dropdown: 0 8px 24px rgba(0, 0, 0, 0.45);
-    --focus-ring: 0 0 0 2px rgba(107, 115, 240, 0.35);
-
-    /* 7. Motion & Easing Tokens */
-    --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-    --dur-enter: 360ms;
-    --dur-fast: 140ms;
+/* Top Page Header */
+.tkb-dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
 }
-
-/* Light Theme Variables Fallback */
-[data-theme="light"] {
-    --bg-app: #F8FAFC;
-    --bg-surface: #FFFFFF;
-    --bg-surface-2: #F1F5F9;
-    --bg-hover: rgba(0, 0, 0, 0.03);
-    --border-subtle: #E2E8F0;
-    --border-default: #CBD5E1;
-    --border-strong: #94A3B8;
-    --text-primary: #0F172A;
-    --text-secondary: #475569;
-    --text-tertiary: #64748B;
-    --text-disabled: #94A3B8;
-    --brand: #4F46E5;
-    --brand-hover: #4338CA;
-    --brand-subtle: rgba(79, 70, 229, 0.08);
-    --brand-border: rgba(79, 70, 229, 0.24);
+.tkb-dash-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin: 0 0 2px 0;
 }
-
-/* Layout Background & Footer Consistency */
-body,
-#layout-wrapper,
-.main-content,
-.page-content {
-    background-color: var(--bg-app) !important;
+.tkb-dash-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+    margin: 0;
 }
-
-.footer {
-    background-color: var(--bg-app) !important;
-    color: var(--text-tertiary) !important;
-    border-top: 1px solid var(--border-subtle) !important;
-    box-shadow: none !important;
+.tkb-dash-breadcrumb .crumb-active {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* Base Dashboard Card */
@@ -114,15 +42,9 @@ body,
     background-color: var(--bg-surface) !important;
     border: 1px solid var(--border-default) !important;
     border-radius: var(--radius-card) !important;
-    color: #F1F5F9 !important;
-    margin-bottom: 24px;
-    box-shadow: none !important;
-    transition: border-color var(--dur-fast) ease;
-}
-#card-aktivitas-pembayaran:hover,
-#card-grafik-penjualan-item:hover,
-#card-grafik-pembelian-invoice:hover {
-    border-color: var(--border-strong) !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow-card) !important;
 }
 
 #card-aktivitas-pembayaran .card-header,
@@ -133,7 +55,37 @@ body,
     border-bottom: 1px solid var(--border-subtle) !important;
 }
 
-/* HIGH-CONTRAST TYPOGRAPHY OVERRIDES */
+#card-aktivitas-pembayaran .card-body,
+#card-grafik-penjualan-item .card-body,
+#card-grafik-pembelian-invoice .card-body {
+    padding: 20px 24px 22px 24px !important;
+}
+
+/* Section Icon Badges */
+.tkb-sec-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+.tkb-sec-icon--emerald {
+    background: var(--brand-subtle);
+    color: var(--brand);
+}
+.tkb-sec-icon--cyan {
+    background: var(--accent-cyan-subtle);
+    color: var(--accent-cyan);
+}
+.tkb-sec-icon--amber {
+    background: var(--warning-subtle);
+    color: var(--warning-text);
+}
+
+/* Typography Overrides (Theme-aware) */
 #card-aktivitas-pembayaran h4,
 #card-aktivitas-pembayaran h5,
 #card-grafik-penjualan-item h4,
@@ -142,30 +94,80 @@ body,
 #card-grafik-pembelian-invoice h5,
 .card-title,
 .section-title {
-    color: #F8FAFC !important;
-    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em;
+}
+.tkb-card-subtitle {
+    color: var(--text-tertiary) !important;
+    font-size: 12.5px !important;
 }
 
-#card-aktivitas-pembayaran .text-light,
-#card-grafik-penjualan-item .text-light,
-#card-grafik-pembelian-invoice .text-light {
-    color: #E2E8F0 !important;
+/* Emerald Gradient Hero Revenue Card */
+.tkb-hero-revenue {
+    position: relative;
+    overflow: hidden;
+    background: var(--hero-bg);
+    border: 1px solid var(--hero-border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: var(--hero-shadow);
+    color: #FFFFFF;
+    min-height: 146px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
-
-#card-aktivitas-pembayaran .text-muted,
-#card-grafik-penjualan-item .text-muted,
-#card-grafik-pembelian-invoice .text-muted {
-    color: #94A3B8 !important;
+.tkb-hero-revenue__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.84);
+    margin-bottom: 6px;
+}
+.tkb-hero-revenue__value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: #FFFFFF !important;
+    line-height: 1.15;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 2;
+}
+.tkb-hero-revenue__pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    color: #FFFFFF !important;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-style: italic;
+    width: fit-content;
+    position: relative;
+    z-index: 2;
+}
+.tkb-hero-revenue__spark {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 68%;
+    height: 58%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
 }
 
 /* Section Sub-panels */
 .sub-panel {
     background: var(--bg-surface-2) !important;
-    border: 1px solid var(--border-default) !important;
-    border-radius: var(--radius-card) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-inner) !important;
 }
 
-/* Tabular Numerals (DESIGN.md 5.1 & 23) */
+/* Tabular Numerals */
 .tabular-nums, .price, .num, td.numeric, th.numeric, .stat-value,
 #hero-pendapatan-akumulasi, #terbayar, #belumTerbayar, #batal,
 #stat-item-qty, #stat-item-nominal, #stat-item-top, #stat-item-dominant-tax,
@@ -175,7 +177,7 @@ body,
 }
 
 /* ==========================================================================
-   SEGMENTED CONTROL (DESIGN.md 9.3 & 16.3)
+   SEGMENTED CONTROL (Emerald Pill Style)
    ========================================================================== */
 .segmented-control {
     display: inline-flex;
@@ -188,14 +190,14 @@ body,
 }
 .segmented-item {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-secondary);
     padding: 5px 12px;
     border-radius: var(--radius-sm);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
     line-height: 1.4;
-    transition: color var(--dur-fast) ease, background var(--dur-fast) ease, transform 80ms ease;
+    transition: all var(--dur-fast) ease;
     cursor: pointer;
     white-space: nowrap;
     text-decoration: none;
@@ -205,19 +207,24 @@ body,
 }
 .segmented-item:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-hover);
 }
 .segmented-item:active {
     transform: scale(0.98);
 }
 .segmented-item.active {
     background: var(--brand-subtle);
-    color: #ffffff;
+    color: var(--brand);
     font-weight: 600;
     border: 1px solid var(--brand-border);
 }
+[data-theme="light"] .segmented-item.active {
+    background: var(--brand);
+    color: #FFFFFF !important;
+    border-color: var(--brand);
+}
 
-/* Custom Filter Button (Standalone with Chevron) */
+/* Custom Filter Button */
 .btn-custom-filter {
     display: inline-flex;
     align-items: center;
@@ -226,8 +233,8 @@ body,
     color: var(--text-secondary);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-control);
-    padding: 5px 12px;
-    font-size: 13px;
+    padding: 6px 12px;
+    font-size: 12.5px;
     font-weight: 500;
     line-height: 1.4;
     transition: all var(--dur-fast) ease;
@@ -236,13 +243,14 @@ body,
 .btn-custom-filter:hover {
     color: var(--text-primary);
     border-color: var(--border-strong);
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--bg-hover);
 }
 .btn-custom-filter.active,
 .btn-custom-filter.open {
     background: var(--brand-subtle);
     border-color: var(--brand-border);
-    color: #ffffff;
+    color: var(--brand);
+    font-weight: 600;
 }
 .chevron-rotate {
     transition: transform 200ms var(--ease-out-expo);
@@ -255,7 +263,7 @@ body,
 .custom-filter-panel {
     background: var(--bg-surface-2) !important;
     border: 1px solid var(--border-default) !important;
-    border-radius: var(--radius-control) !important;
+    border-radius: var(--radius-inner) !important;
     animation: filterSlideDown 220ms var(--ease-out-expo);
 }
 @keyframes filterSlideDown {
@@ -265,12 +273,12 @@ body,
 
 /* Custom Form Controls */
 .dash-input, .dash-select {
-    background: var(--bg-surface) !important;
+    background: var(--bg-surface-2) !important;
     color: var(--text-primary) !important;
     border: 1px solid var(--border-default) !important;
     border-radius: var(--radius-control) !important;
-    font-size: 13px !important;
-    padding: 5px 10px !important;
+    font-size: 12.5px !important;
+    padding: 6px 12px !important;
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 .dash-input:focus, .dash-select:focus {
@@ -279,36 +287,32 @@ body,
     box-shadow: var(--focus-ring) !important;
 }
 .dash-select option {
-    background: var(--bg-surface-2);
+    background: var(--bg-surface);
     color: var(--text-primary);
 }
 
-/* Single Accent Primary Button */
+/* Primary Button */
 .btn-dash-primary {
     background: var(--brand) !important;
     color: #ffffff !important;
-    border: 1px solid var(--brand-hover) !important;
+    border: 1px solid var(--brand) !important;
     border-radius: var(--radius-control) !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    padding: 5px 14px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    padding: 6px 14px !important;
     transition: background var(--dur-fast) ease, transform 80ms ease !important;
 }
 .btn-dash-primary:hover {
     background: var(--brand-hover) !important;
 }
-.btn-dash-primary:active {
-    background: var(--brand-pressed) !important;
-    transform: scale(0.98);
-}
 
 /* ==========================================================================
-   CARD 2: REFINED FINANCE KPI STATS (No Repeated Circle Avatars)
+   CARD 2: REFINED FINANCE KPI STATS
    ========================================================================== */
 .stat-box {
     background: var(--bg-surface-2) !important;
-    border: 1px solid var(--border-default) !important;
-    border-radius: var(--radius-card) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-inner) !important;
     padding: 18px 20px !important;
     transition: border-color var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out-expo);
 }
@@ -317,114 +321,152 @@ body,
     transform: translateY(-2px);
 }
 .stat-overline {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0;
 }
 .stat-value-big {
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: #ffffff;
-    margin-bottom: 4px;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin: 8px 0 4px 0;
 }
 .stat-caption {
-    font-size: 12px;
-    color: var(--text-secondary);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
 }
 
 /* ==========================================================================
-   TABLE DESIGN (Sticky, 48px rows, overline header, tabular-nums)
+   TABLE DESIGN (Clean Emerald Header & Rows)
    ========================================================================== */
 .dash-table-wrapper {
-    background: var(--bg-surface-2);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-inner);
     overflow: hidden;
 }
 .dash-table {
-    color: #F1F5F9;
+    color: var(--text-primary);
     margin-bottom: 0;
     width: 100%;
+    border-collapse: collapse;
 }
 .dash-table thead th {
-    background: #12161D !important;
-    color: #CBD5E1 !important;
-    border-bottom: 1px solid var(--border-default) !important;
-    font-size: 11px !important;
+    background: var(--bg-surface-2) !important;
+    color: var(--text-tertiary) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    font-size: 11.5px !important;
     font-weight: 600 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    padding: 12px 14px !important;
+    letter-spacing: 0.02em !important;
+    padding: 11px 14px !important;
 }
 .dash-table tbody tr {
     height: 48px;
-    background: #181D26 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: transparent !important;
+    border-bottom: 1px solid var(--border-subtle);
     transition: background-color var(--dur-fast) ease;
 }
-.dash-table tbody tr:hover {
-    background-color: #232A35 !important;
+.dash-table tbody tr:last-child {
+    border-bottom: none;
 }
-.dash-table tbody td,
-.dash-table tbody td span,
-.vendor-name-text {
-    color: #F1F5F9 !important;
-    padding: 10px 14px;
+.dash-table tbody tr:hover {
+    background-color: var(--bg-hover) !important;
+}
+.dash-table tbody td {
+    color: var(--text-primary) !important;
+    padding: 11px 14px;
     font-size: 13px;
     vertical-align: middle;
 }
-.dash-table tbody tr:hover td,
-.dash-table tbody tr:hover .vendor-name-text {
-    color: #FFFFFF !important;
-}
 .dash-table tfoot td {
-    color: #FFFFFF !important;
-    background: #12161D !important;
-    border-top: 2px solid var(--border-strong) !important;
+    color: var(--text-primary) !important;
+    background: var(--bg-surface-2) !important;
+    border-top: 1px solid var(--border-default) !important;
     padding: 12px 14px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-/* Mini Bar inside Vendor Tagihan cell */
-.vendor-mini-bar-track {
-    width: 100%;
-    max-width: 64px;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 2px;
+/* ==========================================================================
+   CARD 3: VENDOR BILL LIST (Matches Reference Screenshots 5 & 10)
+   ========================================================================== */
+.tkb-vendor-list {
+    display: flex;
+    flex-direction: column;
+}
+.tkb-vendor-item {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.3fr) minmax(95px, 1fr) minmax(95px, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) ease;
+}
+.tkb-vendor-item:last-child {
+    border-bottom: none;
+}
+.tkb-vendor-item:hover {
+    background-color: var(--bg-hover);
+}
+.tkb-vendor-item.active-vendor-row {
+    background-color: var(--brand-subtle);
+    box-shadow: inset 3px 0 0 var(--brand);
+}
+.tkb-vendor-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    white-space: nowrap;
     overflow: hidden;
-    margin-top: 4px;
+    text-overflow: ellipsis;
 }
-.vendor-mini-bar-fill {
+.tkb-vendor-bar-track {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-surface-3);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+.tkb-vendor-bar-fill {
     height: 100%;
-    background: var(--brand);
-    border-radius: 2px;
-    transition: width 300ms var(--ease-out-expo);
+    background: linear-gradient(90deg, var(--brand-pressed), var(--brand));
+    border-radius: 9999px;
+    transition: width 350ms var(--ease-out-expo);
+}
+.tkb-vendor-meta-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 2px;
+}
+.tkb-vendor-meta-val {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.tkb-vendor-unpaid-val {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
-/* Active Vendor Row in Card 3 */
-.active-vendor-row {
-    background-color: var(--brand-subtle) !important;
-}
-.active-vendor-row td:first-child {
-    border-left: 3px solid var(--brand) !important;
-}
-
-/* Subtle Status Pills & Tax Badges (10-14% Alpha) */
+/* Subtle Status Pills & Tax Badges */
 .badge-tint {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
-    font-size: 11px;
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-    line-height: 1.3;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 9999px;
+    line-height: 1.35;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .badge-tint-success {
     background: var(--success-subtle);
@@ -437,71 +479,38 @@ body,
     border: 1px solid var(--warning-border);
 }
 .badge-tint-neutral {
-    background: rgba(107, 118, 134, 0.12);
+    background: var(--bg-surface-3);
     color: var(--text-secondary);
-    border: 1px solid rgba(107, 118, 134, 0.25);
+    border: 1px solid var(--border-subtle);
 }
 .badge-tint-brand {
+    background: var(--accent-cyan-subtle);
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan-border);
+}
+.badge-tint-emerald {
     background: var(--brand-subtle);
-    color: #A5B4FC;
+    color: var(--brand);
     border: 1px solid var(--brand-border);
 }
 
-/* Tax badge styles */
-.badge-tax-ppn {
-    background: var(--brand-subtle);
-    color: #A5B4FC;
-    border: 1px solid var(--brand-border);
-}
-.badge-tax-pph {
-    background: var(--warning-subtle);
-    color: var(--warning-text);
-    border: 1px solid var(--warning-border);
-}
-.badge-tax-ppn_pph {
-    background: rgba(129, 140, 248, 0.12);
-    color: #818CF8;
-    border: 1px solid rgba(129, 140, 248, 0.25);
-}
-.badge-tax-tanpa_pajak {
-    background: rgba(107, 118, 134, 0.12);
-    color: var(--text-tertiary);
-    border: 1px solid rgba(107, 118, 134, 0.25);
-}
-
-/* Contribution Progress Bar in Item Table */
-.progress-slim {
-    height: 4px;
-    background: var(--bg-surface);
-    border-radius: 2px;
-    overflow: hidden;
-    width: 50px;
-}
-.progress-slim .progress-bar {
-    background: var(--brand);
-    border-radius: 2px;
-}
-
-/* ==========================================================================
-   APEXCHARTS DARK THEME REFINEMENT
-   ========================================================================== */
+/* ApexCharts Theme Refinement */
 .apexcharts-legend-text,
 .apexcharts-text {
     fill: var(--text-tertiary) !important;
     color: var(--text-tertiary) !important;
     font-family: inherit !important;
 }
-.apexcharts-tooltip.apexcharts-theme-dark {
-    background: var(--bg-surface-2) !important;
+.apexcharts-tooltip {
+    background: var(--bg-surface) !important;
     border: 1px solid var(--border-default) !important;
     border-radius: var(--radius-control) !important;
     box-shadow: var(--shadow-dropdown) !important;
     color: var(--text-primary) !important;
-    padding: 4px 6px;
 }
-.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title {
-    background: var(--bg-surface) !important;
-    border-bottom: 1px solid var(--border-default) !important;
+.apexcharts-tooltip .apexcharts-tooltip-title {
+    background: var(--bg-surface-2) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
     font-family: inherit !important;
     font-weight: 600 !important;
     color: var(--text-primary) !important;
@@ -511,35 +520,152 @@ body,
     stroke: var(--border-subtle) !important;
 }
 
-/* ==========================================================================
-   MOTION ORCHESTRATION & ACCESSIBILITY
-   ========================================================================== */
+/* Motion Orchestration */
 @keyframes motionEnter {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.motion-card-1 {
-    animation: motionEnter var(--dur-enter) var(--ease-out-expo) 0ms both;
-}
-.motion-card-2 {
-    animation: motionEnter var(--dur-enter) var(--ease-out-expo) 70ms both;
-}
-.motion-card-3 {
-    animation: motionEnter var(--dur-enter) var(--ease-out-expo) 140ms both;
-}
+.motion-card-1 { animation: motionEnter var(--dur-enter) var(--ease-out-expo) 0ms both; }
+.motion-card-2 { animation: motionEnter var(--dur-enter) var(--ease-out-expo) 70ms both; }
+.motion-card-3 { animation: motionEnter var(--dur-enter) var(--ease-out-expo) 140ms both; }
 
 @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {
         animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
+    }
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE FIT (HP: <= 767.98px & <= 575.98px)
+   ========================================================================== */
+@media (max-width: 767.98px) {
+    .tkb-dash-header {
+        margin-bottom: 14px;
+    }
+    .tkb-dash-header .tkb-global-header-controls {
+        display: none !important;
+    }
+    .tkb-dash-title {
+        font-size: 19px;
+    }
+    #card-aktivitas-pembayaran,
+    #card-grafik-penjualan-item,
+    #card-grafik-pembelian-invoice {
+        overflow: hidden;
+    }
+    #card-aktivitas-pembayaran .card-header,
+    #card-grafik-penjualan-item .card-header,
+    #card-grafik-pembelian-invoice .card-header {
+        padding: 14px 14px 12px 14px !important;
+    }
+    #card-aktivitas-pembayaran .card-body,
+    #card-grafik-penjualan-item .card-body,
+    #card-grafik-pembelian-invoice .card-body {
+        padding: 14px !important;
+    }
+    /* Prevent flex children from pushing outside card bounds */
+    #card-aktivitas-pembayaran .card-header > div,
+    #card-aktivitas-pembayaran .card-header .d-flex,
+    #card-grafik-penjualan-item .card-header .d-flex,
+    #card-grafik-pembelian-invoice .card-header .d-flex {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+    .segmented-control {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .segmented-control::-webkit-scrollbar {
+        display: none;
+    }
+    .segmented-item {
+        padding: 6px 10px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    .btn-custom-filter {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .tkb-hero-revenue {
+        padding: 16px;
+        min-height: 124px;
+    }
+    .tkb-hero-revenue__value {
+        font-size: 23px;
+    }
+    .stat-box {
+        padding: 14px 16px !important;
+    }
+    .stat-value-big {
+        font-size: 20px;
+    }
+    #card-grafik-penjualan-item .dash-select,
+    #card-grafik-pembelian-invoice .dash-select {
+        width: 100%;
+        min-width: 0 !important;
+    }
+    #card-grafik-pembelian-invoice .card-header .ms-auto,
+    #card-grafik-penjualan-item .card-header .ms-auto {
+        width: 100%;
+        margin-left: 0 !important;
+    }
+    #card-grafik-penjualan-item .card-header .ms-auto > div:first-child {
+        width: 100%;
+    }
+    #card-grafik-penjualan-item .card-header .ms-auto > div:first-child .dash-select {
+        flex: 1 1 auto;
+    }
+    /* Vendor list header wraps cleanly on narrow screens */
+    .tkb-vendor-header {
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+    .tkb-vendor-header #btn-semua-vendor {
+        margin-left: auto;
+    }
+    #table-rincian-item {
+        min-width: 720px;
+    }
+    #table-rincian-item th,
+    #table-rincian-item td {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .tkb-vendor-item {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+        padding: 12px 14px;
+    }
+    .tkb-vendor-item > div:first-child {
+        grid-column: 1 / -1;
+    }
+    .tkb-hero-revenue__value {
+        font-size: 21px;
+    }
+    .custom-filter-panel [id^="wrapper-"] {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 6px !important;
+    }
+    .custom-filter-panel .dash-input,
+    .custom-filter-panel .dash-select,
+    .custom-filter-panel .btn-dash-primary {
+        width: 100%;
+        min-width: 0 !important;
+        flex: 1 1 120px;
+    }
+    #harga > div > div {
+        gap: 6px;
+        flex-wrap: wrap;
     }
 }
 </style>
@@ -551,22 +677,23 @@ body,
         <div class="page-content">
          <div class="container-fluid">
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                        <h4 class="mb-sm-0">Dashboard Tokabe</h4>
-
-                        <div class="page-title-right">
-                            <ol class="breadcrumb m-0">
-                                <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboard</a></li>
-                                <li class="breadcrumb-item active">Dashboard</li>
-                            </ol>
-                        </div>
-
+            <div class="tkb-dash-header">
+                <div>
+                    <h4 class="tkb-dash-title">Dashboard Tokabe</h4>
+                    <div class="tkb-dash-breadcrumb">
+                        <span>Dashboard</span>
+                        <span>›</span>
+                        <span class="crumb-active">Dashboard</span>
                     </div>
                 </div>
-              </div>
-                    <!-- end row -->
+                <div class="tkb-global-header-controls">
+                    <button type="button" class="tkb-theme-toggle" onclick="window.toggleTokabeTheme(event)" aria-label="Ubah Mode Terang / Gelap" title="Ubah Mode Terang / Gelap">
+                        <span class="tkb-theme-toggle__thumb" aria-hidden="true"></span>
+                        <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--sun"><i class="ri-sun-line"></i></span>
+                        <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--moon"><i class="ri-moon-clear-line"></i></span>
+                    </button>
+                </div>
+            </div>
 
                     <!-- KARTU GABUNGAN: AKTIVITAS PEMBAYARAN & STRUKTUR STATUS PEMBAYARAN -->
                     <div class="row motion-card-1">
@@ -574,14 +701,16 @@ body,
                             <div class="card" id="card-aktivitas-pembayaran">
                                 <div class="card-header border-0 pb-0">
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                                        <div>
-                                            <h4 class="card-title mb-1 d-flex align-items-center">
-                                                <i class="ri-line-chart-line me-2 fs-20" style="color: var(--brand);"></i>
-                                                Aktivitas Pembayaran & Struktur Status
-                                            </h4>
-                                            <p class="text-muted mb-0 fs-13">
-                                                Visualisasi arus penerimaan kas masuk serta perbandingan status pelunasan invoice
-                                            </p>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="tkb-sec-icon tkb-sec-icon--emerald">
+                                                <i class="ri-line-chart-line"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="card-title mb-0 fs-16">Aktivitas pembayaran dan struktur status</h4>
+                                                <p class="tkb-card-subtitle mb-0">
+                                                    Visualisasi arus penerimaan kas masuk serta perbandingan status pelunasan invoice
+                                                </p>
+                                            </div>
                                         </div>
 
                                         <!-- Filter Toolbar with Segmented Control & Custom Filter -->
@@ -697,26 +826,41 @@ body,
                                     <div class="row g-4">
                                         <!-- Kolom Kiri: Hero & Bar Chart Tren Pendapatan (8 Kolom) -->
                                         <div class="col-xl-8 col-lg-7 border-end-xl" style="border-color: var(--border-subtle) !important;">
-                                            <div class="row gy-3 align-items-center mb-3">
+                                            <div class="row g-3 align-items-stretch mb-4">
                                                 <div class="col-md-5">
-                                                    <p class="stat-overline mb-1">
-                                                        PENDAPATAN AKUMULASI (S/D {{ strtoupper(\Carbon\Carbon::now()->locale('id')->isoFormat('DD MMM YYYY')) }})
-                                                    </p>
-                                                    <h3 class="fw-bold mb-0 tabular-nums text-white" style="font-size: 30px;" id="hero-pendapatan-akumulasi">Rp {{$jumlahPerTahun}}</h3>
+                                                    <div class="tkb-hero-revenue h-100">
+                                                        <div>
+                                                            <div class="tkb-hero-revenue__label">
+                                                                Pendapatan akumulasi (s/d {{ \Carbon\Carbon::now()->locale('id')->isoFormat('DD MMM YYYY') }})
+                                                            </div>
+                                                            <h3 class="tkb-hero-revenue__value tabular-nums mb-0" id="hero-pendapatan-akumulasi">Rp {{$jumlahPerTahun}}</h3>
+                                                        </div>
+                                                        <span class="tkb-hero-revenue__pill mt-3" id="hero-period-pill">Tahun lalu {{ date('Y') - 1 }}</span>
+                                                        <svg class="tkb-hero-revenue__spark" viewBox="0 0 220 70" preserveAspectRatio="none" aria-hidden="true">
+                                                            <defs>
+                                                                <linearGradient id="tkbSparkFill" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="0%" stop-color="#6EE7B7" stop-opacity="0.35"/>
+                                                                    <stop offset="100%" stop-color="#6EE7B7" stop-opacity="0"/>
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <path d="M0,66 L95,64 L135,58 L168,52 L192,62 L220,10 L220,70 L0,70 Z" fill="url(#tkbSparkFill)"/>
+                                                            <path d="M0,66 L95,64 L135,58 L168,52 L192,62 L220,10" fill="none" stroke="rgba(167,243,208,0.85)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
                                                 </div>
                                                 <div class="col-md-7">
-                                                    <div class="p-3 rounded-3 border tabular-nums sub-panel" id="harga">
+                                                    <div class="p-3 h-100 d-flex flex-column justify-content-center tabular-nums sub-panel" id="harga">
                                                         Memuat rincian transaksi...
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div class="mb-2 d-flex align-items-center justify-content-between">
-                                                <div class="d-flex align-items-center">
-                                                    <i class="ri-bar-chart-2-line me-1 fs-16" style="color: var(--chart-series-2);"></i>
-                                                    <span class="fw-semibold text-light fs-13">Tren Arus Penerimaan Kas</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="ri-bar-chart-2-line fs-16" style="color: var(--brand);"></i>
+                                                    <span class="fw-semibold fs-13" style="color: var(--text-primary);">Tren arus penerimaan kas</span>
                                                 </div>
-                                                <span class="fs-12 text-muted" id="badge-payment-period-text">Tahun Lalu</span>
+                                                <span class="fs-12" style="color: var(--text-tertiary);" id="badge-payment-period-text">Tahun Lalu</span>
                                             </div>
 
                                             <!-- Loading State -->
@@ -734,11 +878,11 @@ body,
                                         <div class="col-xl-4 col-lg-5 ps-xl-3 d-flex flex-column justify-content-between">
                                             <div>
                                                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: var(--border-subtle) !important;">
-                                                    <h5 class="fs-15 mb-0 fw-semibold" style="color: #F8FAFC !important;">
-                                                        <i class="ri-pie-chart-line me-1" style="color: var(--brand);"></i> Struktur Status Pembayaran
+                                                    <h5 class="fs-14 mb-0 fw-semibold d-flex align-items-center gap-2">
+                                                        <i class="ri-pie-chart-line" style="color: var(--brand);"></i> Struktur status pembayaran
                                                     </h5>
                                                     <span class="badge-tint badge-tint-neutral" id="periode">
-                                                        Tahun Lalu
+                                                        Tahun lalu
                                                     </span>
                                                 </div>
 
@@ -749,31 +893,31 @@ body,
                                                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--border-subtle) !important;">
                                                     <div class="d-flex align-items-center">
                                                         <span class="d-inline-block rounded-circle me-2" style="width: 8px; height: 8px; background: var(--success);"></span>
-                                                        <span class="fs-13 fw-medium" style="color: #E2E8F0 !important;">Terbayar</span>
+                                                        <span class="fs-13 fw-medium" style="color: var(--text-secondary);">Terbayar</span>
                                                     </div>
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <span class="fw-bold fs-13 tabular-nums" style="color: #FFFFFF !important;" id="terbayar">Rp 0</span>
-                                                        <span class="badge-tint badge-tint-success" id="persenTerbayar">0.00%</span>
+                                                        <span class="fw-bold fs-13 tabular-nums" style="color: var(--text-primary);" id="terbayar">Rp 0</span>
+                                                        <span class="badge-tint badge-tint-success" id="persenTerbayar">0,00%</span>
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--border-subtle) !important;">
                                                     <div class="d-flex align-items-center">
                                                         <span class="d-inline-block rounded-circle me-2" style="width: 8px; height: 8px; background: var(--warning);"></span>
-                                                        <span class="fs-13 fw-medium" style="color: #E2E8F0 !important;">Belum Bayar</span>
+                                                        <span class="fs-13 fw-medium" style="color: var(--text-secondary);">Belum bayar</span>
                                                     </div>
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <span class="fw-bold fs-13 tabular-nums" style="color: #FFFFFF !important;" id="belumTerbayar">Rp 0</span>
-                                                        <span class="badge-tint badge-tint-warning" id="persenBlmTerbayar">0.00%</span>
+                                                        <span class="fw-bold fs-13 tabular-nums" style="color: var(--text-primary);" id="belumTerbayar">Rp 0</span>
+                                                        <span class="badge-tint badge-tint-neutral" id="persenBlmTerbayar">0,00%</span>
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-between align-items-center py-2">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="d-inline-block rounded-circle me-2" style="width: 8px; height: 8px; background: #6B7686;"></span>
-                                                        <span class="fs-13 fw-medium" style="color: #E2E8F0 !important;">Batal</span>
+                                                        <span class="d-inline-block rounded-circle me-2" style="width: 8px; height: 8px; background: var(--text-tertiary);"></span>
+                                                        <span class="fs-13 fw-medium" style="color: var(--text-secondary);">Batal</span>
                                                     </div>
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <span class="fw-bold fs-13 tabular-nums" style="color: #CBD5E1 !important;" id="batal">Rp 0</span>
-                                                        <span class="badge-tint badge-tint-neutral" id="persenBatal">0.00%</span>
+                                                        <span class="fw-bold fs-13 tabular-nums" style="color: var(--text-primary);" id="batal">Rp 0</span>
+                                                        <span class="badge-tint badge-tint-neutral" id="persenBatal">0,00%</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -800,14 +944,16 @@ body,
                             <div class="card" id="card-grafik-penjualan-item">
                                 <div class="card-header border-0 pb-0">
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                                        <div>
-                                            <h4 class="card-title mb-1 d-flex align-items-center">
-                                                <i class="ri-pie-chart-2-fill me-2 fs-20" style="color: var(--brand);"></i>
-                                                Grafik Penjualan Item & Pilihan Pajak
-                                            </h4>
-                                            <p class="text-muted mb-0 fs-13">
-                                                Visualisasi penjualan per item produk beserta parameter pilihan pajak (PPN, PPh, PPN & PPh, Tanpa Pajak)
-                                            </p>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="tkb-sec-icon tkb-sec-icon--cyan">
+                                                <i class="ri-pie-chart-2-line"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="card-title mb-0 fs-16">Grafik penjualan item dan pilihan pajak</h4>
+                                                <p class="tkb-card-subtitle mb-0">
+                                                    Visualisasi penjualan per item produk beserta pilihan pajak (PPN, PPh, PPN dan PPh, tanpa pajak)
+                                                </p>
+                                            </div>
                                         </div>
 
                                         <!-- Filter Toolbar -->
@@ -949,7 +1095,7 @@ body,
                                 <div class="card-body pt-3 pb-3">
                                     <!-- Periode Aktif Banner -->
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom" style="border-color: var(--border-subtle) !important;">
-                                        <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex flex-wrap align-items-center gap-2">
                                             <span class="text-muted fs-13">Periode Aktif:</span>
                                             <span class="badge-tint badge-tint-brand" id="badge-item-period-text">
                                                 <i class="ri-calendar-line"></i> Tahun Ini ({{ date('Y') }})
@@ -963,17 +1109,17 @@ body,
                                         </div>
                                     </div>
 
-                                    <!-- 4 Clean Finance KPI Cards (No Repeated Circle Avatars) -->
+                                    <!-- 4 Clean Finance KPI Cards -->
                                     <div class="row g-3 mb-4">
                                         <!-- Stat 1: Total Unit Terjual -->
                                         <div class="col-xl-3 col-sm-6">
                                             <div class="stat-box d-flex flex-column justify-content-between h-100">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <span class="stat-overline">TOTAL UNIT TERJUAL</span>
-                                                    <span class="badge-tint badge-tint-neutral"><i class="ri-shopping-cart-2-line me-1"></i>Volume</span>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="stat-overline">Total unit terjual</span>
+                                                    <span class="badge-tint badge-tint-brand">Volume</span>
                                                 </div>
                                                 <div>
-                                                    <div class="stat-value-big tabular-nums" id="stat-item-qty">0 Unit</div>
+                                                    <div class="stat-value-big tabular-nums" id="stat-item-qty">0 unit</div>
                                                     <div class="stat-caption">Kuantitas produk keluar</div>
                                                 </div>
                                             </div>
@@ -982,9 +1128,9 @@ body,
                                         <!-- Stat 2: Nilai Penjualan -->
                                         <div class="col-xl-3 col-sm-6">
                                             <div class="stat-box d-flex flex-column justify-content-between h-100">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <span class="stat-overline">TOTAL NILAI PENJUALAN</span>
-                                                    <span class="badge-tint badge-tint-success"><i class="ri-money-dollar-circle-line me-1"></i>Omzet</span>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="stat-overline">Total nilai penjualan</span>
+                                                    <span class="badge-tint badge-tint-emerald">Omzet</span>
                                                 </div>
                                                 <div>
                                                     <div class="stat-value-big tabular-nums" id="stat-item-nominal">Rp 0</div>
@@ -996,12 +1142,12 @@ body,
                                         <!-- Stat 3: Item Terlaris -->
                                         <div class="col-xl-3 col-sm-6">
                                             <div class="stat-box d-flex flex-column justify-content-between h-100">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <span class="stat-overline">ITEM TERLARIS</span>
-                                                    <span class="badge-tint badge-tint-brand"><i class="ri-medal-line me-1"></i>Top Item</span>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="stat-overline">Item terlaris</span>
+                                                    <span class="badge-tint badge-tint-brand">Top item</span>
                                                 </div>
                                                 <div>
-                                                    <div class="fs-18 fw-bold text-white text-truncate mb-1" id="stat-item-top" title="-">-</div>
+                                                    <div class="stat-value-big text-truncate" style="font-size: 20px;" id="stat-item-top" title="-">-</div>
                                                     <div class="stat-caption">Kontribusi penjualan tertinggi</div>
                                                 </div>
                                             </div>
@@ -1010,12 +1156,12 @@ body,
                                         <!-- Stat 4: Pajak Dominan -->
                                         <div class="col-xl-3 col-sm-6">
                                             <div class="stat-box d-flex flex-column justify-content-between h-100">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <span class="stat-overline">PILIHAN PAJAK DOMINAN</span>
-                                                    <span class="badge-tint badge-tint-warning"><i class="ri-percent-line me-1"></i>Pajak</span>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <span class="stat-overline">Pilihan pajak dominan</span>
+                                                    <span class="badge-tint badge-tint-warning">Pajak</span>
                                                 </div>
                                                 <div>
-                                                    <div class="fs-18 fw-bold text-white text-truncate mb-1" id="stat-item-dominant-tax" title="-">-</div>
+                                                    <div class="stat-value-big text-truncate" style="font-size: 20px;" id="stat-item-dominant-tax" title="-">-</div>
                                                     <div class="stat-caption">Skema perpajakan dominan</div>
                                                 </div>
                                             </div>
@@ -1140,12 +1286,16 @@ body,
                             <div class="card" id="card-grafik-pembelian-invoice">
                                 <div class="card-header border-0 pb-0">
                                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                                        <div>
-                                            <h4 class="card-title mb-1 d-flex align-items-center">
-                                                <i class="ri-shopping-bag-3-line me-2 fs-20" style="color: var(--brand);"></i>
-                                                <span id="pembelian-chart-title">Grafik Pembelian belum Dibayar per Vendor</span>
-                                            </h4>
-                                            <p class="text-muted mb-0 fs-13" id="pembelian-chart-subtitle">Ringkasan sisa tagihan pembelian belum dibayar per nama vendor dan pengenaan pajak.</p>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="tkb-sec-icon tkb-sec-icon--amber">
+                                                <i class="ri-store-2-line"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="card-title mb-0 fs-16">
+                                                    <span id="pembelian-chart-title">Grafik pembelian belum dibayar per vendor</span>
+                                                </h4>
+                                                <p class="tkb-card-subtitle mb-0" id="pembelian-chart-subtitle">Ringkasan sisa tagihan pembelian belum dibayar per nama vendor dan pengenaan pajak</p>
+                                            </div>
                                         </div>
                                         <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 ms-auto">
                                             <!-- Toggle Sumbu: Nama Vendor vs Jenis Invoice (Segmented Control) -->
@@ -1231,37 +1381,28 @@ body,
                                             </div>
                                         </div>
 
-                                        <!-- Kolom Kanan: Tabel Daftar Tagihan Vendor -->
+                                        <!-- Kolom Kanan: Daftar Tagihan Vendor (Card List Style) -->
                                         <div class="col-xl-5 col-lg-5">
                                             <div class="dash-table-wrapper d-flex flex-column h-100">
-                                                <!-- Header Tabel -->
-                                                <div class="d-flex justify-content-between align-items-center px-3 py-2.5 border-bottom" style="border-color: var(--border-subtle) !important; background: var(--bg-surface);">
+                                                <!-- Header Daftar -->
+                                                <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom tkb-vendor-header" style="border-color: var(--border-subtle) !important; background: var(--bg-surface);">
                                                     <div class="d-flex align-items-center gap-2">
-                                                        <div class="d-flex align-items-center justify-content-center rounded" style="background: var(--brand-subtle); color: var(--brand); width: 28px; height: 28px; border-radius: var(--radius-sm) !important;">
-                                                             <i class="ri-file-list-3-line fs-15"></i>
+                                                        <div class="tkb-sec-icon tkb-sec-icon--emerald" style="width: 30px; height: 30px; min-width: 30px; font-size: 15px; border-radius: 8px;">
+                                                             <i class="ri-file-list-3-line"></i>
                                                         </div>
-                                                        <span class="fw-semibold text-light fs-13">Daftar Tagihan Vendor</span>
-                                                        <span class="badge-tint badge-tint-brand fs-11" id="badge-vendor-table-count">12 Vendor</span>
+                                                        <span class="fw-bold fs-13.5 text-nowrap" style="color: var(--text-primary);">Daftar tagihan vendor</span>
+                                                        <span class="badge-tint badge-tint-brand fs-11" id="badge-vendor-table-count">0 vendor</span>
                                                     </div>
                                                     <button type="button" class="btn-custom-filter py-1 px-2.5 fs-12" id="btn-semua-vendor" onclick="resetToAllVendors()" title="Tampilkan grafik semua vendor yang belum terbayar">
-                                                        <i class="ri-store-2-line fs-12"></i>Semua Vendor
+                                                        <i class="ri-check-line fs-12"></i>Semua vendor
                                                     </button>
                                                 </div>
 
-                                                <!-- Wrapper Tabel Scrollable -->
+                                                <!-- List Scrollable -->
                                                 <div class="vendor-table-scroll flex-grow-1 overflow-auto" style="max-height: 380px;">
-                                                    <table class="dash-table align-middle mb-0" id="table-tagihan-vendor">
-                                                        <thead style="position: sticky; top: 0; z-index: 5;">
-                                                            <tr>
-                                                                <th class="ps-3 py-2 text-start">NAMA VENDOR</th>
-                                                                <th class="py-2 text-end">TOTAL PEMBELIAN</th>
-                                                                <th class="pe-3 py-2 text-end">SISA TAGIHAN</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="vendor-tagihan-tbody">
-                                                            <!-- Injected by renderVendorTable() -->
-                                                        </tbody>
-                                                    </table>
+                                                    <div class="tkb-vendor-list" id="vendor-tagihan-tbody">
+                                                        <!-- Injected by renderVendorTable() -->
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1875,7 +2016,14 @@ body,
             if (!hasData) return;
 
             // Height optimal untuk vertical column chart
-            const calculatedHeight = 360;
+            const isMobileVendor = window.innerWidth < 576;
+            const calculatedHeight = isMobileVendor ? 290 : 340;
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            const barTopColor = isLight ? '#0F9B60' : '#22C58B';
+            const barBotColor = isLight ? '#7ED9B0' : '#0E6B47';
+            const labelPrimary = isLight ? '#0F1F18' : '#F2F8F5';
+            const labelMuted = isLight ? '#5C7469' : '#7F9A8E';
+            const gridCol = isLight ? 'rgba(15, 45, 32, 0.08)' : 'rgba(255, 255, 255, 0.06)';
 
             pembelianInvoiceChart = new ApexCharts(document.querySelector('#chart-pembelian-invoice'), {
                 chart: {
@@ -1886,62 +2034,88 @@ body,
                 },
                 plotOptions: {
                     bar: {
-                        horizontal: false, // Vertikal
-                        borderRadius: 2,
-                        columnWidth: visibleLabels.length <= 3 ? '26%' : (visibleLabels.length <= 6 ? '38%' : (visibleLabels.length <= 10 ? '50%' : '60%')),
+                        horizontal: false,
+                        borderRadius: 8,
+                        borderRadiusApplication: 'end',
+                        columnWidth: visibleLabels.length <= 3 ? '36%' : (visibleLabels.length <= 6 ? '44%' : '56%'),
                         dataLabels: { position: 'top' }
+                    }
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: isLight ? 'light' : 'dark',
+                        type: 'vertical',
+                        shadeIntensity: 0.25,
+                        gradientToColors: [barBotColor],
+                        inverseColors: false,
+                        opacityFrom: 1,
+                        opacityTo: 0.85,
+                        stops: [0, 100]
                     }
                 },
                 dataLabels: {
                     enabled: true,
-                    offsetY: -16,
+                    offsetY: isMobileVendor ? -18 : -22,
                     formatter: function (val) {
                         return formatRupiahCompact(val);
                     },
                     style: {
-                        fontSize: visibleLabels.length > 8 ? '9px' : '10px',
-                        fontWeight: '600',
-                        colors: ['#E2E8F0']
+                        fontSize: (isMobileVendor || visibleLabels.length > 8) ? '9.5px' : '11.5px',
+                        fontWeight: '700',
+                        colors: [labelPrimary]
                     }
                 },
                 series: [{ name: 'Sisa Belum Dibayar', data: values }],
                 xaxis: {
                     categories: visibleLabels,
                     labels: {
-                        rotate: -45,
-                        rotateAlways: true,
-                        hideOverlappingLabels: false,
-                        trim: false,
-                        maxHeight: 110,
-                        style: { colors: '#CBD5E1', fontSize: '10px', fontWeight: 500 }
+                        rotate: (isMobileVendor ? visibleLabels.length > 2 : visibleLabels.length > 5) ? -35 : 0,
+                        rotateAlways: isMobileVendor ? visibleLabels.length > 2 : visibleLabels.length > 5,
+                        hideOverlappingLabels: isMobileVendor,
+                        trim: isMobileVendor,
+                        maxHeight: isMobileVendor ? 75 : 90,
+                        style: { colors: labelMuted, fontSize: isMobileVendor ? '10px' : '11.5px', fontWeight: 500 }
                     },
                     axisBorder: { show: false },
                     axisTicks: { show: false }
                 },
                 yaxis: {
+                    tickAmount: isMobileVendor ? 4 : 5,
                     labels: {
                         formatter: function (value) {
                             return formatRupiahCompact(value);
                         },
-                        style: { colors: '#94A3B8', fontSize: '11px' }
+                        style: { colors: labelMuted, fontSize: isMobileVendor ? '10px' : '11px' }
                     }
                 },
                 grid: {
-                    borderColor: 'rgba(255, 255, 255, 0.05)',
-                    strokeDashArray: 3,
-                    padding: { top: 25, bottom: 5, left: 10, right: 10 },
+                    borderColor: gridCol,
+                    strokeDashArray: 4,
+                    padding: { top: 24, bottom: 5, left: isMobileVendor ? 4 : 10, right: isMobileVendor ? 4 : 10 },
                     xaxis: { lines: { show: false } },
                     yaxis: { lines: { show: true } }
                 },
+                responsive: [
+                    {
+                        breakpoint: 576,
+                        options: {
+                            chart: { height: 290 },
+                            dataLabels: { offsetY: -18, style: { fontSize: '9.5px' } },
+                            xaxis: { labels: { rotate: -35, trim: true, hideOverlappingLabels: true, maxHeight: 75, style: { fontSize: '10px' } } },
+                            yaxis: { tickAmount: 4, labels: { style: { fontSize: '10px' } } }
+                        }
+                    }
+                ],
                 tooltip: {
-                    theme: 'dark',
+                    theme: isLight ? 'light' : 'dark',
                     y: {
                         formatter: function (value) {
                             return formatRupiah(value);
                         }
                     }
                 },
-                colors: ['#6B73F0'] // Single accent Indigo
+                colors: [barTopColor]
             });
             pembelianInvoiceChart.render();
         }
@@ -1950,12 +2124,10 @@ body,
             const tbody = document.getElementById('vendor-tagihan-tbody');
             if (!tbody) return;
 
-            const statusFilterEl = document.getElementById('filter-status-pembelian');
-            const statusFilter = statusFilterEl ? statusFilterEl.value : 'belum_lunas';
             const vendorList = getFilteredVendorSummary();
             const badgeCount = document.getElementById('badge-vendor-table-count');
             if (badgeCount) {
-                badgeCount.textContent = `${vendorList.length} Vendor`;
+                badgeCount.textContent = `${vendorList.length} vendor`;
             }
 
             const currentSelected = selectedVendorFilter;
@@ -1964,19 +2136,18 @@ body,
             if (btnSemua) {
                 if (currentSelected === 'all') {
                     btnSemua.classList.add('active');
-                    btnSemua.innerHTML = '<i class="ri-check-line fs-12"></i>Semua Vendor';
+                    btnSemua.innerHTML = '<i class="ri-check-line fs-12"></i>Semua vendor';
                 } else {
                     btnSemua.classList.remove('active');
-                    btnSemua.innerHTML = '<i class="ri-store-2-line fs-12"></i>Semua Vendor';
+                    btnSemua.innerHTML = '<i class="ri-store-2-line fs-12"></i>Semua vendor';
                 }
             }
 
             if (!vendorList || vendorList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4" style="color: #94A3B8;">Tidak ada data vendor yang sesuai dengan filter.</td></tr>`;
+                tbody.innerHTML = `<div class="text-center py-4 fs-13" style="color: var(--text-tertiary);">Tidak ada data vendor yang sesuai dengan filter.</div>`;
                 return;
             }
 
-            // Hitung sisa tagihan tertinggi untuk proporsi mini-bar
             const maxSisa = Math.max(...vendorList.map(r => Number(r.sisa_tagihan) || 0), 1);
 
             let html = '';
@@ -1984,22 +2155,26 @@ body,
                 const isSelected = (currentSelected === row.nama_vendor);
                 const sisa = Number(row.sisa_tagihan) || 0;
                 const total = Number(row.total_pembelian) || 0;
-                const pctMax = Math.min(100, Math.round((sisa / maxSisa) * 100));
+                const pctMax = Math.min(100, Math.max(4, Math.round((sisa / maxSisa) * 100)));
                 const escapedVendor = row.nama_vendor.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
                 html += `
-                    <tr class="${isSelected ? 'active-vendor-row' : ''}" onclick="toggleVendorFilter('${escapedVendor}')" title="Klik untuk fokus ke vendor ${row.nama_vendor}">
-                        <td class="ps-3 text-start text-truncate" style="max-width: 170px;">
-                            <span class="fw-medium vendor-name-text" style="color: #F8FAFC !important; font-size: 13px;">${row.nama_vendor}</span>
-                        </td>
-                        <td class="text-end tabular-nums fs-13" style="color: #CBD5E1 !important;">${formatRupiah(total)}</td>
-                        <td class="pe-3 text-end tabular-nums fs-13">
-                            <span class="fw-semibold" style="color: #FFFFFF !important;">${formatRupiah(sisa)}</span>
-                            <div class="vendor-mini-bar-track ms-auto mt-1">
-                                <div class="vendor-mini-bar-fill" style="width: ${pctMax}%"></div>
+                    <div class="tkb-vendor-item ${isSelected ? 'active-vendor-row' : ''}" onclick="toggleVendorFilter('${escapedVendor}')" title="Klik untuk fokus ke vendor ${row.nama_vendor}">
+                        <div class="overflow-hidden">
+                            <div class="tkb-vendor-name">${row.nama_vendor}</div>
+                            <div class="tkb-vendor-bar-track">
+                                <div class="tkb-vendor-bar-fill" style="width: ${pctMax}%"></div>
                             </div>
-                        </td>
-                    </tr>
+                        </div>
+                        <div class="text-start">
+                            <div class="tkb-vendor-meta-label">Total tagihan</div>
+                            <div class="tkb-vendor-meta-val tabular-nums">${formatRupiah(total)}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="tkb-vendor-meta-label">Belum dibayar</div>
+                            <div class="tkb-vendor-unpaid-val tabular-nums">${formatRupiah(sisa)}</div>
+                        </div>
+                    </div>
                 `;
             });
 

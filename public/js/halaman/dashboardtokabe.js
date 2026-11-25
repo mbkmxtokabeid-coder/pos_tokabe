@@ -99,14 +99,41 @@ function getChartColorsArray(e) {
   }
 }
 
+function getTokabeChartPalette() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return {
+    isLight: isLight,
+    brand: isLight ? '#0F9B60' : '#22C58B',
+    brandDark: isLight ? '#0A7A4B' : '#0D6E48',
+    brandSoft: isLight ? '#7ED9B0' : '#10B981',
+    cyan: isLight ? '#0B7A94' : '#38BDF8',
+    cyanSoft: isLight ? '#5BB7CC' : '#0E7490',
+    danger: isLight ? '#E11D48' : '#FB7185',
+    warning: isLight ? '#D97706' : '#F59E0B',
+    neutral: isLight ? '#647A70' : '#6E887C',
+    textPrimary: isLight ? '#0F1F18' : '#F2F8F5',
+    textSecondary: isLight ? '#4D655A' : '#9CB3A8',
+    textMuted: isLight ? '#718A7E' : '#6E887C',
+    surface: isLight ? '#FFFFFF' : '#0D1713',
+    surface2: isLight ? '#F4F9F6' : '#111F19',
+    border: isLight ? '#DCE8E1' : 'rgba(255, 255, 255, 0.08)',
+    grid: isLight ? 'rgba(15, 45, 32, 0.08)' : 'rgba(255, 255, 255, 0.06)',
+    tooltipTheme: isLight ? 'light' : 'dark',
+  };
+}
+
+var currentActivePaymentPeriod = 'lastYear';
+var currentLastPaymentRenderArgs = null;
+
 // CHART BAR UNTUK UMUM (DILUAR PO)
+var _tkbInitPal = getTokabeChartPalette();
 var options,
   chart,
-  linechartBasicColors = ['#6B73F0', '#34C28B'],
+  linechartBasicColors = [_tkbInitPal.brand, _tkbInitPal.cyan],
   barchartColors =
     ((options = {
       chart: {
-        height: 365,
+        height: 350,
         type: "bar",
         toolbar: { show: false },
         animations: { enabled: true, speed: 350 },
@@ -114,8 +141,9 @@ var options,
       plotOptions: {
         bar: {
           horizontal: false,
-          columnWidth: "48%",
-          borderRadius: 4,
+          columnWidth: "46%",
+          borderRadius: 5,
+          borderRadiusApplication: 'end',
         },
       },
       dataLabels: { enabled: false },
@@ -129,7 +157,7 @@ var options,
       xaxis: {
         categories: (typeof hourArrayJS !== 'undefined') ? hourArrayJS : [],
         labels: {
-          style: { colors: '#9AA4B2', fontSize: '11px' }
+          style: { colors: _tkbInitPal.textMuted, fontSize: '11px' }
         },
         axisBorder: { show: false },
         axisTicks: { show: false }
@@ -145,19 +173,19 @@ var options,
           formatter: function (val) {
             return formatRupiahCompact(val);
           },
-          style: { colors: '#6B7686', fontSize: '11px' }
+          style: { colors: _tkbInitPal.textMuted, fontSize: '11px' }
         },
       },
       grid: {
         xaxis: { lines: { show: false } },
         yaxis: { lines: { show: true } },
-        borderColor: 'rgba(255, 255, 255, 0.05)',
-        strokeDashArray: 3
+        borderColor: _tkbInitPal.grid,
+        strokeDashArray: 4
       },
-      colors: ['#6B73F0'],
+      colors: [_tkbInitPal.brand],
       legend: { show: false },
       tooltip: {
-        theme: 'dark',
+        theme: _tkbInitPal.tooltipTheme,
         y: {
           formatter: function (val) {
             return formatRupiah(val);
@@ -174,39 +202,39 @@ var options,
 var options, charts,
   chartColors =
     ((options = {
-      chart: { height: 260, type: "donut", animations: { enabled: true, speed: 450 } },
+      chart: { height: 265, type: "donut", animations: { enabled: true, speed: 450 } },
       series: (typeof datasLastYearJS !== 'undefined' && Array.isArray(datasLastYearJS))
         ? [datasLastYearJS[0] || 0, datasLastYearJS[1] || 0, datasLastYearJS[2] || 0]
         : (typeof datasMonthJS !== 'undefined' && Array.isArray(datasMonthJS)
           ? [datasMonthJS[0] || 0, datasMonthJS[1] || 0, datasMonthJS[2] || 0]
           : [0, 0, 0]),
-      labels: ["Terbayar", "Belum Bayar", "Batal"],
-      colors: ["#34C28B", "#E3A33B", "#6B7686"],
+      labels: ["Terbayar", "Belum bayar", "Batal"],
+      colors: [_tkbInitPal.brand, _tkbInitPal.warning, _tkbInitPal.neutral],
       stroke: {
-        width: 2,
-        colors: ['#12161D']
+        width: 3,
+        colors: [_tkbInitPal.surface]
       },
       plotOptions: { 
         pie: { 
           donut: { 
-            size: "82%",
+            size: "78%",
             background: 'transparent',
             labels: {
               show: true,
               name: {
                 show: true,
-                fontSize: '11px',
+                fontSize: '11.5px',
                 fontFamily: 'inherit',
-                color: '#9AA4B2',
+                color: _tkbInitPal.textMuted,
                 offsetY: -4
               },
               value: {
                 show: true,
-                fontSize: '16px',
-                fontWeight: '700',
+                fontSize: '20px',
+                fontWeight: '800',
                 fontFamily: 'inherit',
-                color: '#E8EBF0',
-                offsetY: 4,
+                color: _tkbInitPal.textPrimary,
+                offsetY: 6,
                 formatter: function (val) {
                   return formatRupiahCompact(val);
                 }
@@ -214,9 +242,9 @@ var options, charts,
               total: {
                 show: true,
                 showAlways: true,
-                label: 'Total Tagihan',
-                color: '#9AA4B2',
-                fontSize: '11px',
+                label: 'Total tagihan',
+                color: _tkbInitPal.textMuted,
+                fontSize: '11.5px',
                 fontFamily: 'inherit',
                 formatter: function (w) {
                   const total = w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
@@ -230,7 +258,7 @@ var options, charts,
       legend: { show: false },
       dataLabels: { enabled: false },
       tooltip: {
-        theme: 'dark',
+        theme: _tkbInitPal.tooltipTheme,
         y: {
           formatter: function (val, opts) {
             const total = opts.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
@@ -254,6 +282,8 @@ var options, charts,
 
 // Helper untuk merender Grafik Perbandingan Pendapatan, Pengeluaran, & Pendapatan Bersih + Ringkasan Nominal
 function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
+  currentLastPaymentRenderArgs = [dataset, periodLabelText, axisMode];
+  const p = getTokabeChartPalette();
   const safeData = dataset || {};
   const categories = Array.isArray(safeData.categories) ? safeData.categories : [];
   const pendapatanArr = Array.isArray(safeData.pendapatan) ? safeData.pendapatan.map(Number) : [];
@@ -272,31 +302,49 @@ function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
   const minVal = Math.min(...allVals, 0);
   const maxVal = Math.max(...allVals, 1000000);
 
+  const isMobileCash = window.innerWidth < 576;
+
   if (chart) {
     try {
       chart.updateOptions({
+        chart: {
+          height: isMobileCash ? 280 : 350
+        },
         dataLabels: { enabled: false },
         series: [
           {
             name: 'Pendapatan',
             data: pendapatanArr,
-            color: '#34C28B',
+            color: p.brand,
           },
           {
-            name: 'Pengeluaran (Belanja + SPT)',
+            name: 'Pengeluaran (belanja + SPT)',
             data: pengeluaranArr,
-            color: '#E5586B',
+            color: p.danger,
           },
           {
-            name: 'Pendapatan Bersih',
+            name: 'Pendapatan bersih',
             data: bersihArr,
-            color: '#6B73F0',
+            color: p.cyan,
           }
         ],
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shade: p.isLight ? 'light' : 'dark',
+            type: 'vertical',
+            shadeIntensity: 0.2,
+            opacityFrom: 1,
+            opacityTo: 0.78,
+            stops: [0, 100]
+          }
+        },
         xaxis: {
           type: 'category',
           categories: categories,
           labels: {
+            hideOverlappingLabels: true,
+            rotate: isMobileCash && categories.length > 6 ? -35 : 0,
             formatter: function (value) {
               if (!value || typeof value !== 'string') return value || '';
               if (axisMode === 'month_year' && /^\d{4}-\d{2}$/.test(value)) {
@@ -313,13 +361,13 @@ function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
               }
               return value;
             },
-            style: { colors: '#9AA4B2', fontSize: '11px' }
+            style: { colors: p.textMuted, fontSize: isMobileCash ? '10px' : '11px' }
           }
         },
         yaxis: {
           min: minVal < 0 ? minVal * 1.1 : 0,
           max: maxVal * 1.15,
-          tickAmount: 6,
+          tickAmount: isMobileCash ? 4 : 5,
           forceNiceScale: true,
           axisBorder: { show: false },
           axisTicks: { show: false },
@@ -328,14 +376,21 @@ function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
             formatter: function (val) {
               return formatRupiahCompact(val);
             },
-            style: { colors: '#6B7686', fontSize: '11px' }
+            style: { colors: p.textMuted, fontSize: isMobileCash ? '10px' : '11px' }
           }
+        },
+        grid: {
+          borderColor: p.grid,
+          strokeDashArray: 4,
+          xaxis: { lines: { show: false } },
+          yaxis: { lines: { show: true } }
         },
         plotOptions: {
           bar: {
             distributed: false,
-            borderRadius: 4,
-            columnWidth: categories.length <= 2 ? '32%' : '55%',
+            borderRadius: 5,
+            borderRadiusApplication: 'end',
+            columnWidth: categories.length <= 2 ? '32%' : '56%',
             colors: {
               ranges: []
             }
@@ -344,15 +399,15 @@ function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
         legend: {
           show: true,
           position: 'top',
-          horizontalAlign: 'right',
-          fontSize: '12px',
+          horizontalAlign: 'left',
+          fontSize: isMobileCash ? '11px' : '12px',
           fontFamily: 'inherit',
-          labels: { colors: '#CBD5E1' },
+          labels: { colors: p.textSecondary },
           markers: { radius: 12, width: 8, height: 8 },
-          itemMargin: { horizontal: 8, vertical: 0 }
+          itemMargin: { horizontal: isMobileCash ? 6 : 10, vertical: 3 }
         },
         tooltip: {
-          theme: 'dark',
+          theme: p.tooltipTheme,
           shared: true,
           intersect: false,
           y: {
@@ -373,30 +428,37 @@ function renderNetIncomeChartAndSummary(dataset, periodLabelText, axisMode) {
     animateCountUp(heroEl, totalPendapatan);
   }
 
+  const heroPill = document.getElementById('hero-period-pill');
+  if (heroPill) {
+    heroPill.textContent = /^\d{4}$/.test(String(periodLabelText))
+      ? ((Number(periodLabelText) === new Date().getFullYear() - 1) ? ('Tahun lalu ' + periodLabelText) : ('Tahun ' + periodLabelText))
+      : periodLabelText;
+  }
+
   const elementHarga = document.getElementById('harga');
   if (elementHarga) {
-    const netColor = pendapatanBersih < 0 ? '#E5586B' : 'var(--brand)';
+    const netColor = pendapatanBersih < 0 ? 'var(--danger-text)' : 'var(--accent-cyan)';
     elementHarga.innerHTML = `
       <div class="d-flex flex-column gap-2">
         <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Pendapatan (${periodLabelText})</span>
-          <span class="fw-semibold tabular-nums fs-13" style="color: #34C28B;">${formatRupiah(totalPendapatan)}</span>
+          <span class="fw-medium fs-13" style="color: var(--text-primary);">Total pendapatan (${periodLabelText})</span>
+          <span class="fw-bold tabular-nums fs-13" style="color: var(--success-text);">${formatRupiah(totalPendapatan)}</span>
         </div>
         <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-12 ps-2">• Beban Belanja</span>
-          <span class="text-light tabular-nums fs-12">${formatRupiah(totalBebanBelanja)}</span>
+          <span class="fs-12 ps-2" style="color: var(--text-tertiary);">Beban belanja</span>
+          <span class="tabular-nums fs-12" style="color: var(--text-secondary);">${formatRupiah(totalBebanBelanja)}</span>
         </div>
         <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-12 ps-2">• Beban SPT Masa (Lunas)</span>
-          <span class="text-light tabular-nums fs-12">${formatRupiah(totalBebanSpt)}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="text-muted fs-13">Total Pengeluaran (${periodLabelText})</span>
-          <span class="fw-semibold tabular-nums fs-13" style="color: #E5586B;">${formatRupiah(totalPengeluaran)}</span>
+          <span class="fs-12 ps-2" style="color: var(--text-tertiary);">Beban SPT masa (lunas)</span>
+          <span class="tabular-nums fs-12" style="color: var(--text-secondary);">${formatRupiah(totalBebanSpt)}</span>
         </div>
         <div class="d-flex justify-content-between align-items-center pt-1 border-top" style="border-color: var(--border-subtle) !important;">
-          <span class="text-muted fs-13">Pendapatan Bersih (${periodLabelText})</span>
-          <span class="fw-bold tabular-nums fs-14" style="color: ${netColor};">${formatRupiah(pendapatanBersih)}</span>
+          <span class="fw-semibold fs-13" style="color: var(--text-primary);">Total pengeluaran (${periodLabelText})</span>
+          <span class="fw-bold tabular-nums fs-13" style="color: var(--danger-text);">${formatRupiah(totalPengeluaran)}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center pt-1">
+          <span class="fw-semibold fs-13" style="color: var(--text-primary);">Pendapatan bersih (${periodLabelText})</span>
+          <span class="fw-bold tabular-nums fs-13.5" style="color: ${netColor};">${formatRupiah(pendapatanBersih)}</span>
         </div>
       </div>
     `;
@@ -1175,10 +1237,11 @@ function renderItemChart(items) {
     return currentItemMetric === 'nominal' ? it.total_nominal : it.total_qty;
   });
 
-  // Requirement: dynamic height matching item count, bar height ~28-32px
+  const p = getTokabeChartPalette();
+  const isMobileScreen = window.innerWidth < 576;
   const barCount = top10.length;
-  const dynamicHeight = Math.max(160, barCount * 42 + 64);
-  const calculatedBarHeight = barCount <= 2 ? '28px' : (barCount <= 4 ? '30px' : '65%');
+  const dynamicHeight = Math.max(170, barCount * 48 + 64);
+  const calculatedBarHeight = barCount <= 2 ? (isMobileScreen ? '30px' : '36px') : (barCount <= 4 ? '30px' : '65%');
 
   const options = {
     chart: {
@@ -1194,7 +1257,8 @@ function renderItemChart(items) {
     plotOptions: {
       bar: {
         horizontal: true,
-        borderRadius: 4,
+        borderRadius: 6,
+        borderRadiusApplication: 'end',
         barHeight: calculatedBarHeight,
         distributed: false,
         dataLabels: {
@@ -1202,21 +1266,34 @@ function renderItemChart(items) {
         }
       }
     },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: p.isLight ? 'light' : 'dark',
+        type: 'horizontal',
+        shadeIntensity: 0.25,
+        gradientToColors: [p.brand],
+        inverseColors: false,
+        opacityFrom: 0.9,
+        opacityTo: 1,
+        stops: [0, 100]
+      }
+    },
     dataLabels: {
       enabled: true,
-      textAnchor: 'start',
-      offsetX: 10,
+      textAnchor: 'end',
+      offsetX: isMobileScreen ? -6 : -12,
       formatter: function (val) {
         if (currentItemMetric === 'nominal') {
           return formatRupiahCompact(val);
         } else {
-          return new Intl.NumberFormat('id-ID').format(val) + ' Unit';
+          return new Intl.NumberFormat('id-ID').format(val) + ' unit';
         }
       },
       style: {
-        fontSize: '12px',
-        fontWeight: 600,
-        colors: ['#9AA4B2']
+        fontSize: isMobileScreen ? '10.5px' : '12px',
+        fontWeight: 700,
+        colors: ['#FFFFFF']
       }
     },
     series: [{
@@ -1225,7 +1302,9 @@ function renderItemChart(items) {
     }],
     xaxis: {
       categories: categories,
+      tickAmount: isMobileScreen ? 3 : 5,
       labels: {
+        hideOverlappingLabels: true,
         formatter: function (val) {
           if (currentItemMetric === 'nominal') {
             return formatRupiahCompact(val);
@@ -1233,58 +1312,68 @@ function renderItemChart(items) {
             return new Intl.NumberFormat('id-ID').format(val);
           }
         },
-        style: { colors: '#6B7686', fontSize: '11px' }
+        style: { colors: p.textMuted, fontSize: isMobileScreen ? '10px' : '11px' }
       },
       axisBorder: { show: false },
       axisTicks: { show: false }
     },
     yaxis: {
       labels: {
-        maxWidth: 220,
+        maxWidth: isMobileScreen ? 95 : 220,
         style: {
-          colors: '#E8EBF0',
-          fontSize: '12px',
+          colors: p.textSecondary,
+          fontSize: isMobileScreen ? '11px' : '12.5px',
           fontWeight: 500
         }
       }
     },
-    colors: ['#6B73F0'], // Single Accent Indigo
+    responsive: [
+      {
+        breakpoint: 576,
+        options: {
+          xaxis: { tickAmount: 3, labels: { hideOverlappingLabels: true, style: { fontSize: '10px' } } },
+          yaxis: { labels: { maxWidth: 95, style: { fontSize: '11px' } } },
+          dataLabels: { offsetX: -6, style: { fontSize: '10.5px' } }
+        }
+      }
+    ],
+    colors: [p.brandDark],
     legend: { show: false },
     tooltip: {
-      theme: 'dark',
+      theme: p.tooltipTheme,
       custom: function (opts) {
         const item = top10[opts.dataPointIndex];
         if (!item) return '';
 
         const taxBadgeText = item.jenis_pajak_label || item.jenis_pajak || 'Pajak';
-        const qtyFormatted = new Intl.NumberFormat('id-ID').format(item.total_qty) + ' Unit';
+        const qtyFormatted = new Intl.NumberFormat('id-ID').format(item.total_qty) + ' unit';
         const nominalFormatted = formatRupiah(item.total_nominal);
         const trxFormatted = item.total_transaksi ? new Intl.NumberFormat('id-ID').format(item.total_transaksi) + ' transaksi' : '';
 
         return `
-          <div style="background: #181D26; border: 1px solid #232A35; border-radius: 8px; padding: 10px 14px; font-family: inherit; min-width: 210px; box-shadow: 0 10px 25px rgba(0,0,0,0.45);">
-            <div style="font-weight: 600; font-size: 13px; color: #E8EBF0; margin-bottom: 4px;">${item.label}</div>
+          <div style="background: ${p.surface}; border: 1px solid ${p.border}; border-radius: 10px; padding: 10px 14px; font-family: inherit; min-width: 210px; box-shadow: 0 10px 25px rgba(0,0,0,0.22);">
+            <div style="font-weight: 700; font-size: 13px; color: ${p.textPrimary}; margin-bottom: 4px;">${item.label}</div>
             <div style="margin-bottom: 8px;">
               <span class="badge-tint badge-tint-neutral" style="font-size: 11px;">
                 ${taxBadgeText}
               </span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: #9AA4B2;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: ${p.textSecondary};">
               <span>Total Penjualan:</span>
-              <span style="font-weight: 600; color: #6B73F0; font-variant-numeric: tabular-nums;">${nominalFormatted}</span>
+              <span style="font-weight: 700; color: ${p.brand}; font-variant-numeric: tabular-nums;">${nominalFormatted}</span>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA4B2;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: ${p.textSecondary};">
               <span>Kuantitas:</span>
-              <span style="font-weight: 500; color: #E8EBF0; font-variant-numeric: tabular-nums;">${qtyFormatted}</span>
+              <span style="font-weight: 600; color: ${p.textPrimary}; font-variant-numeric: tabular-nums;">${qtyFormatted}</span>
             </div>
-            ${trxFormatted ? `<div style="font-size: 11px; color: #6B7686; margin-top: 6px; text-align: right;">${trxFormatted}</div>` : ''}
+            ${trxFormatted ? `<div style="font-size: 11px; color: ${p.textMuted}; margin-top: 6px; text-align: right;">${trxFormatted}</div>` : ''}
           </div>
         `;
       }
     },
     grid: {
-      borderColor: '#232A35',
-      strokeDashArray: 3,
+      borderColor: p.grid,
+      strokeDashArray: 4,
       xaxis: { lines: { show: true } },
       yaxis: { lines: { show: false } }
     }
@@ -1320,70 +1409,77 @@ function renderPajakDonutChart(pajakItems) {
     return;
   }
 
+  const p = getTokabeChartPalette();
+  const dynamicTaxColors = {
+    'ppn': p.brand,
+    'pph': p.warning,
+    'ppn_pph': p.cyan,
+    'tanpa_pajak': p.neutral,
+  };
   const series = pajakItems.map(function (it) {
     return currentItemMetric === 'nominal' ? it.total_nominal : it.total_qty;
   });
   const labels = pajakItems.map(function (it) { return it.label; });
   const sliceColors = pajakItems.map(function (it) {
-    return TAX_COLOR_MAP[it.raw_tax] || '#6B73F0';
+    return dynamicTaxColors[it.raw_tax] || p.cyan;
   });
 
   const options = {
     chart: {
       type: 'donut',
-      height: 280,
+      height: 270,
       animations: { enabled: true, speed: 350 }
     },
     series: series,
     labels: labels,
     colors: sliceColors,
     stroke: {
-      width: 2,
-      colors: ['#12161D']
+      width: 3,
+      colors: [p.surface2]
     },
     plotOptions: {
       pie: {
         startAngle: 0,
         donut: {
-          size: '82%',
+          size: '78%',
           background: 'transparent',
           labels: {
             show: true,
             name: {
               show: true,
-              fontSize: '11px',
+              fontSize: '11.5px',
               fontFamily: 'inherit',
-              color: '#6B7686',
+              color: p.textMuted,
               offsetY: -4
             },
             value: {
               show: true,
-              fontSize: '16px',
-              fontWeight: 700,
+              fontSize: '18px',
+              fontWeight: 800,
               fontFamily: 'inherit',
-              color: '#E8EBF0',
-              offsetY: 4,
+              color: p.textPrimary,
+              offsetY: 6,
               formatter: function (val) {
                 if (currentItemMetric === 'nominal') {
                   return formatRupiahCompact(val);
                 } else {
-                  return new Intl.NumberFormat('id-ID').format(val) + ' Unit';
+                  return new Intl.NumberFormat('id-ID').format(val) + ' unit';
                 }
               }
             },
             total: {
               show: true,
               showAlways: true,
-              label: currentItemMetric === 'nominal' ? 'Total Penjualan' : 'Total Unit',
-              color: '#6B7686',
-              fontSize: '11px',
+              label: currentItemMetric === 'nominal' ? 'Total penjualan' : 'Total unit',
+              color: p.textMuted,
+              fontSize: '11.5px',
               fontFamily: 'inherit',
               formatter: function (w) {
                 const total = w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
                 if (currentItemMetric === 'nominal') {
                   return formatRupiahCompact(total);
                 } else {
-                  return new Intl.NumberFormat('id-ID').format(total) + ' Unit';
+                  return new Intl.NumberFormat('id-ID').format(total) + ' unit';
                 }
               }
             }
@@ -1398,16 +1494,16 @@ function renderPajakDonutChart(pajakItems) {
       horizontalAlign: 'center',
       fontSize: '12px',
       fontFamily: 'inherit',
-      labels: { colors: '#9AA4B2' },
+      labels: { colors: p.textSecondary },
       markers: {
-        radius: 4,
+        radius: 12,
         width: 8,
         height: 8
       },
       itemMargin: { horizontal: 8, vertical: 4 }
     },
     tooltip: {
-      theme: 'dark',
+      theme: p.tooltipTheme,
       y: {
         formatter: function (val) {
           const grandTotal = currentItemMetric === 'nominal' ? totalNominal : totalQty;
@@ -1415,7 +1511,7 @@ function renderPajakDonutChart(pajakItems) {
           if (currentItemMetric === 'nominal') {
             return formatRupiah(val) + ' (' + pct + ')';
           } else {
-            return new Intl.NumberFormat('id-ID').format(val) + ' Unit (' + pct + ')';
+            return new Intl.NumberFormat('id-ID').format(val) + ' unit (' + pct + ')';
           }
         }
       }
@@ -1479,30 +1575,30 @@ function renderItemDetailTable(items) {
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="text-center" style="color: #94A3B8; font-size: 12px; font-variant-numeric: tabular-nums;">
+      <td class="text-center" style="color: var(--text-tertiary); font-size: 12.5px; font-variant-numeric: tabular-nums;">
         ${index + 1}
       </td>
       <td>
-        <span style="color: #F8FAFC; font-weight: 500; font-size: 13px;">${item.label}</span>
+        <span style="color: var(--text-primary); font-weight: 700; font-size: 13px;">${item.label}</span>
       </td>
       <td class="text-center">
         <span class="badge-tint badge-tint-neutral">${taxLabel}</span>
       </td>
-      <td class="text-end" style="color: #CBD5E1; font-size: 13px; font-variant-numeric: tabular-nums;">
+      <td class="text-center" style="color: var(--text-secondary); font-size: 13px; font-variant-numeric: tabular-nums;">
         ${totalTrx}
       </td>
-      <td class="text-end" style="color: #F1F5F9; font-weight: 500; font-size: 13px; font-variant-numeric: tabular-nums;">
+      <td class="text-center" style="color: var(--text-primary); font-weight: 500; font-size: 13px; font-variant-numeric: tabular-nums;">
         ${new Intl.NumberFormat('id-ID').format(item.total_qty)}
       </td>
-      <td class="text-end" style="color: #FFFFFF; font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums;">
+      <td class="text-end" style="color: var(--text-primary); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;">
         ${nominalFormatted}
       </td>
-      <td class="text-end">
+      <td class="text-end" style="padding-right: 18px;">
         <div class="d-flex align-items-center justify-content-end gap-2">
-          <div style="width: 50px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">
-            <div style="width: ${pctNum}%; height: 100%; background: #6B73F0; border-radius: 2px;"></div>
+          <div style="width: 84px; height: 6px; background: var(--bg-surface-3); border-radius: 9999px; overflow: hidden;">
+            <div style="width: ${pctNum}%; height: 100%; background: linear-gradient(90deg, var(--brand-pressed), var(--brand)); border-radius: 9999px;"></div>
           </div>
-          <span style="min-width: 44px; color: #CBD5E1; font-size: 12px; font-variant-numeric: tabular-nums;">${pct}</span>
+          <span style="min-width: 44px; color: var(--text-secondary); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;">${pct}</span>
         </div>
       </td>
     `;

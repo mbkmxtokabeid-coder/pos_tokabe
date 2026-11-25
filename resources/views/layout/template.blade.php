@@ -1,40 +1,35 @@
 <!doctype html>
-<html lang="id" data-layout-mode="dark" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="sm-hover" data-sidebar-image="none" data-preloader="disable" style="background-color: #0C0F14; color-scheme: dark;">
+<html lang="id" data-theme="dark" data-layout-mode="dark" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="sm-hover" data-sidebar-image="none" data-preloader="disable">
 
 <head>
 
 <meta charset="utf-8" />
-<meta name="color-scheme" content="dark">
 <meta name="Kasir Tokabe" content="Tokabe">
 <title>Tokabe Kasir</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta content="Kasir Tokabe" name="description" />
 
-<!-- Critical Anti-Flicker / Dark Canvas Base Style -->
+<!-- Instant Theme Init (Zero-Flicker Dark / Light) -->
+<script>
+    (function() {
+        var saved = null;
+        try { saved = localStorage.getItem('tokabe_theme'); } catch (e) {}
+        var theme = (saved === 'light' || saved === 'dark') ? saved : 'dark';
+        var root = document.documentElement;
+        root.setAttribute('data-theme', theme);
+        root.setAttribute('data-layout-mode', theme);
+    })();
+</script>
+
+<!-- Critical Anti-Flicker Base Style -->
 <style>
-    :root {
-        --bg-app: #0C0F14;
-        --bg-surface: #12161D;
-        --border-subtle: #232A35;
-        --text-tertiary: #94A3B8;
-    }
-    :root, html, body, #layout-wrapper, .main-content, .page-content {
-        background-color: var(--bg-app, #0C0F14) !important;
-        color-scheme: dark !important;
-    }
     html, body {
         max-width: 100% !important;
-        overflow-x: hidden !important;
+        overflow-x: clip !important;
     }
     #layout-wrapper, .main-content {
         max-width: 100% !important;
         overflow-x: clip !important;
-    }
-    .footer {
-        background-color: var(--bg-app, #0C0F14) !important;
-        color: var(--text-tertiary, #94A3B8) !important;
-        border-top: 1px solid var(--border-subtle, #232A35) !important;
-        box-shadow: none !important;
     }
 </style>
 
@@ -71,6 +66,8 @@
 <link href="{{asset('css/app.min.css')}}" rel="stylesheet" type="text/css" />
 <link href="{{asset('libs/flatpickr/flatpickr.min.css')}}" rel="stylesheet" type="text/css" />
 <link href="{{asset('libs/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet" type="text/css" />
+<!-- Tokabe Global Emerald Design System (Dark & Light) -->
+<link href="{{asset('css/tokabe-theme.css')}}?v={{ file_exists(public_path('css/tokabe-theme.css')) ? filemtime(public_path('css/tokabe-theme.css')) : time() }}" rel="stylesheet" type="text/css" />
 
 {{-- HEAD CSS  --}}
 @yield('head')
@@ -125,29 +122,7 @@
 </script>
   
   <style>
-      /* Dark Mode Select, Input, and Option High-Contrast Fix */
-      .form-select,
-      select.form-select,
-      .form-control,
-      input.form-control {
-          color: #f8f9fa !important;
-          background-color: #212529 !important;
-          border-color: #383e45 !important;
-      }
-
-      .form-select option,
-      select option {
-          background-color: #212529 !important;
-          color: #f8f9fa !important;
-          padding: 8px 12px;
-      }
-
-      .form-select:focus,
-      .form-control:focus {
-          color: #ffffff !important;
-          background-color: #272c32 !important;
-          border-color: #405189 !important;
-      }
+      /* Form Inputs & Selects are styled via tokabe-theme.css for both Dark & Light modes */
 
       /* ========================================================================= */
       /* SWEETALERT2 DARK THEME — MODALS & TOASTS (DESIGN.md §15.3 & §4.1)         */
@@ -320,20 +295,20 @@
           z-index: 100000 !important;
       }
 
-      /* --- SweetAlert2 Premium Toast Card Styling --- */
+      /* --- SweetAlert2 Premium Toast Card Styling (Theme-Aware Dark & Light) --- */
       .swal2-popup.swal2-toast {
           pointer-events: auto !important;
           width: 390px !important;
           max-width: calc(100vw - 32px) !important;
           margin: 0 0 10px 0 !important;
           padding: 14px 18px 16px 16px !important;
-          background: #181d24 !important;
-          background-color: #181d24 !important;
-          color: #F8FAFC !important;
-          border: 1px solid rgba(255, 255, 255, 0.08) !important;
-          border-left: 4px solid #38BDF8 !important;
+          background: var(--bg-surface) !important;
+          background-color: var(--bg-surface) !important;
+          color: var(--text-primary) !important;
+          border: 1px solid var(--border-default) !important;
+          border-left: 4px solid var(--accent-cyan) !important;
           border-radius: 12px !important;
-          box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+          box-shadow: var(--shadow-dropdown) !important;
           backdrop-filter: blur(14px) !important;
           -webkit-backdrop-filter: blur(14px) !important;
           display: grid !important;
@@ -343,14 +318,12 @@
           row-gap: 4px !important;
           box-sizing: border-box !important;
           animation: swal2ToastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-          transition: transform 0.2s ease, box-shadow 0.2s ease !important;
           position: relative !important;
           overflow: hidden !important;
       }
 
       .swal2-popup.swal2-toast:hover {
           transform: translateY(-2px) !important;
-          box-shadow: 0 20px 42px -6px rgba(0, 0, 0, 0.8), 0 6px 18px rgba(0, 0, 0, 0.5) !important;
       }
 
       /* Toast Icon */
@@ -375,9 +348,9 @@
 
       /* Toast Typography */
       .swal2-popup.swal2-toast .swal2-title {
-          color: #FFFFFF !important;
+          color: var(--text-primary) !important;
           font-size: 14px !important;
-          font-weight: 600 !important;
+          font-weight: 700 !important;
           letter-spacing: -0.01em !important;
           margin: 0 !important;
           padding: 0 !important;
@@ -387,7 +360,7 @@
       }
 
       .swal2-popup.swal2-toast .swal2-html-container {
-          color: #94A3B8 !important;
+          color: var(--text-secondary) !important;
           font-size: 12.5px !important;
           line-height: 1.45 !important;
           margin: 0 !important;
@@ -402,7 +375,7 @@
           position: static !important;
           grid-column: 3 !important;
           grid-row: 1 !important;
-          color: #94A3B8 !important;
+          color: var(--text-tertiary) !important;
           font-size: 18px !important;
           width: 22px !important;
           height: 22px !important;
@@ -415,12 +388,11 @@
           justify-content: center !important;
           background: transparent !important;
           border: none !important;
-          transition: all 0.15s ease !important;
           cursor: pointer !important;
       }
       .swal2-popup.swal2-toast .swal2-close:hover {
-          color: #FFFFFF !important;
-          background: rgba(255, 255, 255, 0.1) !important;
+          color: var(--text-primary) !important;
+          background: var(--bg-hover) !important;
       }
 
       /* Toast Progress Bar */
@@ -472,14 +444,14 @@
 
 
       /* ========================================================================= */
-      /* FLATPICKR SOLID DARK THEME (HIGH-CONTRAST OPAQUE CALENDAR FIX) */
+      /* FLATPICKR THEME-AWARE CALENDAR (DARK & LIGHT EMERALD)                     */
       /* ========================================================================= */
       .flatpickr-calendar {
-          background-color: #1e2227 !important;
-          background: #1e2227 !important;
-          border: 1px solid #383e45 !important;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.15) !important;
-          border-radius: 8px !important;
+          background-color: var(--bg-surface) !important;
+          background: var(--bg-surface) !important;
+          border: 1px solid var(--border-default) !important;
+          box-shadow: var(--shadow-dropdown) !important;
+          border-radius: 12px !important;
           z-index: 99999 !important;
           width: 310px !important;
           overflow: hidden !important;
@@ -489,8 +461,11 @@
       .flatpickr-calendar .flatpickr-rContainer,
       .flatpickr-calendar .flatpickr-days,
       .flatpickr-calendar .dayContainer {
-          background-color: #1e2227 !important;
-          background: #1e2227 !important;
+          background-color: var(--bg-surface) !important;
+          background: var(--bg-surface) !important;
+          border: none !important;
+          border-radius: 0 !important;
+          box-shadow: none !important;
           width: 308px !important;
           min-width: 308px !important;
           max-width: 308px !important;
@@ -498,9 +473,8 @@
 
       /* Header Bulan & Tahun */
       .flatpickr-calendar .flatpickr-months {
-          background: #2b7a67 !important;
-          border-top-left-radius: 7px !important;
-          border-top-right-radius: 7px !important;
+          background: var(--brand) !important;
+          border-radius: 0 !important;
           padding: 6px 0 !important;
           align-items: center !important;
       }
@@ -536,8 +510,8 @@
       }
 
       .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months option {
-          background-color: #212529 !important;
-          color: #ffffff !important;
+          background-color: var(--bg-surface) !important;
+          color: var(--text-primary) !important;
       }
 
       .flatpickr-calendar .flatpickr-current-month input.cur-year {
@@ -565,8 +539,8 @@
       .flatpickr-calendar .flatpickr-next-month:hover {
           color: #ffffff !important;
           fill: #ffffff !important;
-          background-color: rgba(255, 255, 255, 0.15) !important;
-          border-radius: 4px !important;
+          background-color: rgba(255, 255, 255, 0.16) !important;
+          border-radius: 6px !important;
       }
 
       .flatpickr-calendar .flatpickr-prev-month svg,
@@ -577,25 +551,28 @@
 
       /* Baris Nama Hari (Sun, Mon, Tue...) */
       .flatpickr-calendar .flatpickr-weekdays {
-          background-color: #236555 !important;
-          height: 32px !important;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.2) !important;
+          background-color: var(--bg-surface-2) !important;
+          height: 34px !important;
+          border-bottom: 1px solid var(--border-subtle) !important;
       }
 
       .flatpickr-calendar span.flatpickr-weekday {
-          color: #e8f5e9 !important;
-          font-size: 12px !important;
+          color: var(--text-tertiary) !important;
+          font-size: 11.5px !important;
           font-weight: 600 !important;
-          letter-spacing: 0.5px !important;
+          letter-spacing: 0.4px !important;
       }
 
       /* Area Tanggal */
       .flatpickr-calendar .flatpickr-days {
           padding: 6px 0 !important;
+          background: var(--bg-surface) !important;
+          border-bottom-left-radius: 11px !important;
+          border-bottom-right-radius: 11px !important;
       }
 
       .flatpickr-calendar .flatpickr-day {
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
           background: transparent !important;
           border: 1px solid transparent !important;
           border-radius: 50% !important;
@@ -604,33 +581,32 @@
           line-height: 36px !important;
           max-width: 36px !important;
           margin: 2px auto !important;
-          transition: all 0.15s ease !important;
       }
 
       /* Tanggal Bulan Sebelumnya/Berikutnya */
       .flatpickr-calendar .flatpickr-day.prevMonthDay,
       .flatpickr-calendar .flatpickr-day.nextMonthDay {
-          color: #555b62 !important;
+          color: var(--text-disabled) !important;
       }
 
       /* Hover Tanggal */
       .flatpickr-calendar .flatpickr-day:hover,
       .flatpickr-calendar .flatpickr-day:focus {
-          background-color: #2c3238 !important;
-          border-color: #2b7a67 !important;
-          color: #ffffff !important;
+          background-color: var(--brand-subtle) !important;
+          border-color: var(--brand-border) !important;
+          color: var(--brand) !important;
       }
 
       /* Hari Ini (Today) */
       .flatpickr-calendar .flatpickr-day.today {
-          border-color: #2b7a67 !important;
-          color: #20c997 !important;
+          border-color: var(--brand) !important;
+          color: var(--brand) !important;
           font-weight: 700 !important;
-          background-color: transparent !important;
+          background-color: var(--brand-subtle) !important;
       }
 
       .flatpickr-calendar .flatpickr-day.today:hover {
-          background-color: #2b7a67 !important;
+          background-color: var(--brand) !important;
           color: #ffffff !important;
       }
 
@@ -638,50 +614,50 @@
       .flatpickr-calendar .flatpickr-day.selected,
       .flatpickr-calendar .flatpickr-day.selected:hover,
       .flatpickr-calendar .flatpickr-day.selected:focus {
-          background-color: #2b7a67 !important;
-          border-color: #2b7a67 !important;
+          background-color: var(--brand) !important;
+          border-color: var(--brand) !important;
           color: #ffffff !important;
           font-weight: 700 !important;
-          box-shadow: 0 2px 8px rgba(43, 122, 103, 0.5) !important;
+          box-shadow: var(--brand-glow) !important;
       }
 
       /* Panah Tooltip Kalender */
       .flatpickr-calendar.arrowTop:before {
-          border-bottom-color: #383e45 !important;
+          border-bottom-color: var(--border-default) !important;
       }
       .flatpickr-calendar.arrowTop:after {
-          border-bottom-color: #2b7a67 !important;
+          border-bottom-color: var(--brand) !important;
       }
       .flatpickr-calendar.arrowBottom:before {
-          border-top-color: #383e45 !important;
+          border-top-color: var(--border-default) !important;
       }
       .flatpickr-calendar.arrowBottom:after {
-          border-top-color: #1e2227 !important;
+          border-top-color: var(--bg-surface) !important;
       }
 
-      /* Flatpickr Timepicker Dark Theme */
+      /* Flatpickr Timepicker (Theme-Aware) */
       .flatpickr-time {
-          background: #1e2227 !important;
-          border-top: 1px solid #383e45 !important;
+          background: var(--bg-surface) !important;
+          border-top: 1px solid var(--border-subtle) !important;
           line-height: 40px !important;
           max-height: 40px !important;
       }
       .flatpickr-time .numInputWrapper input.flatpickr-hour,
       .flatpickr-time .numInputWrapper input.flatpickr-minute {
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
           font-weight: 600 !important;
       }
       .flatpickr-time .flatpickr-time-separator {
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
       }
       .flatpickr-time .numInputWrapper span.arrowUp:after {
-          border-bottom-color: #2b7a67 !important;
+          border-bottom-color: var(--brand) !important;
       }
       .flatpickr-time .numInputWrapper span.arrowDown:after {
-          border-top-color: #2b7a67 !important;
+          border-top-color: var(--brand) !important;
       }
       .flatpickr-time .numInputWrapper:hover {
-          background: #2c3238 !important;
+          background: var(--bg-surface-2) !important;
       }
       .flatpickr-calendar.hasTime.noCalendar {
           width: 160px !important;
@@ -689,18 +665,8 @@
       }
 
       /* =========================================================
-         ULTRA-SMOOTH SHADCN THEMED SIDEBAR STYLING
+         ULTRA-SMOOTH SHADCN THEMED SIDEBAR STYLING (Tokens in tokabe-theme.css)
          ========================================================= */
-      :root {
-          --shadcn-sidebar-bg: #0d1117;
-          --shadcn-sidebar-surface: #161b22;
-          --shadcn-sidebar-border: rgba(255, 255, 255, 0.08);
-          --shadcn-sidebar-muted: #8b949e;
-          --shadcn-sidebar-text: #e6edf3;
-          --shadcn-sidebar-active-bg: rgba(56, 189, 248, 0.12);
-          --shadcn-sidebar-active-text: #38bdf8;
-          --shadcn-sidebar-hover-bg: rgba(255, 255, 255, 0.06);
-      }
 
       /* Sidebar Base Container with GPU acceleration */
       .app-menu.navbar-menu {
@@ -845,9 +811,10 @@
       }
       .navbar-menu .navbar-nav .nav-link:hover {
           background-color: var(--shadcn-sidebar-hover-bg) !important;
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
       }
-      .navbar-menu .navbar-nav .nav-link.active {
+      .navbar-menu .navbar-nav .nav-link.active,
+      .navbar-menu .navbar-nav .nav-link.active:hover {
           background-color: var(--shadcn-sidebar-active-bg) !important;
           color: var(--shadcn-sidebar-active-text) !important;
           font-weight: 600 !important;
@@ -960,7 +927,7 @@
       }
       .navbar-menu .navbar-nav .nav-link[data-bs-toggle="collapse"][aria-expanded="true"]:after {
           transform: rotate(0deg) !important; /* points down when open */
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
       }
       [data-sidebar-size="sm-hover"] .navbar-menu:not(:hover) .nav-link[data-bs-toggle="collapse"]:after {
           opacity: 0 !important;
@@ -1004,7 +971,7 @@
           top: 4px;
           bottom: 6px;
           width: 1px;
-          background: rgba(255, 255, 255, 0.08);
+          background: var(--shadcn-sidebar-border);
       }
       .navbar-menu .navbar-nav .sub-menu-list .nav-item {
           margin-bottom: 2px !important;
@@ -1015,20 +982,20 @@
           margin: 1px 8px !important;
           border-radius: 6px !important;
           font-size: 13px !important;
-          color: #8b949e !important;
+          color: var(--shadcn-sidebar-muted) !important;
           display: flex !important;
           align-items: center !important;
-          transition: background-color 0.16s ease, color 0.16s ease !important;
           background: transparent !important;
           position: relative !important;
       }
       .navbar-menu .navbar-nav .sub-menu-list .nav-link:hover {
-          color: #ffffff !important;
-          background: rgba(255, 255, 255, 0.05) !important;
+          color: var(--text-primary) !important;
+          background: var(--shadcn-sidebar-hover-bg) !important;
       }
-      .navbar-menu .navbar-nav .sub-menu-list .nav-link.active {
-          color: #38bdf8 !important;
-          background: rgba(56, 189, 248, 0.12) !important;
+      .navbar-menu .navbar-nav .sub-menu-list .nav-link.active,
+      .navbar-menu .navbar-nav .sub-menu-list .nav-link.active:hover {
+          color: var(--shadcn-sidebar-active-text) !important;
+          background: var(--shadcn-sidebar-active-bg) !important;
           font-weight: 600 !important;
       }
       .navbar-menu .navbar-nav .sub-menu-list .sub-menu-icon {
@@ -1086,7 +1053,7 @@
           background: var(--shadcn-sidebar-hover-bg) !important;
       }
       .user-trigger-btn[aria-expanded="true"] .user-chevron {
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
           transform: rotate(180deg);
       }
       .user-chevron {
@@ -1156,10 +1123,10 @@
 
       /* Inner card with shadow & backdrop blur */
       .shadcn-menu-inner {
-          background: #161b22 !important;
+          background: var(--bg-surface) !important;
           border: 1px solid var(--shadcn-sidebar-border) !important;
           border-radius: 12px !important;
-          box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+          box-shadow: var(--shadow-dropdown) !important;
           backdrop-filter: blur(12px) !important;
           -webkit-backdrop-filter: blur(12px) !important;
           overflow: hidden;
@@ -1209,12 +1176,12 @@
           border-radius: 7px !important;
           font-size: 13px !important;
           font-weight: 500 !important;
-          color: #c9d1d9 !important;
-          transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease !important;
+          color: var(--text-secondary) !important;
+          transition: transform 0.14s ease !important;
       }
       .shadcn-dropdown-menu .shadcn-item:hover {
           background: var(--shadcn-sidebar-hover-bg) !important;
-          color: #ffffff !important;
+          color: var(--text-primary) !important;
           transform: translateX(3px) !important;
       }
       .shadcn-dropdown-menu .shadcn-item.text-danger:hover {
@@ -1339,7 +1306,7 @@
   </head>
 
   {{-- batas --}}
-  <body style="background-color: #1a1d21; color-scheme: dark;">
+  <body>
     @include('sweetalert::alert')
     <!-- Begin page -->
     <div id="layout-wrapper">
@@ -1625,6 +1592,33 @@
         <!-- Start right Content here -->
         <!-- ============================================================== -->
         <div class="main-content">
+        <!-- Mobile Top Navigation Bar (< 768px) -->
+        <div class="tkb-mobile-bar">
+            <div class="tkb-mobile-bar__left">
+                <button type="button" class="tkb-mobile-menu-btn" id="tkb-mobile-menu-trigger" aria-label="Buka Menu">
+                    <i class="ri-menu-2-line"></i>
+                </button>
+                <a href="{{ url('/welcomeTKB') }}" class="tkb-mobile-brand">
+                    <img src="{{asset('images/LogoTKB.png')}}" alt="Tokabe">
+                    <span>Tokabe</span>
+                </a>
+            </div>
+            <button type="button" class="tkb-theme-toggle" onclick="window.toggleTokabeTheme(event)" aria-label="Ubah Mode Terang / Gelap" title="Ubah Mode Terang / Gelap">
+                <span class="tkb-theme-toggle__thumb" aria-hidden="true"></span>
+                <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--sun"><i class="ri-sun-line"></i></span>
+                <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--moon"><i class="ri-moon-clear-line"></i></span>
+            </button>
+        </div>
+
+        @if(!View::hasSection('has_inline_theme_toggle'))
+            <div class="tkb-floating-topbar d-none d-sm-flex align-items-center">
+                <button type="button" class="tkb-theme-toggle" onclick="window.toggleTokabeTheme(event)" aria-label="Ubah Mode Terang / Gelap" title="Ubah Mode Terang / Gelap">
+                    <span class="tkb-theme-toggle__thumb" aria-hidden="true"></span>
+                    <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--sun"><i class="ri-sun-line"></i></span>
+                    <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--moon"><i class="ri-moon-clear-line"></i></span>
+                </button>
+            </div>
+        @endif
         @if(!Request::is('notifikasi*'))
             <x-spt-reminder-banner :reminder="$sptReminder ?? []" />
         @endif
@@ -1639,7 +1633,103 @@
     @extends('layout.vendor-script')
 
     <script>
+        window.getTokabeTheme = function () {
+            return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        };
+        window.syncTokabeThemeButtons = function (theme) {
+            var isDark = theme === 'dark';
+            document.querySelectorAll('.tkb-theme-toggle').forEach(function (btn) {
+                btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+                btn.setAttribute('title', isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap');
+            });
+        };
+        window.toggleTokabeTheme = function (e) {
+            var root = document.documentElement;
+            var next = window.getTokabeTheme() === 'dark' ? 'light' : 'dark';
+            var apply = function () {
+                root.setAttribute('data-theme', next);
+                root.setAttribute('data-layout-mode', next);
+                try { localStorage.setItem('tokabe_theme', next); } catch (err) {}
+                window.syncTokabeThemeButtons(next);
+            };
+
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (!document.startViewTransition || reduce) {
+                apply();
+                return;
+            }
+
+            // If user clicks again mid-transition, cleanly finish the previous one instead of stalling
+            if (window.__tkbActiveTransition && typeof window.__tkbActiveTransition.skipTransition === 'function') {
+                try { window.__tkbActiveTransition.skipTransition(); } catch (err) {}
+            }
+
+            var x = window.innerWidth - 52;
+            var y = 32;
+            if (e && e.currentTarget && typeof e.currentTarget.getBoundingClientRect === 'function') {
+                var r = e.currentTarget.getBoundingClientRect();
+                x = r.left + r.width / 2;
+                y = r.top + r.height / 2;
+            } else if (e && typeof e.clientX === 'number' && typeof e.clientY === 'number') {
+                x = e.clientX;
+                y = e.clientY;
+            }
+            var radius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            root.classList.add('theme-switching');
+            var t = document.startViewTransition(apply);
+            window.__tkbActiveTransition = t;
+
+            t.ready.then(function () {
+                root.animate(
+                    {
+                        clipPath: [
+                            'circle(0px at ' + x + 'px ' + y + 'px)',
+                            'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)'
+                        ]
+                    },
+                    {
+                        duration: 620,
+                        easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
+                        pseudoElement: '::view-transition-new(root)'
+                    }
+                );
+            }).catch(function () {});
+
+            t.finished.finally(function () {
+                if (window.__tkbActiveTransition === t) {
+                    window.__tkbActiveTransition = null;
+                    root.classList.remove('theme-switching');
+                }
+            });
+        };
+        window.setTokabeTheme = function (theme, e) {
+            var next = (theme === 'light') ? 'light' : 'dark';
+            if (next !== window.getTokabeTheme()) {
+                window.toggleTokabeTheme(e);
+            }
+        };
+
         document.addEventListener("DOMContentLoaded", function () {
+            window.syncTokabeThemeButtons(window.getTokabeTheme());
+
+            // Mobile Drawer Toggle
+            var mobileMenuBtn = document.getElementById("tkb-mobile-menu-trigger");
+            var verticalOverlay = document.querySelector(".vertical-overlay");
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener("click", function () {
+                    document.body.classList.toggle("vertical-sidebar-enable");
+                });
+            }
+            if (verticalOverlay) {
+                verticalOverlay.addEventListener("click", function () {
+                    document.body.classList.remove("vertical-sidebar-enable");
+                });
+            }
+
             var hamburger = document.getElementById("topnav-hamburger-icon");
             if (hamburger) {
                 hamburger.addEventListener("click", function (e) {

@@ -1,0 +1,804 @@
+/* ============================================================================
+   TOKABE DESIGN SYSTEM — EMERALD / FOREST MINT THEME (DARK & LIGHT)
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ----------------------------------------------------------------------------
+   1. DESIGN TOKENS — DARK MODE (DEFAULT)
+   ---------------------------------------------------------------------------- */
+:root,
+[data-theme="dark"] {
+    --tkb-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* Canvas & Surfaces */
+    --bg-app: #070D0B;
+    --bg-sidebar: #0A120F;
+    --bg-surface: #0D1713;
+    --bg-surface-2: #111F19;
+    --bg-surface-3: #162820;
+    --bg-input: #0E1B16;
+    --bg-hover: rgba(255, 255, 255, 0.045);
+    --bg-active: rgba(20, 184, 122, 0.14);
+
+    /* Borders */
+    --border-subtle: rgba(255, 255, 255, 0.065);
+    --border-default: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --border-focus: #14B87A;
+
+    /* Text Hierarchy */
+    --text-primary: #F2F8F5;
+    --text-secondary: #9CB3A8;
+    --text-tertiary: #6E887C;
+    --text-disabled: #4A6056;
+
+    /* Brand Accent (Emerald) */
+    --brand: #14B87A;
+    --brand-hover: #22C98A;
+    --brand-pressed: #0E9663;
+    --brand-subtle: rgba(20, 184, 122, 0.14);
+    --brand-border: rgba(20, 184, 122, 0.34);
+    --brand-glow: 0 0 18px rgba(20, 184, 122, 0.32);
+
+    /* Secondary Accent (Sky / Teal Cyan) */
+    --accent-cyan: #38BDF8;
+    --accent-cyan-subtle: rgba(56, 189, 248, 0.14);
+    --accent-cyan-border: rgba(56, 189, 248, 0.30);
+
+    /* Semantic Status & Chart SVG Variables */
+    --chart-brand: #22C58B;
+    --chart-brand-dark: #0D6E48;
+    --chart-cyan: #38BDF8;
+    --chart-danger: #FB7185;
+    --chart-warning: #F59E0B;
+    --chart-neutral: #6E887C;
+    --chart-donut-stroke: #0D1713;
+    --chart-donut-stroke-sub: #111F19;
+    --chart-grid: rgba(255, 255, 255, 0.06);
+    --chart-series-2: #38BDF8;
+    --success: #22C58B;
+    --success-subtle: rgba(34, 197, 139, 0.14);
+    --success-border: rgba(34, 197, 139, 0.30);
+    --success-text: #34D399;
+
+    --warning: #F59E0B;
+    --warning-subtle: rgba(245, 158, 11, 0.14);
+    --warning-border: rgba(245, 158, 11, 0.30);
+    --warning-text: #FBBF24;
+
+    --danger: #F43F5E;
+    --danger-subtle: rgba(244, 63, 94, 0.14);
+    --danger-border: rgba(244, 63, 94, 0.30);
+    --danger-text: #FB7185;
+
+    --info: #38BDF8;
+    --info-subtle: rgba(56, 189, 248, 0.14);
+    --info-border: rgba(56, 189, 248, 0.30);
+    --info-text: #38BDF8;
+
+    /* Hero Revenue Gradient */
+    --hero-bg: linear-gradient(135deg, #0A4F35 0%, #0E6B47 48%, #108456 100%);
+    --hero-border: rgba(52, 211, 153, 0.28);
+    --hero-shadow: 0 12px 28px rgba(4, 24, 16, 0.45);
+
+    /* Sidebar Tokens */
+    --shadcn-sidebar-bg: #0A120F;
+    --shadcn-sidebar-surface: #0F1B16;
+    --shadcn-sidebar-border: rgba(255, 255, 255, 0.065);
+    --shadcn-sidebar-muted: #7C9489;
+    --shadcn-sidebar-text: #EBF5F0;
+    --shadcn-sidebar-active-bg: rgba(20, 184, 122, 0.18);
+    --shadcn-sidebar-active-text: #34D399;
+    --shadcn-sidebar-hover-bg: rgba(255, 255, 255, 0.055);
+
+    /* Radii & Shadows */
+    --radius-sm: 8px;
+    --radius-control: 10px;
+    --radius-card: 16px;
+    --radius-inner: 12px;
+    --radius-full: 9999px;
+
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-dropdown: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --focus-ring: 0 0 0 3px rgba(20, 184, 122, 0.28);
+
+    /* Motion */
+    --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-enter: 340ms;
+    --dur-fast: 150ms;
+
+    color-scheme: dark;
+}
+
+/* ----------------------------------------------------------------------------
+   2. DESIGN TOKENS — LIGHT MODE (SOFT FOREST MINT)
+   ---------------------------------------------------------------------------- */
+[data-theme="light"] {
+    /* Canvas & Surfaces */
+    --bg-app: #F3F8F5;
+    --bg-sidebar: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-surface-2: #F4F9F6;
+    --bg-surface-3: #EAF3EE;
+    --bg-input: #FFFFFF;
+    --bg-hover: rgba(15, 140, 88, 0.05);
+    --bg-active: rgba(15, 140, 88, 0.10);
+
+    /* Borders */
+    --border-subtle: #E6EFEA;
+    --border-default: #DCE8E1;
+    --border-strong: #C4D8CD;
+    --border-focus: #0F8C58;
+
+    /* Text Hierarchy */
+    --text-primary: #0F1F18;
+    --text-secondary: #4D655A;
+    --text-tertiary: #718A7E;
+    --text-disabled: #9EB3A9;
+
+    /* Brand Accent (Emerald) */
+    --brand: #0F9B60;
+    --brand-hover: #0C8351;
+    --brand-pressed: #096C42;
+    --brand-subtle: rgba(15, 155, 96, 0.11);
+    --brand-border: rgba(15, 155, 96, 0.28);
+    --brand-glow: 0 4px 14px rgba(15, 155, 96, 0.28);
+
+    /* Secondary Accent (Deep Teal) */
+    --accent-cyan: #0A7D96;
+    --accent-cyan-subtle: rgba(10, 125, 150, 0.10);
+    --accent-cyan-border: rgba(10, 125, 150, 0.24);
+
+    /* Semantic Status & Chart SVG Variables */
+    --chart-brand: #0F9B60;
+    --chart-brand-dark: #0A7A4B;
+    --chart-cyan: #0B7A94;
+    --chart-danger: #E11D48;
+    --chart-warning: #D97706;
+    --chart-neutral: #647A70;
+    --chart-donut-stroke: #FFFFFF;
+    --chart-donut-stroke-sub: #F4F9F6;
+    --chart-grid: rgba(15, 45, 32, 0.08);
+    --chart-series-2: #0A7D96;
+    --success: #0F9B60;
+    --success-subtle: rgba(15, 155, 96, 0.11);
+    --success-border: rgba(15, 155, 96, 0.24);
+    --success-text: #0C804F;
+
+    --warning: #D97706;
+    --warning-subtle: rgba(217, 119, 6, 0.11);
+    --warning-border: rgba(217, 119, 6, 0.26);
+    --warning-text: #B45309;
+
+    --danger: #E11D48;
+    --danger-subtle: rgba(225, 29, 72, 0.10);
+    --danger-border: rgba(225, 29, 72, 0.24);
+    --danger-text: #BE123C;
+
+    --info: #0284C7;
+    --info-subtle: rgba(2, 132, 199, 0.10);
+    --info-border: rgba(2, 132, 199, 0.24);
+    --info-text: #0369A1;
+
+    /* Hero Revenue Gradient */
+    --hero-bg: linear-gradient(135deg, #0A7A4B 0%, #0F9B60 55%, #12B06E 100%);
+    --hero-border: rgba(15, 155, 96, 0.35);
+    --hero-shadow: 0 10px 24px rgba(10, 122, 75, 0.22);
+
+    /* Sidebar Tokens */
+    --shadcn-sidebar-bg: #FFFFFF;
+    --shadcn-sidebar-surface: #F4F9F6;
+    --shadcn-sidebar-border: #E4EFE9;
+    --shadcn-sidebar-muted: #5A7267;
+    --shadcn-sidebar-text: #0F1F18;
+    --shadcn-sidebar-active-bg: #0F9B60;
+    --shadcn-sidebar-active-text: #FFFFFF;
+    --shadcn-sidebar-hover-bg: #EEF6F1;
+
+    --shadow-card: 0 2px 12px rgba(15, 45, 32, 0.045);
+    --shadow-dropdown: 0 10px 28px rgba(15, 45, 32, 0.12);
+    --focus-ring: 0 0 0 3px rgba(15, 155, 96, 0.18);
+
+    color-scheme: light;
+}
+
+/* ----------------------------------------------------------------------------
+   3. GLOBAL CANVAS & TYPOGRAPHY
+   ---------------------------------------------------------------------------- */
+html,
+body,
+#layout-wrapper,
+.main-content,
+.page-content {
+    background-color: var(--bg-app) !important;
+    color: var(--text-primary) !important;
+    font-family: var(--tkb-font) !important;
+}
+
+.footer {
+    background-color: var(--bg-app) !important;
+    color: var(--text-tertiary) !important;
+    border-top: 1px solid var(--border-subtle) !important;
+    box-shadow: none !important;
+}
+
+/* ----------------------------------------------------------------------------
+   4. SIDEBAR EMERALD REFINEMENT (DARK & LIGHT)
+   ---------------------------------------------------------------------------- */
+.app-menu.navbar-menu {
+    background-color: var(--shadcn-sidebar-bg) !important;
+    border-right: 1px solid var(--shadcn-sidebar-border) !important;
+}
+[data-theme="light"] .app-menu.navbar-menu {
+    box-shadow: 2px 0 16px rgba(15, 45, 32, 0.04) !important;
+}
+[data-theme="light"] [data-sidebar-size="sm-hover"] .navbar-menu:hover {
+    box-shadow: 10px 0 32px rgba(15, 45, 32, 0.10) !important;
+}
+
+.org-avatar-badge {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 50% !important;
+    background: var(--bg-surface-2) !important;
+    border: 1px solid var(--border-default) !important;
+    box-shadow: none !important;
+    padding: 4px !important;
+}
+.org-avatar-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    display: block !important;
+}
+.org-name {
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+}
+.org-badge-pro {
+    color: var(--brand) !important;
+    background: var(--brand-subtle) !important;
+}
+
+.navbar-menu .navbar-nav .nav-link {
+    color: var(--shadcn-sidebar-muted) !important;
+    border-radius: 10px !important;
+    margin: 3px 8px !important;
+    height: 42px !important;
+}
+.navbar-menu .navbar-nav .nav-link:hover {
+    background-color: var(--shadcn-sidebar-hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+.navbar-menu .navbar-nav .nav-link.active {
+    background-color: var(--shadcn-sidebar-active-bg) !important;
+    color: var(--shadcn-sidebar-active-text) !important;
+    box-shadow: var(--brand-glow) !important;
+}
+[data-theme="dark"] .navbar-menu .navbar-nav .nav-link.active {
+    border: 1px solid var(--brand-border);
+}
+[data-theme="light"] .navbar-menu .navbar-nav .nav-link.active {
+    color: #FFFFFF !important;
+}
+[data-theme="light"] .navbar-menu .navbar-nav .nav-link.active i.menu-icon,
+[data-theme="light"] .navbar-menu .navbar-nav .nav-link.active .menu-text {
+    color: #FFFFFF !important;
+}
+
+.sidebar-badge-beta {
+    background: var(--brand-subtle) !important;
+    color: var(--brand) !important;
+}
+
+.sidebar-user-footer .user-name {
+    color: var(--text-primary) !important;
+}
+.sidebar-user-footer .user-role-label {
+    color: var(--text-tertiary) !important;
+}
+[data-theme="light"] .sidebar-user-footer .user-avatar-badge {
+    background: var(--brand-subtle) !important;
+    color: var(--brand) !important;
+    border-color: var(--brand-border) !important;
+}
+[data-theme="light"] .shadcn-dropdown-menu {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-default) !important;
+    box-shadow: var(--shadow-dropdown) !important;
+}
+[data-theme="light"] .shadcn-dropdown-menu .shadcn-item,
+[data-theme="light"] .shadcn-dropdown-menu .dropdown-item {
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] .shadcn-dropdown-menu .shadcn-item:hover,
+[data-theme="light"] .shadcn-dropdown-menu .dropdown-item:hover {
+    background: var(--bg-hover) !important;
+    color: var(--brand) !important;
+}
+
+/* ----------------------------------------------------------------------------
+   5. GLOBAL SINGLE ON/OFF THEME TOGGLE SWITCH (SUN <-> MOON)
+   ---------------------------------------------------------------------------- */
+.tkb-global-header-controls {
+    display: inline-flex;
+    align-items: center;
+}
+
+.tkb-theme-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 66px;
+    height: 34px;
+    padding: 4px;
+    border-radius: 9999px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    outline: none;
+}
+
+.tkb-theme-toggle:hover {
+    border-color: var(--brand-border);
+    box-shadow: 0 0 0 3px var(--brand-subtle);
+}
+
+.tkb-theme-toggle__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand-subtle);
+    border: 1px solid var(--brand-border);
+    box-shadow: 0 2px 6px rgba(15, 155, 96, 0.22);
+    transform: translateX(0);
+    transition: transform 0.36s cubic-bezier(0.34, 1.4, 0.64, 1);
+    z-index: 1;
+}
+
+[data-theme="dark"] .tkb-theme-toggle__thumb {
+    transform: translateX(32px);
+}
+
+.tkb-theme-toggle__icon {
+    position: relative;
+    z-index: 2;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--text-tertiary);
+    transition: transform 0.3s ease;
+}
+
+[data-theme="light"] .tkb-theme-toggle__icon--sun {
+    color: var(--brand);
+    transform: rotate(0deg) scale(1.06);
+}
+[data-theme="dark"] .tkb-theme-toggle__icon--sun {
+    transform: rotate(-35deg) scale(0.92);
+}
+
+[data-theme="dark"] .tkb-theme-toggle__icon--moon {
+    color: var(--brand);
+    transform: rotate(0deg) scale(1.06);
+}
+[data-theme="light"] .tkb-theme-toggle__icon--moon {
+    transform: rotate(25deg) scale(0.92);
+}
+
+/* Global floating toolbar for pages without custom page-title-box right slot */
+.tkb-floating-topbar {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    z-index: 1001;
+}
+
+/* ----------------------------------------------------------------------------
+   5B. MOBILE TOPBAR & RESPONSIVE SIDEBAR DRAWER (< 768px)
+   ---------------------------------------------------------------------------- */
+.tkb-mobile-bar {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .tkb-floating-topbar {
+        display: none !important;
+    }
+
+    .tkb-mobile-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 1001;
+        height: 56px;
+        padding: 0 14px;
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-card);
+    }
+
+    .tkb-mobile-bar__left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .tkb-mobile-menu-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid var(--border-default);
+        background: var(--bg-surface-2);
+        color: var(--text-primary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .tkb-mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+    .tkb-mobile-brand img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: contain;
+        background: var(--bg-surface-2);
+        padding: 2px;
+        border: 1px solid var(--border-default);
+    }
+    .tkb-mobile-brand span {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+    }
+
+    .page-content {
+        padding: 16px 12px 28px 12px !important;
+    }
+
+    .container-fluid {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+
+    /* Sidebar behaves as full-width slide-in drawer on mobile */
+    [data-sidebar-size="sm-hover"] .app-menu.navbar-menu {
+        width: 260px !important;
+        max-width: 82vw !important;
+        margin-left: -270px !important;
+        transition: margin-left 0.25s ease !important;
+    }
+
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .app-menu.navbar-menu,
+    .vertical-sidebar-enable .app-menu.navbar-menu {
+        margin-left: 0 !important;
+        width: 260px !important;
+        max-width: 82vw !important;
+        box-shadow: 12px 0 36px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .org-info,
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .user-meta,
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .menu-text {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        max-width: 170px !important;
+        pointer-events: auto !important;
+    }
+
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .sidebar-badge-beta,
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .sidebar-badge-spt {
+        opacity: 1 !important;
+        transform: scale(1) !important;
+        max-width: 60px !important;
+        margin-right: 12px !important;
+        padding: 2px 7px !important;
+        border-width: 1px !important;
+        pointer-events: auto !important;
+    }
+
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .nav-link[data-bs-toggle="collapse"]:after {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    body.vertical-sidebar-enable [data-sidebar-size="sm-hover"] .navbar-menu .menu-dropdown.show {
+        display: block !important;
+    }
+
+    body.vertical-sidebar-enable .vertical-overlay {
+        display: block !important;
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.55) !important;
+        z-index: 1001 !important;
+    }
+}
+
+/* ----------------------------------------------------------------------------
+   6. GLOBAL CARDS, TABLES, INPUTS, MODALS (THEME-AWARE)
+   ---------------------------------------------------------------------------- */
+.card {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-default) !important;
+    border-radius: var(--radius-card) !important;
+    box-shadow: var(--shadow-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.form-select,
+select.form-select,
+.form-control,
+input.form-control,
+textarea.form-control {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-input) !important;
+    border-color: var(--border-default) !important;
+}
+
+.form-select option,
+select option {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-select:focus,
+.form-control:focus,
+textarea.form-control:focus {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-input) !important;
+    border-color: var(--border-focus) !important;
+    box-shadow: var(--focus-ring) !important;
+}
+
+/* Light Mode Overrides for Utility Classes used across existing Blade Views */
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-light {
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] .tkb-hero-revenue,
+[data-theme="light"] .tkb-hero-revenue .text-white,
+[data-theme="light"] .tkb-hero-revenue h3,
+[data-theme="light"] .tkb-hero-revenue p,
+[data-theme="light"] .tkb-hero-revenue span,
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .btn-success,
+[data-theme="light"] .btn-danger,
+[data-theme="light"] .btn-info,
+[data-theme="light"] .btn-dash-primary,
+[data-theme="light"] .badge.bg-success,
+[data-theme="light"] .badge.bg-danger,
+[data-theme="light"] .badge.bg-primary {
+    color: #FFFFFF !important;
+}
+
+[data-theme="light"] .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .table {
+    color: var(--text-primary) !important;
+    border-color: var(--border-subtle) !important;
+}
+[data-theme="light"] .table > :not(caption) > * > * {
+    color: var(--text-primary) !important;
+    border-bottom-color: var(--border-subtle) !important;
+}
+[data-theme="light"] .table-light,
+[data-theme="light"] .table thead th {
+    background-color: var(--bg-surface-2) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .modal-content {
+    background-color: #FFFFFF !important;
+    border: 1px solid var(--border-default) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] .dropdown-menu {
+    background-color: #FFFFFF !important;
+    border: 1px solid var(--border-default) !important;
+    box-shadow: var(--shadow-dropdown) !important;
+}
+[data-theme="light"] .dropdown-item {
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] .dropdown-item:hover {
+    background-color: var(--bg-surface-2) !important;
+}
+
+[data-theme="light"] .page-title-box {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+[data-theme="light"] .page-title-box h4 {
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] .breadcrumb-item a {
+    color: var(--text-tertiary) !important;
+}
+[data-theme="light"] .breadcrumb-item.active {
+    color: var(--text-primary) !important;
+    font-weight: 600;
+}
+
+/* SweetAlert2 Theme Adaptation */
+[data-theme="light"] body:not(.swal2-toast-shown) .swal2-popup:not(.swal2-toast) {
+    background: #FFFFFF !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-default) !important;
+    box-shadow: 0 20px 45px rgba(15, 45, 32, 0.16) !important;
+}
+[data-theme="light"] .swal2-popup:not(.swal2-toast) .swal2-title {
+    color: var(--text-primary) !important;
+}
+[data-theme="light"] .swal2-popup:not(.swal2-toast) .swal2-html-container {
+    color: var(--text-secondary) !important;
+}
+[data-theme="light"] .swal2-styled.swal2-cancel {
+    background-color: var(--bg-surface-2) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+}
+
+/* Primary Buttons aligned to Emerald Brand */
+.btn-primary,
+.btn-dash-primary {
+    background-color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: #FFFFFF !important;
+}
+.btn-primary:hover,
+.btn-dash-primary:hover {
+    background-color: var(--brand-hover) !important;
+    border-color: var(--brand-hover) !important;
+    color: #FFFFFF !important;
+}
+
+/* ----------------------------------------------------------------------------
+   7. CIRCULAR REVEAL VIEW TRANSITION (LIGHT <-> DARK) — ZERO FLICKER
+   ---------------------------------------------------------------------------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+    z-index: 1;
+}
+::view-transition-new(root) {
+    z-index: 9999;
+}
+
+/* Matikan semua transition elemen selama pergantian tema (spesifisitas tinggi, permanen tanpa DOM style injection) */
+html.theme-switching.theme-switching.theme-switching.theme-switching.theme-switching,
+html.theme-switching.theme-switching.theme-switching.theme-switching.theme-switching *,
+html.theme-switching.theme-switching.theme-switching.theme-switching.theme-switching *::before,
+html.theme-switching.theme-switching.theme-switching.theme-switching.theme-switching *::after {
+    transition: none !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+}
+
+/* ----------------------------------------------------------------------------
+   8. APEXCHARTS SVG THEME BINDING VIA CSS VARIABLES (ZERO CHART REDRAW)
+   ---------------------------------------------------------------------------- */
+.apexcharts-canvas text,
+.apexcharts-xaxis-label,
+.apexcharts-yaxis-label {
+    fill: var(--text-tertiary) !important;
+}
+.apexcharts-legend-text {
+    color: var(--text-secondary) !important;
+}
+.apexcharts-grid line,
+.apexcharts-grid-borders line {
+    stroke: var(--chart-grid) !important;
+}
+.apexcharts-datalabel-label {
+    fill: var(--text-tertiary) !important;
+}
+.apexcharts-datalabel-value {
+    fill: var(--text-primary) !important;
+}
+
+/* Donut ring separator stroke synced to card surface */
+#structure_widget .apexcharts-pie-area {
+    stroke: var(--chart-donut-stroke) !important;
+}
+#chart_pilihan_pajak_donut .apexcharts-pie-area {
+    stroke: var(--chart-donut-stroke-sub) !important;
+}
+
+/* Bar & Donut SVG fills bound directly to CSS variables */
+#stacked_column_chart .apexcharts-bar-series.apexcharts-plot-series .apexcharts-series[rel="1"] path {
+    fill: var(--chart-brand) !important;
+}
+#stacked_column_chart .apexcharts-bar-series.apexcharts-plot-series .apexcharts-series[rel="2"] path {
+    fill: var(--chart-danger) !important;
+}
+#stacked_column_chart .apexcharts-bar-series.apexcharts-plot-series .apexcharts-series[rel="3"] path {
+    fill: var(--chart-cyan) !important;
+}
+#stacked_column_chart .apexcharts-legend-series[rel="1"] .apexcharts-legend-marker {
+    background: var(--chart-brand) !important;
+}
+#stacked_column_chart .apexcharts-legend-series[rel="2"] .apexcharts-legend-marker {
+    background: var(--chart-danger) !important;
+}
+#stacked_column_chart .apexcharts-legend-series[rel="3"] .apexcharts-legend-marker {
+    background: var(--chart-cyan) !important;
+}
+
+#structure_widget .apexcharts-series[rel="1"] path {
+    fill: var(--chart-brand) !important;
+}
+#structure_widget .apexcharts-series[rel="2"] path {
+    fill: var(--chart-warning) !important;
+}
+#structure_widget .apexcharts-series[rel="3"] path {
+    fill: var(--chart-neutral) !important;
+}
+
+#chart_penjualan_item .apexcharts-bar-area {
+    fill: var(--chart-brand) !important;
+}
+#chart_penjualan_item .apexcharts-datalabels text {
+    fill: #FFFFFF !important;
+}
+#chart_penjualan_item .apexcharts-yaxis-label {
+    fill: var(--text-secondary) !important;
+}
+
+#chart_pilihan_pajak_donut .apexcharts-series[rel="1"] path {
+    fill: var(--chart-cyan) !important;
+}
+#chart_pilihan_pajak_donut .apexcharts-legend-series[rel="1"] .apexcharts-legend-marker {
+    background: var(--chart-cyan) !important;
+}
+
+#chart-pembelian-invoice .apexcharts-bar-area {
+    fill: var(--chart-brand) !important;
+}
+#chart-pembelian-invoice .apexcharts-datalabels text,
+#chart-pembelian-single-status .apexcharts-datalabels text,
+#chart-pembelian-single-jenis .apexcharts-datalabels text {
+    fill: var(--text-primary) !important;
+}
+#chart-pembelian-single-status .apexcharts-xaxis-label,
+#chart-pembelian-single-jenis .apexcharts-xaxis-label,
+#chart-pembelian-invoice .apexcharts-xaxis-label {
+    fill: var(--text-secondary) !important;
+}
+
+

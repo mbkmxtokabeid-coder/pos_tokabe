@@ -1,82 +1,85 @@
 @extends('layout.template')
+@section('has_inline_theme_toggle', '1')
 
 @section('head')
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
 
-<!--datatable responsive css-->
-
-  {{-- <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap.min.css" /> --}}
-
-
   <style>
+    /* ==========================================================================
+       DAFTAR INVOICE TOKABE — EMERALD / FOREST MINT DESIGN (DARK & LIGHT)
+       ========================================================================== */
 
     /* KPI Card Container */
     .kpi-card {
-        background: #111827;
-        border: 1px solid #1E293B;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
         margin-bottom: 0 !important;
         height: 100%;
-        transition:
-            box-shadow 200ms cubic-bezier(.2,0,0,1),
-            transform 200ms cubic-bezier(.2,0,0,1),
-            border-color 200ms cubic-bezier(.2,0,0,1);
     }
     .kpi-card:hover {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
         transform: translateY(-2px);
-        border-color: #334155;
-    }
-    .kpi-card:active {
-        transform: scale(0.99);
+        border-color: var(--border-strong);
     }
 
-    /* Card body — spacious and clean */
     .kpi-card__body {
-        padding: 20px 24px !important;
+        padding: 20px 22px !important;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 146px !important;
+        min-height: 148px !important;
     }
 
+    .kpi-card__top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .kpi-card__icon {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+    }
+    .kpi-card__icon--cyan { background: var(--accent-cyan-subtle); color: var(--accent-cyan); }
+    .kpi-card__icon--emerald { background: var(--brand-subtle); color: var(--brand); }
+    .kpi-card__icon--amber { background: var(--warning-subtle); color: var(--warning-text); }
+    .kpi-card__icon--rose { background: var(--danger-subtle); color: var(--danger-text); }
+
     .kpi-card__overline {
-        font-size: 11.5px !important;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #94A3B8;
-        line-height: 16px;
-        margin: 0 0 10px 0;
+        font-size: 12.5px !important;
+        font-weight: 500;
+        color: var(--text-secondary);
+        line-height: 18px;
+        margin: 0;
     }
 
     .kpi-card__value {
         font-size: 26px !important;
-        font-weight: 700;
-        line-height: 1.25;
-        color: #F8FAFC;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--text-primary);
         margin: 0 0 14px 0;
         font-variant-numeric: tabular-nums;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
     }
 
-    /* Semantic text color for values according to screenshot */
-    .kpi-card__value--success {
-        color: #34D399 !important; /* Emerald green */
-    }
-    .kpi-card__value--warning {
-        color: #FBBF24 !important; /* Amber yellow */
-    }
-    .kpi-card__value--danger {
-        color: #F87171 !important; /* Coral red */
-    }
+    .kpi-card__value--success { color: var(--success-text) !important; }
+    .kpi-card__value--warning { color: var(--warning-text) !important; }
+    .kpi-card__value--danger { color: var(--danger-text) !important; }
 
     .kpi-card__footer {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         margin-top: auto;
     }
 
@@ -84,46 +87,50 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 28px;
+        min-width: 26px;
         height: 22px;
-        padding: 0 9px;
+        padding: 0 8px;
         font-size: 11.5px;
         font-weight: 700;
         border-radius: 9999px;
-        background-color: #1E293B;
-        color: #E2E8F0;
-        border: 1px solid rgba(148, 163, 184, 0.15);
+        background-color: var(--bg-surface-3);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
         font-variant-numeric: tabular-nums;
         flex-shrink: 0;
     }
+    .kpi-badge--emerald {
+        background-color: var(--brand-subtle);
+        color: var(--brand);
+        border-color: var(--brand-border);
+    }
 
     .kpi-card__label {
-        font-size: 12.5px !important;
+        font-size: 12px !important;
         font-weight: 400;
-        color: #94A3B8;
+        color: var(--text-tertiary);
         margin: 0;
         line-height: 16px;
     }
 
     /* Section header */
     .kpi-section-header {
-        margin-top: 24px;
-        margin-bottom: 14px;
+        margin-top: 22px;
+        margin-bottom: 12px;
     }
     .kpi-section-header:first-of-type {
-        margin-top: 10px;
+        margin-top: 4px;
     }
     .kpi-section-title {
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #CBD5E1;
-        margin: 0 0 3px 0;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+        margin: 0 0 2px 0;
     }
     .kpi-section-subtitle {
         font-size: 12.5px;
-        color: #64748B;
+        color: var(--text-tertiary);
         margin: 0;
         font-weight: 400;
     }
@@ -132,8 +139,8 @@
     .kpi-ppn-list {
         display: flex;
         flex-direction: column;
-        gap: 9px;
-        margin-top: 4px;
+        gap: 10px;
+        margin-top: 8px;
     }
     .kpi-ppn-item {
         display: flex;
@@ -143,68 +150,59 @@
         line-height: 18px;
     }
     .kpi-ppn-label {
-        color: #CBD5E1;
+        color: var(--text-secondary);
         font-weight: 500;
     }
     .kpi-ppn-val {
-        color: #F8FAFC;
+        color: var(--text-primary);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
     }
 
-        /* Atur SweetAlert modal menjadi muncul di tengah (tidak menimpa toast) */
-    body:not(.swal2-toast-shown) .swal2-container:not(.swal2-top-end):not(.swal2-top-right):not(:has(.swal2-toast)) {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        z-index: 100000 !important;
+    /* Quick Filter Tab Pill Group */
+    .tkb-status-pills {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 4px;
+        border-radius: var(--radius-control);
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border-default);
     }
-
-    body:not(.swal2-toast-shown) .swal2-popup:not(.swal2-toast) {
-        margin: auto !important;
-        max-width: 500px;
-    }
-
-    
-
-    /* ==========================================================================
-       DATATABLES & TABLE MODEL — STYLING & SMOOTH HOVER ANIMATION
-       Mengikuti DESIGN.md §13 (Tabel & Data), §18 (Motion & Animasi)
-       ========================================================================== */
-
-    /* Quick Filter Tab Pill */
     .filter-tab-pill {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 14px;
-        font-size: 13px;
+        padding: 5px 12px;
+        font-size: 12.5px;
         font-weight: 500;
-        color: var(--text-secondary, #94A3B8);
+        color: var(--text-secondary);
         background: transparent;
         border: 1px solid transparent;
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: all 150ms ease;
     }
     .filter-tab-pill:hover {
-        color: #F1F5F9;
-        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        background: var(--bg-hover);
     }
     .filter-tab-pill.active {
-        color: #F1F5F9;
-        background: rgba(99, 102, 241, 0.2);
-        border-color: rgba(99, 102, 241, 0.45);
+        color: var(--brand);
+        background: var(--brand-subtle);
+        border-color: var(--brand-border);
         font-weight: 600;
     }
+    [data-theme="light"] .filter-tab-pill.active {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #FFFFFF !important;
+    }
+    [data-theme="light"] .filter-tab-pill.active i {
+        color: #FFFFFF !important;
+    }
 
+    /* DataTables Controls */
     #scroll-horizontal_wrapper,
     #scroll-horizontal_wrapper .table-responsive {
         width: 100% !important;
@@ -213,7 +211,6 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    /* DataTables Controls: Show Entries (kiri) & Search Bar (kanan) sejajar sempurna */
     .dataTables_controls_top {
         display: flex !important;
         align-items: center !important;
@@ -222,33 +219,25 @@
         gap: 16px !important;
         padding: 14px 20px !important;
         margin-bottom: 0 !important;
-        background: var(--bg-surface, #0F172A) !important;
-        border-bottom: 1px solid var(--border-subtle, #1E293B) !important;
+        background: var(--bg-surface) !important;
+        border-bottom: 1px solid var(--border-subtle) !important;
         width: 100% !important;
     }
 
-    #scroll-horizontal_wrapper .dataTables_length {
-        float: none !important;
-        margin-bottom: 0 !important;
-        color: var(--text-secondary, #CBD5E1);
-        font-size: 13px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-    }
-
+    #scroll-horizontal_wrapper .dataTables_length,
     #scroll-horizontal_wrapper .dataTables_filter {
         float: none !important;
         margin-bottom: 0 !important;
-        margin-left: auto !important;
-        text-align: right !important;
-        color: var(--text-secondary, #CBD5E1);
+        color: var(--text-secondary);
         font-size: 13px;
         font-weight: 500;
         display: inline-flex;
         align-items: center;
     }
-
+    #scroll-horizontal_wrapper .dataTables_filter {
+        margin-left: auto !important;
+        text-align: right !important;
+    }
     #scroll-horizontal_wrapper .dataTables_length label,
     #scroll-horizontal_wrapper .dataTables_filter label {
         display: inline-flex !important;
@@ -257,43 +246,33 @@
         margin-bottom: 0 !important;
         height: 36px !important;
     }
-
     #scroll-horizontal_wrapper .dataTables_length select {
-        height: 36px !important;
-        background-color: var(--bg-surface-2, #1E293B) !important;
-        border: 1px solid var(--border-default, #334155) !important;
-        color: var(--text-primary, #F1F5F9) !important;
-        border-radius: var(--radius-md, 8px) !important;
+        height: 34px !important;
+        background-color: var(--bg-surface-2) !important;
+        border: 1px solid var(--border-default) !important;
+        color: var(--text-primary) !important;
+        border-radius: var(--radius-control) !important;
         padding: 4px 28px 4px 10px !important;
         font-size: 13px !important;
         outline: none;
         cursor: pointer;
-        transition: border-color var(--dur-fast, 120ms) ease, box-shadow var(--dur-fast, 120ms) ease;
     }
-
-    #scroll-horizontal_wrapper .dataTables_length select:focus {
-        border-color: var(--brand, #6366F1) !important;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
-    }
-
     #scroll-horizontal_wrapper .dataTables_filter input {
         height: 36px !important;
-        background-color: var(--bg-surface, #0F172A) !important;
-        border: 1px solid var(--border-default, #334155) !important;
-        color: var(--text-primary, #F1F5F9) !important;
-        border-radius: var(--radius-md, 8px) !important;
+        background-color: var(--bg-surface-2) !important;
+        border: 1px solid var(--border-default) !important;
+        color: var(--text-primary) !important;
+        border-radius: var(--radius-control) !important;
         padding: 6px 12px !important;
         font-size: 13px !important;
         outline: none;
         margin-left: 0 !important;
-        width: 220px;
-        transition: border-color var(--dur-fast, 120ms) ease, box-shadow var(--dur-fast, 120ms) ease, width 200ms ease;
+        width: 240px;
     }
-
-    #scroll-horizontal_wrapper .dataTables_filter input:focus {
-        border-color: var(--brand, #6366F1) !important;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
-        width: 260px;
+    #scroll-horizontal_wrapper .dataTables_filter input:focus,
+    #scroll-horizontal_wrapper .dataTables_length select:focus {
+        border-color: var(--brand) !important;
+        box-shadow: var(--focus-ring) !important;
     }
 
     #scroll-horizontal {
@@ -305,46 +284,37 @@
         border-spacing: 0 !important;
     }
 
-    /* Header Styling */
+    /* Table Header */
     #scroll-horizontal thead th {
         height: 44px !important;
-        background: #172033 !important;
-        color: var(--text-tertiary, #94A3B8) !important;
-        font-size: 11px !important;
+        background: var(--bg-surface-2) !important;
+        color: var(--text-tertiary) !important;
+        font-size: 12px !important;
         font-weight: 600 !important;
-        letter-spacing: 0.07em !important;
-        text-transform: uppercase !important;
         white-space: nowrap !important;
-        border-bottom: 2px solid var(--border-default, #334155) !important;
+        border-bottom: 1px solid var(--border-default) !important;
         border-top: none !important;
         padding: 11px 14px !important;
         vertical-align: middle !important;
         position: relative !important;
         user-select: none !important;
-        transition: background .15s ease, color .15s ease;
     }
-
-    /* Sortable Header Columns */
     #scroll-horizontal thead th.sorting,
     #scroll-horizontal thead th.sorting_asc,
     #scroll-horizontal thead th.sorting_desc {
         cursor: pointer !important;
         padding-right: 28px !important;
     }
-
     #scroll-horizontal thead th.sorting:hover,
     #scroll-horizontal thead th.sorting_asc:hover,
     #scroll-horizontal thead th.sorting_desc:hover {
-        background: #1E293B !important;
-        color: var(--text-primary, #F1F5F9) !important;
+        background: var(--bg-surface-3) !important;
+        color: var(--text-primary) !important;
     }
-
     #scroll-horizontal thead th.sorting_disabled {
         cursor: default !important;
         padding-right: 14px !important;
     }
-
-    /* Custom Sort Indicators */
     #scroll-horizontal thead th.sorting::after {
         content: "\f124" !important;
         font-family: 'remixicon' !important;
@@ -353,18 +323,13 @@
         top: 50% !important;
         transform: translateY(-50%) !important;
         font-size: 13px !important;
-        color: var(--text-tertiary, #64748B) !important;
-        opacity: 0.4 !important;
-        transition: opacity .15s ease, color .15s ease;
+        color: var(--text-tertiary) !important;
+        opacity: 0.45 !important;
     }
-    #scroll-horizontal thead th.sorting:hover::after {
-        opacity: 1 !important;
-        color: var(--brand, #818CF8) !important;
-    }
-
-    #scroll-horizontal thead th.sorting_asc {
-        color: var(--brand, #818CF8) !important;
-        background: #17243B !important;
+    #scroll-horizontal thead th.sorting_asc,
+    #scroll-horizontal thead th.sorting_desc {
+        color: var(--brand) !important;
+        background: var(--bg-surface-2) !important;
     }
     #scroll-horizontal thead th.sorting_asc::after {
         content: "\ea78" !important;
@@ -374,13 +339,7 @@
         top: 50% !important;
         transform: translateY(-50%) !important;
         font-size: 14px !important;
-        color: var(--brand, #818CF8) !important;
-        opacity: 1 !important;
-    }
-
-    #scroll-horizontal thead th.sorting_desc {
-        color: var(--brand, #818CF8) !important;
-        background: #17243B !important;
+        color: var(--brand) !important;
     }
     #scroll-horizontal thead th.sorting_desc::after {
         content: "\ea4c" !important;
@@ -390,37 +349,32 @@
         top: 50% !important;
         transform: translateY(-50%) !important;
         font-size: 14px !important;
-        color: var(--brand, #818CF8) !important;
-        opacity: 1 !important;
+        color: var(--brand) !important;
     }
-
-    #scroll-horizontal thead th::before {
-        display: none !important;
-        content: "" !important;
-    }
-
+    #scroll-horizontal thead th::before,
     #scroll-horizontal thead th.sorting_disabled::after {
         display: none !important;
         content: "" !important;
     }
 
-    /* Body Cell Dimensions & Padding */
+    /* Body Cells */
     #scroll-horizontal tbody td {
         box-sizing: border-box;
-        padding: 12px 14px !important;
+        padding: 13px 14px !important;
         vertical-align: middle !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-bottom: 1px solid var(--border-subtle) !important;
         font-size: 13px !important;
         background-color: transparent;
+        color: var(--text-primary);
         line-height: 1.45;
     }
 
-    /* Column Widths & Alignments (15 Kolom Lengkap Sesuai DESIGN.md §13) */
-    #scroll-horizontal th:nth-child(1), #scroll-horizontal td:nth-child(1) { width: 45px; text-align: center !important; }
+    /* Column Widths */
+    #scroll-horizontal th:nth-child(1), #scroll-horizontal td:nth-child(1) { width: 48px; text-align: center !important; }
     #scroll-horizontal th:nth-child(2), #scroll-horizontal td:nth-child(2) { width: 175px; text-align: left !important; }
     #scroll-horizontal th:nth-child(3), #scroll-horizontal td:nth-child(3) { width: 220px; text-align: left !important; }
     #scroll-horizontal th:nth-child(4), #scroll-horizontal td:nth-child(4) { width: 140px; text-align: left !important; }
-    #scroll-horizontal th:nth-child(5), #scroll-horizontal td:nth-child(5) { width: 165px; text-align: left !important; }
+    #scroll-horizontal th:nth-child(5), #scroll-horizontal td:nth-child(5) { width: 175px; text-align: left !important; }
     #scroll-horizontal th:nth-child(6), #scroll-horizontal td:nth-child(6) { width: 140px; min-width: 135px; text-align: center !important; }
     #scroll-horizontal th:nth-child(7), #scroll-horizontal td:nth-child(7) { width: 130px; text-align: left !important; }
     #scroll-horizontal th:nth-child(8), #scroll-horizontal td:nth-child(8) { width: 240px !important; min-width: 230px !important; max-width: 260px !important; text-align: center !important; }
@@ -431,7 +385,7 @@
     #scroll-horizontal th:nth-child(13), #scroll-horizontal td:nth-child(13) { width: 155px; min-width: 145px; text-align: center !important; }
     #scroll-horizontal th:nth-child(14), #scroll-horizontal td:nth-child(14) { width: 140px; text-align: left !important; }
 
-    /* Kolom Aksi Sticky di Kanan (Kolom 15) — Akses Cepat Tanpa Perlu Scroll Horizontal */
+    /* Sticky Action Column */
     #scroll-horizontal th:nth-child(15),
     #scroll-horizontal td:nth-child(15) {
         width: 80px !important;
@@ -440,28 +394,25 @@
         text-align: center !important;
         position: sticky !important;
         right: 0 !important;
-        background: #121722 !important;
-        box-shadow: -4px 0 10px rgba(0, 0, 0, 0.45) !important;
+        background: var(--bg-surface) !important;
+        box-shadow: -4px 0 12px rgba(0, 0, 0, 0.14) !important;
         z-index: 10 !important;
     }
     #scroll-horizontal thead th:nth-child(15) {
         z-index: 25 !important;
-        background: var(--bg-surface-2, #1E293B) !important;
+        background: var(--bg-surface-2) !important;
     }
     #scroll-horizontal tbody tr:hover td:nth-child(15) {
-        background: #1b2332 !important;
+        background: var(--bg-surface-2) !important;
     }
     #scroll-horizontal tbody tr.is-expanded td:nth-child(15) {
-        background: #161c28 !important;
+        background: var(--bg-surface-2) !important;
     }
-
-    /* Stacking Context Dropdown agar Selalu di Atas Sticky Baris Lainnya */
     #scroll-horizontal tbody td:nth-child(15):has(.show),
     #scroll-horizontal tbody td:nth-child(15):focus-within {
         z-index: 1050 !important;
     }
 
-    /* Header padding for centered sortable columns */
     #scroll-horizontal thead th:nth-child(6),
     #scroll-horizontal thead th:nth-child(8),
     #scroll-horizontal thead th:nth-child(12),
@@ -479,18 +430,14 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-
-    #scroll-horizontal tbody td:nth-child(2) .d-flex {
-        min-width: 0;
-    }
-
+    #scroll-horizontal tbody td:nth-child(2) .d-flex { min-width: 0; }
     #scroll-horizontal tbody td:nth-child(2) p {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        transition: color 240ms cubic-bezier(0.2, 0, 0, 1);
+        color: var(--text-primary);
+        font-weight: 700 !important;
     }
-
     #scroll-horizontal tbody td:nth-child(6),
     #scroll-horizontal tbody td:nth-child(7),
     #scroll-horizontal tbody td:nth-child(10),
@@ -500,29 +447,24 @@
         white-space: nowrap !important;
     }
 
-    /* ==========================================================================
-       DESIGN SYSTEM BADGES — Sesuai DESIGN.md §14.1 (Badge, Tag & Status)
-       Bentuk pill, tinggi 22–24, padding-x 8, font 12/500, titik/ikon + teks
-       ========================================================================== */
+    /* Semantic Badges */
     .badge {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         gap: 6px !important;
         height: 24px !important;
-        padding: 0 var(--space-2, 8px) !important;
-        font-family: var(--font-sans, "Inter", system-ui, -apple-system, sans-serif) !important;
+        padding: 0 10px !important;
         font-size: 12px !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
         line-height: 1 !important;
-        border-radius: var(--radius-full, 9999px) !important;
+        border-radius: 9999px !important;
         border: 1px solid transparent !important;
         white-space: nowrap !important;
         user-select: none !important;
         box-sizing: border-box !important;
         vertical-align: middle !important;
     }
-
     .badge::before {
         content: "" !important;
         width: 6px !important;
@@ -532,196 +474,67 @@
         flex-shrink: 0 !important;
         display: inline-block !important;
     }
+    .badge.badge--icon::before { display: none !important; }
+    .badge.badge--icon i { font-size: 13px !important; line-height: 1 !important; }
 
-    /* Khusus badge dengan ikon (misal approval lock/unlock): sembunyikan dot ::before */
-    .badge.badge--icon::before {
-        display: none !important;
-    }
-    .badge.badge--icon i {
-        font-size: 13px !important;
-        line-height: 1 !important;
-    }
-
-    /* Varian Semantik — DESIGN.md §14.1 & §4 Mode Gelap */
-    /* Berhasil: success — Lunas, Selesai, Aktif */
     .badge--success {
-        color: var(--success-text, #6EE7B7) !important;
-        background-color: var(--success-subtle, rgb(16 185 129 / 0.15)) !important;
-        border-color: var(--success-border, rgb(16 185 129 / 0.35)) !important;
+        color: var(--success-text) !important;
+        background-color: var(--success-subtle) !important;
+        border-color: var(--success-border) !important;
     }
-
-    /* Menunggu: warning — Belum Lunas, Menunggu, Ditahan */
     .badge--warning {
-        color: var(--warning-text, #FCD34D) !important;
-        background-color: var(--warning-subtle, rgb(245 158 11 / 0.15)) !important;
-        border-color: var(--warning-border, rgb(245 158 11 / 0.35)) !important;
+        color: var(--warning-text) !important;
+        background-color: var(--warning-subtle) !important;
+        border-color: var(--warning-border) !important;
     }
-
-    /* Gagal: danger — Batal, Hapus, Dibatalkan, Habis */
     .badge--danger {
-        color: var(--danger-text, #FCA5A5) !important;
-        background-color: var(--danger-subtle, rgb(239 68 68 / 0.15)) !important;
-        border-color: var(--danger-border, rgb(239 68 68 / 0.35)) !important;
+        color: var(--danger-text) !important;
+        background-color: var(--danger-subtle) !important;
+        border-color: var(--danger-border) !important;
     }
-
-    /* Info: info — Informasi, Tipe Pembayaran Cash/Transfer Lunas */
     .badge--info {
-        color: var(--info-text, #93C5FD) !important;
-        background-color: var(--info-subtle, rgb(59 130 246 / 0.15)) !important;
-        border-color: var(--info-border, rgb(59 130 246 / 0.35)) !important;
+        color: var(--accent-cyan) !important;
+        background-color: var(--accent-cyan-subtle) !important;
+        border-color: var(--accent-cyan-border) !important;
     }
-
-    /* Brand / Primer */
     .badge--brand {
-        color: #A5B4FC !important;
-        background-color: var(--brand-subtle, rgb(99 102 241 / 0.15)) !important;
-        border-color: rgb(99 102 241 / 0.35) !important;
+        color: var(--brand) !important;
+        background-color: var(--brand-subtle) !important;
+        border-color: var(--brand-border) !important;
     }
-
-    /* Netral: gray — Draf, Default */
-
-/* Badge Jenis Pembayaran — Warna Khusus Masing-Masing Jenis (DESIGN.md §14.1) */
-.badge-payment--cash-lunas {
-  color: #34D399 !important;
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  border: 1px solid rgba(16, 185, 129, 0.35) !important;
-}
-.badge-payment--transfer-lunas {
-  color: #22D3EE !important;
-  background-color: rgba(6, 182, 212, 0.15) !important;
-  border: 1px solid rgba(6, 182, 212, 0.35) !important;
-}
-.badge-payment--cash-belum-lunas {
-  color: #FB923C !important;
-  background-color: rgba(249, 115, 22, 0.15) !important;
-  border: 1px solid rgba(249, 115, 22, 0.35) !important;
-}
-.badge-payment--transfer-dp {
-  color: #C084FC !important;
-  background-color: rgba(168, 85, 247, 0.15) !important;
-  border: 1px solid rgba(168, 85, 247, 0.35) !important;
-}
-.badge-payment--po {
-  color: #818CF8 !important;
-  background-color: rgba(99, 102, 241, 0.15) !important;
-  border: 1px solid rgba(99, 102, 241, 0.35) !important;
-}
-
     .badge--neutral {
-        color: var(--text-secondary, #CBD5E1) !important;
-        background-color: var(--bg-surface-2, #1E293B) !important;
-        border-color: var(--border-subtle, #334155) !important;
+        color: var(--text-secondary) !important;
+        background-color: var(--bg-surface-3) !important;
+        border-color: var(--border-subtle) !important;
     }
 
-    /* Backward compatibility fallback */
-    .badge-status-tkb { display: inline-flex !important; }
-    .badge-status-tkb--lunas { color: var(--success-text, #6EE7B7) !important; background-color: var(--success-subtle, rgb(16 185 129 / 0.15)) !important; border-color: var(--success-border, rgb(16 185 129 / 0.35)) !important; }
-    .badge-status-tkb--belum-lunas { color: var(--warning-text, #FCD34D) !important; background-color: var(--warning-subtle, rgb(245 158 11 / 0.15)) !important; border-color: var(--warning-border, rgb(245 158 11 / 0.35)) !important; }
-    .badge-status-tkb--batal, .badge-status-tkb--hapus { color: var(--danger-text, #FCA5A5) !important; background-color: var(--danger-subtle, rgb(239 68 68 / 0.15)) !important; border-color: var(--danger-border, rgb(239 68 68 / 0.35)) !important; }
+    .badge-payment--cash-lunas { color: var(--success-text) !important; background-color: var(--success-subtle) !important; border: 1px solid var(--success-border) !important; }
+    .badge-payment--transfer-lunas { color: var(--accent-cyan) !important; background-color: var(--accent-cyan-subtle) !important; border: 1px solid var(--accent-cyan-border) !important; }
+    .badge-payment--cash-belum-lunas { color: var(--warning-text) !important; background-color: var(--warning-subtle) !important; border: 1px solid var(--warning-border) !important; }
+    .badge-payment--transfer-dp { color: #A855F7 !important; background-color: rgba(168, 85, 247, 0.14) !important; border: 1px solid rgba(168, 85, 247, 0.30) !important; }
+    .badge-payment--po { color: var(--info-text) !important; background-color: var(--info-subtle) !important; border: 1px solid var(--info-border) !important; }
 
-    /* ------------------------------------------------------------------ */
-    /* Baris Tabel: Animasi Masuk & Keluar Hover yang Sangat Smooth      */
-    /* Warna serasi dengan tema dark mode (--bg-hover: #1E293B)          */
-    /* ------------------------------------------------------------------ */
+    /* Table Row Hover & Expanded */
     #scroll-horizontal tbody tr {
         cursor: pointer;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-bottom: 1px solid var(--border-subtle) !important;
     }
-
-    #scroll-horizontal tbody tr td {
-        background-color: transparent;
-        /* Transisi dua arah (hover masuk dan hover keluar yang halus) */
-        transition:
-            background-color 220ms cubic-bezier(0.2, 0, 0, 1),
-            color 220ms cubic-bezier(0.2, 0, 0, 1),
-            border-color 220ms cubic-bezier(0.2, 0, 0, 1);
-    }
-
-    /* State Hover: Warna Slate-800 (#1E293B) natural, serasi tanpa garis ungu aneh */
     #scroll-horizontal tbody tr:hover td {
-        background-color: #1E293B !important;
+        background-color: var(--bg-hover) !important;
     }
-
-    #scroll-horizontal tbody tr:hover td:nth-child(2) p {
-        color: #ffffff !important;
-    }
-
-    /* State Expanded: Baris sedang terbuka */
     #scroll-horizontal tbody tr.is-expanded td {
-        background-color: #172336 !important;
+        background-color: var(--bg-surface-2) !important;
     }
 
-    #scroll-horizontal tbody tr.is-expanded td:nth-child(2) p {
-        color: #ffffff !important;
-    }
-
-    /* Collapsible items di deskripsi dengan animasi expand/collapse yang halus */
-    .table-cell-collapsible {
-        width: 100% !important;
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        overflow: hidden;
-    }
-
-    .table-cell-collapsible ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-    .table-cell-collapsible li {
-        overflow: hidden;
-        color: var(--text-secondary, #CBD5E1);
-        line-height: 20px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        transition: color 200ms ease;
-    }
-
-    #scroll-horizontal tbody tr:hover .table-cell-collapsible li {
-        color: #F1F5F9;
-    }
-
-    /* Container animasi untuk item rincian tambahan (> 2 item) */
-    .description-extra-container {
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-        transform: translateY(-4px);
-        transition:
-            max-height 320ms cubic-bezier(0.2, 0, 0, 1),
-            opacity 240ms cubic-bezier(0.2, 0, 0, 1),
-            transform 320ms cubic-bezier(0.2, 0, 0, 1);
-    }
-
-    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible {
-        overflow: visible !important;
-    }
-
-    #scroll-horizontal tbody tr.is-expanded .description-extra-container {
-        max-height: 3000px;
-        opacity: 1;
-        transform: translateY(0);
-        overflow: visible;
-        display: block !important;
-    }
-
-    /* Saat baris terbuka, tampilkan teks secara penuh ke bawah tanpa terpotong */
-    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible li {
-        white-space: normal !important;
-        word-break: break-word !important;
-        overflow-wrap: break-word !important;
-        text-overflow: clip !important;
-    }
-
-    /* Fallback jika ada list item langsung */
-    .table-cell-collapsible .description-item--extra {
-        display: none;
-    }
-
-    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible .description-item--extra {
-        display: list-item;
-    }
+    .table-cell-collapsible { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; overflow: hidden; }
+    .table-cell-collapsible ul { margin: 0; padding: 0; list-style: none; }
+    .table-cell-collapsible li { overflow: hidden; color: var(--text-secondary); line-height: 20px; text-overflow: ellipsis; white-space: nowrap; }
+    .description-extra-container { max-height: 0; opacity: 0; overflow: hidden; transform: translateY(-4px); transition: max-height 260ms ease, opacity 200ms ease, transform 240ms ease; }
+    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible { overflow: visible !important; }
+    #scroll-horizontal tbody tr.is-expanded .description-extra-container { max-height: 3000px; opacity: 1; transform: translateY(0); overflow: visible; display: block !important; }
+    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible li { white-space: normal !important; word-break: break-word !important; overflow-wrap: break-word !important; text-overflow: clip !important; }
+    .table-cell-collapsible .description-item--extra { display: none; }
+    #scroll-horizontal tbody tr.is-expanded .table-cell-collapsible .description-item--extra { display: list-item; }
 
     .badge-more-items {
         display: inline-flex;
@@ -731,148 +544,49 @@
         padding: 0;
         border: 0;
         background: transparent;
-        color: var(--info-text, #93C5FD);
+        color: var(--brand);
         font-size: 11px;
+        font-weight: 600;
         line-height: 18px;
         cursor: pointer;
-        transition:
-            opacity 200ms ease,
-            max-height 200ms ease,
-            margin 200ms ease,
-            color 150ms ease;
     }
+    .badge-more-items:hover { text-decoration: underline; }
+    #scroll-horizontal tbody tr.is-expanded .badge-more-items { opacity: 0; max-height: 0; margin: 0; overflow: hidden; pointer-events: none; }
 
-    .badge-more-items:hover {
-        color: #BFDBFE;
-        text-decoration: underline;
-    }
-
-    .badge-more-items:focus-visible {
-        outline: 2px solid var(--info-text, #93C5FD);
-        outline-offset: 2px;
-    }
-
-    #scroll-horizontal tbody tr.is-expanded .badge-more-items {
-        opacity: 0;
-        max-height: 0;
-        margin-top: 0;
-        margin-bottom: 0;
-        overflow: hidden;
-        pointer-events: none;
-    }
-
-    /* Indikator Expand Chevron dengan transisi halus dan warna tonal elegan */
     .row-expand-indicator,
     button.row-expand-indicator {
         appearance: none;
-        -webkit-appearance: none;
         outline: none !important;
         box-shadow: none !important;
         display: inline-flex;
-        width: 26px;
-        height: 26px;
-        flex: 0 0 26px;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
         align-items: center;
         justify-content: center;
-        margin-right: 8px;
+        margin-right: 6px;
         padding: 0;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid transparent !important;
         border-radius: 6px;
-        background: rgba(255, 255, 255, 0.05) !important;
-        color: var(--text-secondary, #CBD5E1) !important;
-        font-size: 15px;
+        background: transparent !important;
+        color: var(--text-tertiary) !important;
+        font-size: 16px;
         cursor: pointer;
-        transition:
-            transform 280ms cubic-bezier(0.2, 0, 0, 1),
-            background-color 200ms ease,
-            border-color 200ms ease,
-            color 200ms ease;
+        transition: transform 220ms ease;
     }
-
-    #scroll-horizontal tbody tr:hover .row-expand-indicator,
-    #scroll-horizontal tbody tr:hover button.row-expand-indicator {
-        background: rgba(255, 255, 255, 0.12) !important;
-        border-color: rgba(255, 255, 255, 0.22) !important;
-        color: #ffffff !important;
+    #scroll-horizontal tbody tr:hover .row-expand-indicator {
+        color: var(--text-primary) !important;
+        background: var(--bg-surface-3) !important;
     }
-
-    .row-expand-indicator:focus-visible,
-    button.row-expand-indicator:focus-visible {
-        outline: 2px solid var(--info-text, #93C5FD) !important;
-        outline-offset: 2px;
-    }
-
     #scroll-horizontal tbody tr.is-expanded .row-expand-indicator,
-    #scroll-horizontal tbody tr.is-expanded button.row-expand-indicator,
-    .row-expand-indicator.expanded,
-    button.row-expand-indicator.expanded {
+    .row-expand-indicator.expanded {
         transform: rotate(90deg) !important;
-        background: rgba(99, 102, 241, 0.25) !important;
-        border-color: rgba(99, 102, 241, 0.5) !important;
-        color: #A5B4FC !important;
+        background: var(--brand-subtle) !important;
+        border-color: var(--brand-border) !important;
+        color: var(--brand) !important;
     }
 
-    /* Tombol toggle semua baris di header kartu */
-    #btn-toggle-all-rows {
-        transition:
-            background-color 180ms ease,
-            border-color 180ms ease,
-            color 180ms ease,
-            transform 120ms ease;
-    }
-
-    #btn-toggle-all-rows:hover {
-        background: rgba(99, 102, 241, 0.22) !important;
-        border-color: rgba(99, 102, 241, 0.5) !important;
-        color: #A5B4FC !important;
-        transform: translateY(-1px);
-    }
-
-    #btn-toggle-all-rows:active {
-        transform: scale(0.98);
-    }
-
-    /* Dropdown action button di dalam baris */
-    #scroll-horizontal tbody tr .dropdown button {
-        transition:
-            background-color 180ms ease,
-            border-color 180ms ease,
-            color 180ms ease,
-            transform 150ms ease;
-    }
-
-    #scroll-horizontal tbody tr .dropdown button:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border-color: rgba(255, 255, 255, 0.25) !important;
-        color: #ffffff !important;
-        transform: scale(1.05);
-    }
-
-    #scroll-horizontal tbody tr .dropdown button:active {
-        transform: scale(0.95);
-    }
-
-    /* Custom Modern Dark Scrollbar */
-    #scroll-horizontal_wrapper .dataTables_scrollBody::-webkit-scrollbar {
-        height: 7px;
-    }
-
-    #scroll-horizontal_wrapper .dataTables_scrollBody::-webkit-scrollbar-track {
-        background: rgba(15, 23, 42, 0.6);
-        border-radius: 4px;
-    }
-
-    #scroll-horizontal_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb {
-        background: var(--border-default, #334155);
-        border-radius: 4px;
-        transition: background 150ms ease;
-    }
-
-    #scroll-horizontal_wrapper .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
-        background: #475569;
-    }
-
-    /* Bottom Controls: Info (kiri) & Pagination (kanan) sejajar sempurna */
+    /* Bottom Pagination */
     .dataTables_controls_bottom {
         display: flex !important;
         align-items: center !important;
@@ -880,92 +594,44 @@
         flex-wrap: wrap !important;
         gap: 16px !important;
         padding: 14px 20px !important;
-        margin-top: 0 !important;
-        background: var(--bg-surface, #0F172A) !important;
-        border-top: 1px solid var(--border-subtle, #1E293B) !important;
+        background: var(--bg-surface) !important;
+        border-top: 1px solid var(--border-subtle) !important;
         width: 100% !important;
     }
-
-    /* Pagination & Info */
-    #scroll-horizontal_wrapper .dataTables_info {
-        float: none !important;
-        color: var(--text-tertiary, #94A3B8) !important;
-        font-size: 13px !important;
-        padding-top: 0 !important;
-        margin-bottom: 0 !important;
-    }
-
-    #scroll-horizontal_wrapper .dataTables_paginate {
-        float: none !important;
-        padding-top: 0 !important;
-        margin-bottom: 0 !important;
-        margin-left: auto !important;
-    }
-
+    #scroll-horizontal_wrapper .dataTables_info { float: none !important; color: var(--text-tertiary) !important; font-size: 13px !important; padding-top: 0 !important; margin-bottom: 0 !important; }
+    #scroll-horizontal_wrapper .dataTables_paginate { float: none !important; padding-top: 0 !important; margin-bottom: 0 !important; margin-left: auto !important; }
     #scroll-horizontal_wrapper .pagination .page-item .page-link {
-        background: var(--bg-surface-2, #1E293B);
-        border: 1px solid var(--border-subtle, #1E293B);
-        color: var(--text-secondary, #CBD5E1);
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border-default);
+        color: var(--text-secondary);
         font-size: 13px;
         padding: 5px 12px;
-        border-radius: 6px;
+        border-radius: 8px;
         margin: 0 2px;
-        transition: all 180ms cubic-bezier(0.2, 0, 0, 1);
     }
-
     #scroll-horizontal_wrapper .pagination .page-item:not(.active):not(.disabled) .page-link:hover {
-        background: var(--bg-hover, #334155);
-        color: var(--text-primary, #F1F5F9);
-        border-color: var(--border-default, #334155);
-        transform: translateY(-1px);
+        background: var(--bg-surface-3);
+        color: var(--text-primary);
     }
-
     #scroll-horizontal_wrapper .pagination .page-item.active .page-link {
-        background: var(--brand, #6366F1) !important;
-        border-color: var(--brand, #6366F1) !important;
+        background: var(--brand) !important;
+        border-color: var(--brand) !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
     }
 
-    #scroll-horizontal_wrapper .pagination .page-item.disabled .page-link {
-        opacity: 0.4;
-        background: transparent;
-        border-color: transparent;
-    }
-
-    @media (max-width: 767.98px) {
-        #scroll-horizontal_wrapper .dataTables_scroll {
-            min-height: 0;
-        }
-    }
-
-    /* Memastikan dropdown z-index berada paling atas */
-    .dropdown-menu {
-        z-index: 1050 !important;
-    }
-
-    /* ==========================================================================
-       FILTER BAR — SEGMENTED CONTROL
-       Mengikuti DESIGN.md: token Slate, radius-md (8px), dur-fast (120ms),
-       ease-standard, focus-ring, brand primary-600 (#4F46E5).
-       ========================================================================== */
-
-    /* Container segmented — bg surface-2 (Slate-800 dark), border default (Slate-700 dark) */
+    /* Segmented Filter Control */
     .segmented-control {
         display: inline-flex;
         align-items: center;
-        background: var(--bg-surface-2, #1E293B);
-        border: 1px solid var(--border-default, #334155);
-        border-radius: var(--radius-md, 8px);
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-control);
         padding: 3px;
         gap: 2px;
     }
-
-    /* Tiap item: transparan → aktif mengikuti brand-subtle + border brand */
     .segmented-item,
     button.segmented-item {
         appearance: none;
-        -webkit-appearance: none;
         outline: none !important;
         box-shadow: none !important;
         display: inline-flex;
@@ -973,216 +639,84 @@
         gap: 6px;
         background: transparent;
         border: 1px solid transparent !important;
-        color: var(--text-secondary, #CBD5E1);
+        color: var(--text-secondary);
         padding: 5px 12px;
-        border-radius: var(--radius-sm, 6px);
-        font-size: 13px;
+        border-radius: var(--radius-sm);
+        font-size: 12.5px;
         font-weight: 500;
         line-height: 1.4;
         white-space: nowrap;
         cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        /* DESIGN.md §18: hanya animasikan transform & opacity — tambah bg/color yang ringan */
-        transition:
-            color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            background-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            border-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            transform var(--dur-instant, 80ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
     }
-    .segmented-item:hover:not(.active),
-    button.segmented-item:hover:not(.active) {
-        color: var(--text-primary, #F1F5F9);
-        background-color: var(--bg-hover, #1E293B);
+    .segmented-item:hover:not(.active) {
+        color: var(--text-primary);
+        background-color: var(--bg-hover);
     }
-    /* press state — DESIGN.md §9.4 Active/Pressed: scale 0.98, 80ms */
-    .segmented-item:active,
-    button.segmented-item:active {
-        transform: scale(0.98);
-    }
-    /* focus-visible — DESIGN.md §9.4: pakai --focus-ring */
-    .segmented-item:focus-visible,
-    button.segmented-item:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45));
-    }
-    /* State aktif: bg brand-subtle (dark mode = rgb transparan), border brand, teks putih */
     .segmented-item.active,
     button.segmented-item.active {
-        background: var(--brand, #6366F1) !important;
-        border-color: var(--brand, #6366F1) !important;
-        color: #ffffff !important;
+        background: var(--brand-subtle) !important;
+        border-color: var(--brand-border) !important;
+        color: var(--brand) !important;
         font-weight: 600;
-        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.45) !important;
+    }
+    [data-theme="light"] .segmented-item.active,
+    [data-theme="light"] button.segmented-item.active {
+        background: var(--brand) !important;
+        border-color: var(--brand) !important;
+        color: #ffffff !important;
     }
 
-    /* ------------------------------------------------------------------ */
-    /* Tombol "Filter Khusus" — standalone di sebelah kanan segmented group */
-    /* Mengikuti pola .btn--secondary dari DESIGN.md §9.5 */
-    /* ------------------------------------------------------------------ */
     .btn-custom-filter,
     button.btn-custom-filter {
         appearance: none;
-        -webkit-appearance: none;
         outline: none !important;
         box-shadow: none !important;
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        height: var(--control-sm, 32px);
+        height: 34px;
         padding: 0 12px;
-        background: var(--bg-surface-2, #1E293B) !important;
-        color: var(--text-secondary, #CBD5E1) !important;
-        border: 1px solid var(--border-default, #334155) !important;
-        border-radius: var(--radius-md, 8px);
-        font-size: 13px;
+        background: var(--bg-surface-2) !important;
+        color: var(--text-secondary) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-control);
+        font-size: 12.5px;
         font-weight: 500;
-        line-height: 1;
         white-space: nowrap;
         cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        transition:
-            color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            background-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            border-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            transform var(--dur-instant, 80ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
     }
-    .btn-custom-filter:hover,
-    button.btn-custom-filter:hover {
-        color: var(--text-primary, #F1F5F9) !important;
-        border-color: var(--border-strong, #475569) !important;
-        background-color: var(--bg-hover, #1E293B) !important;
+    .btn-custom-filter:hover {
+        color: var(--text-primary) !important;
+        border-color: var(--border-strong) !important;
     }
-    /* press */
-    .btn-custom-filter:active,
-    button.btn-custom-filter:active {
-        transform: scale(0.98);
-        background-color: var(--bg-active, #334155) !important;
-    }
-    /* focus-visible */
-    .btn-custom-filter:focus-visible,
-    button.btn-custom-filter:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45)) !important;
-    }
-    /* State aktif (filter sedang berlaku) dan open (panel terbuka) */
     .btn-custom-filter.active,
-    button.btn-custom-filter.active,
-    .btn-custom-filter.open,
-    button.btn-custom-filter.open {
-        background-color: var(--brand, #6366F1) !important;
-        border-color: var(--brand, #6366F1) !important;
-        color: #ffffff !important;
-        box-shadow: 0 1px 4px rgba(99, 102, 241, 0.45) !important;
+    .btn-custom-filter.open {
+        background: var(--brand-subtle) !important;
+        border-color: var(--brand-border) !important;
+        color: var(--brand) !important;
+        font-weight: 600;
     }
+    .chevron-rotate { transition: transform 160ms ease; }
+    .btn-custom-filter.open .chevron-rotate { transform: rotate(180deg); }
 
-    /* Chevron berputar — DESIGN.md §18.3 "chevron-rotate": 180° 150ms */
-    .chevron-rotate {
-        transition: transform 150ms var(--ease-standard, cubic-bezier(.2,0,0,1));
-    }
-    .btn-custom-filter.open .chevron-rotate {
-        transform: rotate(180deg);
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* Panel Filter Kustom (collapsible) — DESIGN.md §15.4 drawer/popover  */
-    /* Elevasi: bg surface-2, border default, shadow-sm, radius-lg (12px)  */
-    /* ------------------------------------------------------------------ */
     .custom-filter-panel {
-        background: var(--bg-surface-2, #1E293B) !important;
-        border: 1px solid var(--border-default, #334155) !important;
-        border-radius: var(--radius-lg, 12px) !important;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 0.5)) !important;
-        /* slide-down — DESIGN.md §18.4 */
-        animation: filter-panel-slide-down var(--dur-base, 200ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
-    }
-    @keyframes filter-panel-slide-down {
-        from { opacity: 0; transform: translateY(-6px); }
-        to   { opacity: 1; transform: translateY(0); }
+        background: var(--bg-surface-2) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-inner) !important;
     }
 
-    /* ------------------------------------------------------------------ */
-    /* Form controls di dalam panel — DESIGN.md §10.1 Text Input           */
-    /* Tinggi 32 (sm), bg surface, border default, radius-md, focus-ring   */
-    /* ------------------------------------------------------------------ */
-    .dash-input,
-    .dash-select {
-        height: var(--control-sm, 32px);
-        padding: 0 var(--space-3, 12px) !important;
-        background: var(--bg-surface, #0F172A) !important;
-        color: var(--text-primary, #F1F5F9) !important;
-        border: 1px solid var(--border-default, #334155) !important;
-        border-radius: var(--radius-md, 8px) !important;
-        font-size: 13px !important;
-        font-family: var(--font-sans, "Inter", system-ui, sans-serif);
-        transition:
-            border-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            box-shadow var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1));
+    .dash-input, .dash-select {
+        height: 34px;
+        padding: 0 12px !important;
+        background: var(--bg-surface-2) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-control) !important;
+        font-size: 12.5px !important;
     }
-    .dash-input::placeholder {
-        color: var(--text-tertiary, #94A3B8);
-    }
-    .dash-input:hover:not(:disabled),
-    .dash-select:hover:not(:disabled) {
-        border-color: var(--border-strong, #475569) !important;
-    }
-    .dash-input:focus,
-    .dash-select:focus {
-        outline: none !important;
-        border-color: var(--border-focus, #6366F1) !important;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45)) !important;
-    }
-    .dash-select option {
-        background: var(--bg-surface-2, #1E293B);
-        color: var(--text-primary, #F1F5F9);
-    }
+    .dash-select option { background: var(--bg-surface); color: var(--text-primary); }
 
-    /* ------------------------------------------------------------------ */
-    /* Tombol "Tampilkan" — DESIGN.md §9.5 .btn--primary ukuran sm         */
-    /* bg brand (#4F46E5 light / #6366F1 dark), teks putih, radius-md      */
-    /* ------------------------------------------------------------------ */
-    .btn-dash-primary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--space-2, 8px);
-        height: var(--control-sm, 32px);
-        padding: 0 var(--space-3, 12px);
-        background: var(--brand, #4F46E5) !important;
-        color: var(--text-on-primary, #ffffff) !important;
-        border: 1px solid transparent !important;
-        border-radius: var(--radius-md, 8px) !important;
-        font-size: 13px !important;
-        font-weight: 500 !important;
-        font-family: var(--font-sans, "Inter", system-ui, sans-serif);
-        white-space: nowrap;
-        cursor: pointer;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        transition:
-            background-color var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            transform var(--dur-instant, 80ms) var(--ease-standard, cubic-bezier(.2,0,0,1)),
-            box-shadow var(--dur-fast, 120ms) var(--ease-standard, cubic-bezier(.2,0,0,1)) !important;
-    }
-    .btn-dash-primary:hover {
-        background: var(--brand-hover, #4338CA) !important;
-    }
-    /* press — DESIGN.md §9.4 */
-    .btn-dash-primary:active {
-        background: var(--brand-active, #3730A3) !important;
-        transform: scale(0.98);
-    }
-    /* focus-visible */
-    .btn-dash-primary:focus-visible {
-        outline: none !important;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45)) !important;
-    }
-
-    /* ==========================================================================
-       TOMBOL AKSI UTAMA "TAMBAH INVOICE" — DESIGN.md §9 (.btn--primary)
-       Warna: Brand Indigo (#6366F1), Radius 8px, Shadow & Hover halus
-       ========================================================================== */
+    /* Primary Button: Tambah Invoice (Emerald) */
     .btn-create-invoice {
         display: inline-flex;
         align-items: center;
@@ -1190,41 +724,41 @@
         gap: 6px;
         height: 38px;
         padding: 0 16px;
-        background: var(--brand, #6366F1) !important;
-        color: var(--text-on-primary, #ffffff) !important;
+        background: var(--brand) !important;
+        color: #ffffff !important;
         border: 1px solid transparent;
-        border-radius: var(--radius-md, 8px);
-        font-size: 13.5px;
+        border-radius: var(--radius-control);
+        font-size: 13px;
         font-weight: 600;
         text-decoration: none !important;
         white-space: nowrap;
         cursor: pointer;
-        user-select: none;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
-        transition:
-            background-color var(--dur-fast, 120ms) ease,
-            transform var(--dur-instant, 80ms) ease,
-            box-shadow var(--dur-fast, 120ms) ease;
+        box-shadow: var(--brand-glow);
     }
     .btn-create-invoice:hover {
-        background: var(--brand-hover, #4F46E5) !important;
+        background: var(--brand-hover) !important;
         color: #ffffff !important;
         transform: translateY(-1px);
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
-    }
-    .btn-create-invoice:active {
-        background: var(--brand-active, #4338CA) !important;
-        transform: scale(0.98);
-        box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
-    }
-    .btn-create-invoice:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgb(129 140 248 / 0.45));
     }
 
-    /* ==========================================================================
-       BUTTON ACCESSIBILITY & VISIBILITY (antislop-ui & ui-ux-pro-max)
-       ========================================================================== */
+    /* Soft Emerald Toggle All Rows Button */
+    #btn-toggle-all-rows {
+        background: var(--brand-subtle) !important;
+        color: var(--brand) !important;
+        border: 1px solid var(--brand-border) !important;
+        border-radius: var(--radius-control) !important;
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        padding: 5px 12px !important;
+        height: 34px;
+    }
+    #btn-toggle-all-rows:hover {
+        background: var(--brand) !important;
+        color: #ffffff !important;
+        border-color: var(--brand) !important;
+    }
+
+    /* 3-Dot Action Button & Clean Dropdown (Screenshots 3 & 6) */
     .btn-table-action {
         width: 32px;
         height: 32px;
@@ -1232,91 +766,181 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: var(--bg-surface-2, #1E293B);
-        border: 1px solid var(--border-default, #334155);
-        border-radius: var(--radius-md, 8px);
-        color: var(--text-secondary, #CBD5E1);
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border-default);
+        border-radius: 8px;
+        color: var(--text-secondary);
         cursor: pointer;
-        transition: all var(--dur-fast, 120ms) var(--ease-standard);
     }
     .btn-table-action:hover,
     .btn-table-action[aria-expanded="true"] {
-        background: var(--brand, #6366F1);
-        border-color: var(--brand, #6366F1);
-        color: #ffffff;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
-    }
-    .btn-table-action:active {
-        transform: scale(0.96);
-    }
-    .btn-table-action:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgba(129, 140, 248, 0.45));
+        background: var(--brand-subtle);
+        border-color: var(--brand-border);
+        color: var(--brand);
     }
 
-    /* Dropdown menu styling for high-contrast visibility */
     .dropdown-menu {
-        background: var(--bg-surface-2, #1E293B) !important;
-        border: 1px solid var(--border-default, #334155) !important;
-        border-radius: var(--radius-lg, 12px) !important;
-        box-shadow: var(--shadow-lg, 0 10px 25px -5px rgba(0, 0, 0, 0.5)) !important;
-        padding: 6px !important;
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: 14px !important;
+        box-shadow: var(--shadow-dropdown) !important;
+        padding: 8px !important;
         min-width: 235px !important;
         z-index: 1060 !important;
     }
     .dropdown-item {
         display: flex !important;
         align-items: center !important;
-        gap: 8px !important;
-        min-height: 36px !important;
+        gap: 10px !important;
+        min-height: 38px !important;
         padding: 8px 12px !important;
-        border-radius: var(--radius-sm, 6px) !important;
-        font-size: 13px !important;
+        border-radius: 9px !important;
+        font-size: 13.5px !important;
         font-weight: 500 !important;
         white-space: nowrap !important;
-        color: var(--text-primary, #F1F5F9) !important;
+        color: var(--text-primary) !important;
         background: transparent !important;
-        transition: background-color var(--dur-fast, 120ms) var(--ease-standard), color var(--dur-fast, 120ms) var(--ease-standard), transform var(--dur-instant, 80ms) var(--ease-standard) !important;
     }
     .dropdown-item:hover,
     .dropdown-item:focus {
-        background-color: var(--bg-hover, rgba(255, 255, 255, 0.08)) !important;
-        color: #ffffff !important;
-        transform: translateX(2px);
-    }
-    .dropdown-item:active {
-        transform: scale(0.98);
+        background-color: var(--bg-surface-2) !important;
+        color: var(--text-primary) !important;
     }
     .dropdown-item.text-danger:hover,
     .dropdown-item--danger:hover {
-        background-color: var(--danger-subtle, rgba(239, 68, 68, 0.15)) !important;
-        color: var(--danger, #EF4444) !important;
+        background-color: var(--danger-subtle) !important;
+        color: var(--danger-text) !important;
     }
 
-    #btn-toggle-all-rows {
-        transition: all var(--dur-fast, 120ms) var(--ease-standard) !important;
-    }
-    #btn-toggle-all-rows:hover {
-        background: var(--brand, #6366F1) !important;
-        color: #ffffff !important;
-        border-color: var(--brand, #6366F1) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
-    }
-    #btn-toggle-all-rows:active {
-        transform: scale(0.98);
-    }
-    #btn-toggle-all-rows:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring, 0 0 0 3px rgba(129, 140, 248, 0.45));
-    }
-
-    /* Keep request differences visible even when the compiled stylesheet is cached. */
     .dropdown-menu a.invoice-request {
-        border-inline-start: 4px solid transparent !important;
-        padding-inline-start: 8px !important;
-        font-weight: 700 !important;
+        border-inline-start: 3px solid transparent !important;
+        padding-inline-start: 10px !important;
+        font-weight: 600 !important;
+    }
+
+    /* ==========================================================================
+       MOBILE RESPONSIVE FIT (HP: <= 767.98px & <= 575.98px)
+       ========================================================================== */
+    @media (max-width: 767.98px) {
+        .tkb-inv-header-controls .tkb-theme-toggle {
+            display: none !important;
+        }
+        .card {
+            overflow-x: clip;
+        }
+        .card-body .d-flex,
+        .card-header .d-flex {
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+        .kpi-card__body {
+            padding: 15px 16px !important;
+            min-height: 120px !important;
+        }
+        .kpi-card__value {
+            font-size: 21px !important;
+            margin-bottom: 10px !important;
+        }
+        .segmented-control {
+            display: flex !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            overflow-x: auto !important;
+            flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .segmented-control::-webkit-scrollbar {
+            display: none;
+        }
+        .segmented-item {
+            flex-shrink: 0;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .tkb-status-pills {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            gap: 4px !important;
+        }
+        .filter-tab-pill {
+            justify-content: center;
+            white-space: nowrap;
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+        .tkb-inv-filter-right {
+            width: 100% !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        .tkb-inv-jenis-wrap {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 4px !important;
+            width: 100% !important;
+        }
+        .dataTables_controls_top,
+        .dataTables_controls_bottom {
+            padding: 12px 14px !important;
+            gap: 10px !important;
+        }
+        #scroll-horizontal_wrapper .dataTables_filter {
+            width: 100%;
+            margin-left: 0 !important;
+        }
+        #scroll-horizontal_wrapper .dataTables_filter label {
+            width: 100%;
+        }
+        #scroll-horizontal_wrapper .dataTables_filter input {
+            width: 100% !important;
+            flex: 1;
+        }
+        #scroll-horizontal_wrapper .dataTables_paginate {
+            margin-left: 0 !important;
+            width: 100%;
+            overflow-x: auto;
+        }
+        #scroll-horizontal th:nth-child(15),
+        #scroll-horizontal td:nth-child(15) {
+            width: 58px !important;
+            min-width: 58px !important;
+            max-width: 58px !important;
+            padding: 8px 6px !important;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .tkb-inv-header-controls {
+            width: 100%;
+        }
+        .btn-create-invoice {
+            width: 100%;
+            height: 42px;
+        }
+        #filter-jenis-transaksi,
+        #btn-toggle-all-rows {
+            width: 100%;
+        }
+        .kpi-card__value {
+            font-size: 19px !important;
+        }
+        .custom-filter-panel [id^="wrapper-"] {
+            width: 100%;
+            flex-wrap: wrap;
+            gap: 6px !important;
+        }
+        .custom-filter-panel .dash-input,
+        .custom-filter-panel .dash-select,
+        .custom-filter-panel .btn-dash-primary {
+            width: 100%;
+            min-width: 0 !important;
+            flex: 1 1 120px;
+        }
     }
     .dropdown-menu a.invoice-request::after {
         content: "";
@@ -1401,20 +1025,25 @@
 
 
 
-      <!-- Header Halaman & Aksi Tambah Invoice — Mengikuti DESIGN.md §5 & §9 -->
+      <!-- Header Halaman & Aksi Tambah Invoice -->
       <div class="row mb-3">
           <div class="col-12">
-              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 py-2">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 py-1">
                   <div>
                       <div class="d-flex align-items-center gap-2">
-                          <h4 class="mb-0" style="font-size: 20px; font-weight: 700; color: var(--text-primary, #F1F5F9); letter-spacing: -0.015em;">Invoice Tokabe</h4>
-                          <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;font-size:11px;font-weight:600;border-radius:9999px;background:var(--brand-subtle,rgba(99,102,241,0.12));color:#A5B4FC;border:1px solid rgba(99,102,241,0.3);">Tokabe POS</span>
+                          <h4 class="mb-0" style="font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em;">Invoice Tokabe</h4>
+                          <span style="display:inline-flex;align-items:center;height:22px;padding:0 10px;font-size:11.5px;font-weight:600;border-radius:9999px;background:var(--accent-cyan-subtle);color:var(--accent-cyan);border:1px solid var(--accent-cyan-border);">Tokabe POS</span>
                       </div>
-                      <p class="mb-0 mt-1" style="font-size: 13px; color: var(--text-tertiary, #94A3B8);">Daftar data transaksi dan status pembayaran invoice Tokabe</p>
+                      <p class="mb-0 mt-1" style="font-size: 13px; color: var(--text-tertiary);">Daftar data transaksi dan status pembayaran invoice Tokabe</p>
                   </div>
-                  <div>
+                  <div class="d-flex align-items-center gap-3 tkb-inv-header-controls">
+                      <button type="button" class="tkb-theme-toggle" onclick="window.toggleTokabeTheme(event)" aria-label="Ubah Mode Terang / Gelap" title="Ubah Mode Terang / Gelap">
+                          <span class="tkb-theme-toggle__thumb" aria-hidden="true"></span>
+                          <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--sun"><i class="ri-sun-line"></i></span>
+                          <span class="tkb-theme-toggle__icon tkb-theme-toggle__icon--moon"><i class="ri-moon-clear-line"></i></span>
+                      </button>
                       <a href="{{ route('add.inv.tkb') }}" class="btn-create-invoice">
-                          <i class="ri-add-line fs-18"></i>Tambah Invoice
+                          <i class="ri-add-line fs-18"></i>Tambah invoice
                       </a>
                   </div>
               </div>
@@ -1422,17 +1051,17 @@
       </div>
 
       @if (Auth::user()->role === 'Pemilik' || Auth::user()->role === 'Admin')
-       <!-- Filter Bar Terhubung untuk Semua Card — Mengikuti DESIGN.md §12.1 Card Surface & §14 Badge -->
+       <!-- Filter Bar Terhubung untuk Semua Card -->
        <div class="row mb-4">
            <div class="col-12">
-               <div class="card" style="background: var(--bg-surface, #0F172A); border: 1px solid var(--border-subtle, #1E293B); border-radius: var(--radius-lg, 12px); box-shadow: var(--shadow-xs, 0 1px 2px rgb(0 0 0 / 0.5));">
+               <div class="card">
                    <div class="card-body p-3">
                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                            <div class="d-flex align-items-center gap-2">
-                               <span style="font-size: 13px; font-weight: 500; color: var(--text-secondary, #CBD5E1); display: inline-flex; align-items: center; gap: 6px;">
-                                   <i class="ri-calendar-line" style="color: var(--brand, #6366F1); font-size: 16px;"></i>Filter Periode Card:
+                               <span style="font-size: 13px; font-weight: 500; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px;">
+                                   <i class="ri-calendar-line" style="color: var(--brand); font-size: 16px;"></i>Filter periode card:
                                </span>
-                               <span class="kpi-badge" id="badge-active-period">
+                               <span class="kpi-badge kpi-badge--emerald" id="badge-active-period">
                                    Tahun {{ date('Y') }}
                                </span>
                            </div>
@@ -1530,7 +1159,7 @@
 
       <!-- SECTION 1: RINGKASAN TRANSAKSI (3 cards per row x 2 rows) -->
       <div class="kpi-section-header">
-          <div class="kpi-section-title">RINGKASAN TRANSAKSI</div>
+          <div class="kpi-section-title">Ringkasan transaksi</div>
           <div class="kpi-section-subtitle">Statistik nilai invoice tahunan, bulanan, dan pembatalan</div>
       </div>
       <div class="row g-3 mb-3">
@@ -1539,12 +1168,15 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-1">TOTAL INVOICE TAHUN INI</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--cyan"><i class="ri-file-text-line"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-1">Total invoice tahun ini</p>
+                          </div>
                           <p class="kpi-card__value" id="tokabe-card-val-1">Rp {{ number_format($jumlahPerTahun, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-1">{{ $jlhInvoice }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-desc-1">Invoice Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-1">Invoice tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
@@ -1555,12 +1187,15 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-2">INVOICE LUNAS TAHUN INI</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--emerald"><i class="ri-check-line"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-2">Invoice lunas tahun ini</p>
+                          </div>
                           <p class="kpi-card__value kpi-card__value--success" id="tokabe-card-val-2">Rp {{ number_format($totalLunasThn, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-2">{{ $lunas }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-desc-2">Lunas Tahun {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-2">Lunas tahun {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
@@ -1571,12 +1206,15 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-3">BELUM LUNAS TAHUN INI</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--amber"><i class="ri-time-line"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-3">Belum lunas tahun ini</p>
+                          </div>
                           <p class="kpi-card__value kpi-card__value--warning" id="tokabe-card-val-3">Rp {{ number_format($jumlahBBPerTahun, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-3">{{ $belumLunas }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-desc-3">Sisa Tagihan {{ date('Y') }}</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-3">Sisa tagihan {{ date('Y') }}</p>
                       </div>
                   </div>
               </div>
@@ -1587,7 +1225,10 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-4">TERBAYAR BULAN INI</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--emerald"><i class="ri-wallet-3-line"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-4">Terbayar bulan ini</p>
+                          </div>
                           <p class="kpi-card__value" id="tokabe-card-val-4">Rp {{ number_format($totalTerbayarBulan ?? 0, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
@@ -1603,12 +1244,15 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-bulan-belum">BELUM LUNAS BULAN INI</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--amber"><i class="ri-time-line"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-bulan-belum">Belum lunas bulan ini</p>
+                          </div>
                           <p class="kpi-card__value" id="tokabe-card-val-bulan-belum">Rp {{ number_format($jumlahBBPerBulan, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-bulan-belum">{{ $belumLunasMonth }}</span>
-                          <p class="kpi-card__label" id="tokabe-card-desc-bulan-belum">Sisa Bulan Ini</p>
+                          <p class="kpi-card__label" id="tokabe-card-desc-bulan-belum">Sisa bulan ini</p>
                       </div>
                   </div>
               </div>
@@ -1619,12 +1263,15 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-5">INVOICE DIBATALKAN</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--rose"><i class="ri-folder-reduce-line"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-5">Invoice dibatalkan</p>
+                          </div>
                           <p class="kpi-card__value kpi-card__value--danger" id="tokabe-card-val-5">Rp {{ number_format($jumlahBatal, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
                           <span class="kpi-badge" id="tokabe-card-count-5">{{ $batal }}</span>
-                          <p class="kpi-card__label">Total Dibatalkan</p>
+                          <p class="kpi-card__label">Total dibatalkan</p>
                       </div>
                   </div>
               </div>
@@ -1633,16 +1280,19 @@
 
       <!-- SECTION 2: PAJAK (PPN & PPH) (3 cards) -->
       <div class="kpi-section-header">
-          <div class="kpi-section-title">PAJAK (PPN &amp; PPH)</div>
-          <div class="kpi-section-subtitle">Total PPN &amp; PPh serta rincian kode PPN 01 — 04</div>
+          <div class="kpi-section-title">Pajak (PPN dan PPh)</div>
+          <div class="kpi-section-subtitle">Total PPN dan PPh serta rincian kode PPN 01 sampai 04</div>
       </div>
-      <div class="row g-3 mb-3">
+      <div class="row g-3 mb-4">
           {{-- Card 7: Total PPN Tahun Ini --}}
           <div class="col-lg-4 col-md-6 col-12">
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-6">TOTAL PPN {{ date('Y') }}</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--cyan"><i class="las la-balance-scale"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-6">Total PPN {{ date('Y') }}</p>
+                          </div>
                           <p class="kpi-card__value" id="tokabe-card-val-6">Rp {{ number_format($ppnTotal, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
@@ -1658,7 +1308,10 @@
               <div class="kpi-card">
                   <div class="kpi-card__body">
                       <div>
-                          <p class="kpi-card__overline" id="tokabe-card-title-7">TOTAL PPH {{ date('Y') }}</p>
+                          <div class="kpi-card__top">
+                              <span class="kpi-card__icon kpi-card__icon--cyan"><i class="las la-balance-scale"></i></span>
+                              <p class="kpi-card__overline" id="tokabe-card-title-7">Total PPh {{ date('Y') }}</p>
+                          </div>
                           <p class="kpi-card__value" id="tokabe-card-val-7">Rp {{ number_format($pphTotal, 0, ',', '.') }}</p>
                       </div>
                       <div class="kpi-card__footer">
@@ -1673,25 +1326,25 @@
           <div class="col-lg-4 col-md-12 col-12">
               <div class="kpi-card">
                   <div class="kpi-card__body">
-                      <p class="kpi-card__overline">RINCIAN KODE PPN</p>
+                      <p class="kpi-card__overline fw-semibold mb-1" style="color: var(--text-primary);">Rincian kode PPN</p>
                       <div class="kpi-ppn-list">
                           <div class="kpi-ppn-item">
-                              <span class="kpi-ppn-label">01 — Non-Pemungut</span>
+                              <span class="kpi-ppn-label">01 · Non-Pemungut</span>
                               <span class="kpi-ppn-val" id="tokabe-card-val-8">Rp {{ number_format($ppn01, 0, ',', '.') }}</span>
                               <span id="tokabe-card-count-8" class="d-none">{{ $ppn01Count }}</span>
                           </div>
                           <div class="kpi-ppn-item">
-                              <span class="kpi-ppn-label">02 — Pemerintah</span>
+                              <span class="kpi-ppn-label">02 · Pemerintah</span>
                               <span class="kpi-ppn-val" id="tokabe-card-val-9">Rp {{ number_format($ppn02, 0, ',', '.') }}</span>
                               <span id="tokabe-card-count-9" class="d-none">{{ $ppn02Count }}</span>
                           </div>
                           <div class="kpi-ppn-item">
-                              <span class="kpi-ppn-label">03 — BUMN</span>
+                              <span class="kpi-ppn-label">03 · BUMN</span>
                               <span class="kpi-ppn-val" id="tokabe-card-val-10">Rp {{ number_format($ppn03, 0, ',', '.') }}</span>
                               <span id="tokabe-card-count-10" class="d-none">{{ $ppn03Count }}</span>
                           </div>
                           <div class="kpi-ppn-item">
-                              <span class="kpi-ppn-label">04 — Nilai Lain</span>
+                              <span class="kpi-ppn-label">04 · Nilai Lain</span>
                               <span class="kpi-ppn-val" id="tokabe-card-val-11">Rp {{ number_format($ppn04, 0, ',', '.') }}</span>
                               <span id="tokabe-card-count-11" class="d-none">{{ $ppn04Count }}</span>
                           </div>
@@ -1741,36 +1394,36 @@
 
           <div class="col-12">
 
-              <div class="card" style="background:var(--bg-surface,#0F172A);border:1px solid var(--border-subtle,#1E293B);border-radius:var(--radius-lg,12px);box-shadow:var(--shadow-xs,0 1px 2px rgb(0 0 0/0.5));">
+              <div class="card">
 
-                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3 p-3" style="background: transparent; border-bottom: 1px solid var(--border-subtle, #1E293B);">
+                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3 p-3">
                       <!-- Quick Status Filters -->
-                      <div class="d-flex flex-wrap align-items-center gap-2">
+                      <div class="tkb-status-pills">
                           <button type="button" class="filter-tab-pill active" onclick="filterTableStatus(this, '')">
-                              <i class="ri-apps-line"></i> Semua ({{ $penjualan->count() }})
+                              Semua ({{ $penjualan->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Lunas')">
-                              <i class="ri-checkbox-circle-fill text-success"></i> Lunas ({{ $penjualan->where('status', 'Lunas')->count() }})
+                              <span style="width:7px;height:7px;border-radius:50%;background:var(--success);display:inline-block;"></span> Lunas ({{ $penjualan->where('status', 'Lunas')->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Belum Lunas')">
-                              <i class="ri-time-fill text-warning"></i> Belum Lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
+                              <span style="width:7px;height:7px;border-radius:50%;background:var(--warning);display:inline-block;"></span> Belum lunas ({{ $penjualan->where('status', 'Belum Lunas')->count() }})
                           </button>
                           <button type="button" class="filter-tab-pill" onclick="filterTableStatus(this, 'Batal')">
-                              <i class="ri-close-circle-fill text-danger"></i> Batal ({{ $penjualan->where('status', 'Batal')->count() }})
+                              <span style="width:7px;height:7px;border-radius:50%;background:var(--danger);display:inline-block;"></span> Batal ({{ $penjualan->where('status', 'Batal')->count() }})
                           </button>
                       </div>
 
-                      <div class="d-flex flex-wrap align-items-center gap-2">
-                          <div class="d-inline-flex align-items-center gap-2">
-                              <label for="filter-jenis-transaksi" class="mb-0 text-muted" style="font-size: 12px; font-weight: 600;">Jenis Transaksi:</label>
-                              <select id="filter-jenis-transaksi" class="form-select form-select-sm dash-select" style="min-width: 155px; height: 32px; font-size: 12.5px;" onchange="filterTableJenisTransaksi(this.value)">
-                                  <option value="">Semua Transaksi</option>
+                      <div class="d-flex flex-wrap align-items-center gap-2 tkb-inv-filter-right">
+                          <div class="d-inline-flex align-items-center gap-2 tkb-inv-jenis-wrap">
+                              <label for="filter-jenis-transaksi" class="mb-0" style="font-size: 12.5px; font-weight: 500; color: var(--text-tertiary);">Jenis transaksi</label>
+                              <select id="filter-jenis-transaksi" class="form-select form-select-sm dash-select" style="min-width: 155px;" onchange="filterTableJenisTransaksi(this.value)">
+                                  <option value="">Semua transaksi</option>
                                   <option value="PADI UMKM">PADI UMKM ({{ $penjualan->where('is_padi_umkm', true)->count() }})</option>
                                   <option value="Non-PADI UMKM">Non-PADI UMKM ({{ $penjualan->where('is_padi_umkm', false)->count() }})</option>
                               </select>
                           </div>
-                          <button type="button" id="btn-toggle-all-rows" class="btn btn-sm" style="background: rgba(99, 102, 241, 0.15); color: #C7D2FE; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px;">
-                              <i class="ri-expand-diagonal-line me-1"></i><span id="text-toggle-all-rows">Buka Semua Rincian</span>
+                          <button type="button" id="btn-toggle-all-rows" class="btn btn-sm">
+                              <span id="text-toggle-all-rows">Buka semua rincian</span>
                           </button>
                       </div>
                   </div>
@@ -1839,11 +1492,11 @@
                                           </div>
                                       </td>
 
-                                      <td><span class="text-white fw-medium">{{$inv->customer}}</span></td>
+                                      <td><span class="fw-medium" style="color: var(--text-primary);">{{$inv->customer}}</span></td>
 
-                                      <td><span style="font-family: monospace; font-size: 13px; color: #CBD5E1;">{{$inv->no_telepon ?: "-"}}</span></td>
+                                      <td><span style="font-family: monospace; font-size: 13px; color: var(--text-secondary);">{{$inv->no_telepon ?: "-"}}</span></td>
 
-                                      <td data-order="{{ $inv->tgl_penjualan }}"><span class="text-white">{{$inv->formatted_tgl_penjualan}}</span>
+                                      <td data-order="{{ $inv->tgl_penjualan }}"><span style="color: var(--text-primary); font-weight: 500;">{{$inv->formatted_tgl_penjualan}}</span>
 
                                         @if ($inv->updated_at != $inv->created_at)
 
@@ -1945,9 +1598,9 @@
 
 
                                       {{-- Panjar & Total: tabular-nums, rata kanan --}}
-                                      <td data-order="{{ (float)($inv->dp ?? 0) }}" style="text-align:right; font-variant-numeric:tabular-nums; color:#CBD5E1;">Rp {{$inv->formatted_dp}}</td>
+                                      <td data-order="{{ (float)($inv->dp ?? 0) }}" style="text-align:right; font-variant-numeric:tabular-nums; color:var(--text-secondary);">Rp {{$inv->formatted_dp}}</td>
 
-                                      <td data-order="{{ (float)($inv->total_pembayaran ?? 0) }}" style="text-align:right; font-weight:600; font-variant-numeric:tabular-nums; color:#FFFFFF;">Rp {{$inv->formatted_total_pembayaran}}</td>                                      {{-- Badge Tipe Pembayaran (DESIGN.md §14.1) --}}
+                                      <td data-order="{{ (float)($inv->total_pembayaran ?? 0) }}" style="text-align:right; font-weight:700; font-variant-numeric:tabular-nums; color:var(--text-primary);">Rp {{$inv->formatted_total_pembayaran}}</td>                                      {{-- Badge Tipe Pembayaran (DESIGN.md §14.1) --}}
                                       <td class="text-center">
                                           @if ($inv->jenis_pembayaran == 'Cash Lunas' || $inv->jenis_pembayaran == 'Cash')
                                               <span class="badge badge-payment--cash-lunas">{{ $inv->jenis_pembayaran }}</span>
@@ -1972,7 +1625,7 @@
                                           @endif
                                       </td>
 
-                                      <td><span style="color:#CBD5E1;">{{ $inv->user ? $inv->user->nama : "-" }}</span></td>
+                                      <td><span style="color:var(--text-secondary);">{{ $inv->user ? $inv->user->nama : "-" }}</span></td>
 
                                       <td class="text-center">
 
@@ -2134,10 +1787,9 @@
 
                                                   <li>
 
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="https://wa.me/{{ $no_hp_cust }}?text={{ urlencode($pesan_cust) }}" target="_blank">
-                                                      <a class="dropdown-item" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--text-primary,#F1F5F9);" href="https://web.whatsapp.com/send?phone={{ $no_hp_cust }}&text={{ urlencode($pesan_cust) }}" target="_blank">
+                                                      <a class="dropdown-item" href="https://web.whatsapp.com/send?phone={{ $no_hp_cust }}&text={{ urlencode($pesan_cust) }}" target="_blank">
 
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Kirim Invoice (WA)
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success);flex-shrink:0;"></i>Kirim invoice (WA)
 
                                                       </a>
 
@@ -2182,15 +1834,13 @@
                                                   {{-- === ADMIN: Pengajuan Edit & Unlock via WA (+62 811-6029-999) jika status Terkunci === --}}
                                                   @if($isAdminTkb && $inv->approval !== 'Unlock')
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--edit" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgEditTkb }}" target="_blank" rel="noopener noreferrer">
-                                                      <a class="dropdown-item invoice-request invoice-request--edit" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgEditTkb }}" target="_blank" rel="noopener noreferrer">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Edit (WA)
+                                                      <a class="dropdown-item invoice-request invoice-request--edit" style="color:var(--warning-text);" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgEditTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success);flex-shrink:0;"></i>Request Edit (WA)
                                                       </a>
                                                   </li>
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--unlock" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgUnlockTkb }}" target="_blank" rel="noopener noreferrer">
-                                                      <a class="dropdown-item invoice-request invoice-request--unlock" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgUnlockTkb }}" target="_blank" rel="noopener noreferrer">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Unlock (WA)
+                                                      <a class="dropdown-item invoice-request invoice-request--unlock" style="color:var(--warning-text);" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgUnlockTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success);flex-shrink:0;"></i>Request Unlock (WA)
                                                       </a>
                                                   </li>
                                                   @endif
@@ -2198,9 +1848,8 @@
                                                   {{-- === ADMIN: Request Pelunasan via WA (+62 811-6029-999) === --}}
                                                   @if($isAdminTkb && $inv->status !== 'Lunas' && $inv->status !== 'Batal')
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--settlement" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgLunasTkb }}" target="_blank" rel="noopener noreferrer">
-                                                      <a class="dropdown-item invoice-request invoice-request--settlement" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgLunasTkb }}" target="_blank" rel="noopener noreferrer">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Pelunasan (WA)
+                                                      <a class="dropdown-item invoice-request invoice-request--settlement" style="color:var(--warning-text);" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgLunasTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success);flex-shrink:0;"></i>Request Pelunasan (WA)
                                                       </a>
                                                   </li>
                                                   @endif
@@ -2208,9 +1857,8 @@
                                                   {{-- === ADMIN: Request Batal via WA (+62 811-6029-999) === --}}
                                                   @if($isAdminTkb && $inv->status !== 'Batal')
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--cancel" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgBatalTkb }}" target="_blank" rel="noopener noreferrer">
-                                                      <a class="dropdown-item invoice-request invoice-request--cancel" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--warning-text,#FCD34D);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgBatalTkb }}" target="_blank" rel="noopener noreferrer">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Batal (WA)
+                                                      <a class="dropdown-item invoice-request invoice-request--cancel" style="color:var(--warning-text);" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgBatalTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success);flex-shrink:0;"></i>Request Batal (WA)
                                                       </a>
                                                   </li>
                                                   @endif
@@ -2218,9 +1866,8 @@
                                                   {{-- === ADMIN: Request Hapus via WA (+62 811-6029-999) === --}}
                                                   @if($isAdminTkb)
                                                   <li>
-                                                      <a class="dropdown-item invoice-request invoice-request--delete" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://wa.me/{{ $waTargetTkb }}?text={{ $msgHapusTkb }}" target="_blank" rel="noopener noreferrer">
-                                                      <a class="dropdown-item invoice-request invoice-request--delete" style="display:flex;align-items:center;gap:8px;min-height:36px;padding:8px 10px;border-radius:6px;font-size:14px;color:var(--danger,#EF4444);font-weight:500;" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgHapusTkb }}" target="_blank" rel="noopener noreferrer">
-                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success,#10B981);flex-shrink:0;"></i>Request Hapus (WA)
+                                                      <a class="dropdown-item invoice-request invoice-request--delete" style="color:var(--danger-text);" href="https://web.whatsapp.com/send?phone={{ $waTargetTkb }}&text={{ $msgHapusTkb }}" target="_blank" rel="noopener noreferrer">
+                                                          <i class="ri-whatsapp-line" style="font-size:16px;color:var(--success);flex-shrink:0;"></i>Request Hapus (WA)
                                                       </a>
                                                   </li>
                                                   @endif
